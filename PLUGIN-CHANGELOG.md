@@ -13,12 +13,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## v2.4.1 — fix(qmd, /update): drop stale `--qmd` flag from docs
+## v2.4.1 — fix(qmd, /update): drop stale `--qmd` / `--remove-qmd` flags from docs
 
-CLI dropped the `--qmd` option from `onebrain register-hooks` in v2.1.0 (auto-detects from `vault.yml`'s `qmd_collection` instead), but two plugin docs still told users and `/update` to pass it. On Windows running `/update` after upgrading to CLI v2.2.1+ surfaced this as an "unknown option" error from commander.
+CLI dropped both `--qmd` and `--remove-qmd` from `onebrain register-hooks` in v2.1.0 (auto-detects from `vault.yml`'s `qmd_collection` instead — present registers the hook, absent strips it). Three plugin docs still told users and `/update` to pass these flags. On Windows after upgrading to CLI v2.2.1+, both `/update` and `/qmd uninstall` surfaced this as `unknown option` errors from commander.
 
-- fix(skills/qmd/SKILL.md): Step 8 now runs `onebrain register-hooks` (no flag); auto-detects qmd from vault.yml.
-- fix(skills/update/references/migration-steps.md): Step 6 merges the qmd hook bullet into the unconditional `register-hooks` call — no separate `--qmd` invocation.
+- fix(skills/qmd/SKILL.md): Step 8 (`/qmd setup`) and Step 4b (`/qmd uninstall`) now run `onebrain register-hooks` (no flag); auto-detects from vault.yml.
+- fix(skills/update/references/migration-steps.md): Step 6 merges the qmd-hook bullet into the unconditional `register-hooks` call — no separate `--qmd` invocation.
 
 ## v2.4.0 — feat(07-logs): subfolder restructure + per-skill log entries
 
