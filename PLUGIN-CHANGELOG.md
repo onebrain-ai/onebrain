@@ -1,6 +1,6 @@
 ---
-latest_version: 2.3.3
-released: 2026-05-07
+latest_version: 2.3.4
+released: 2026-05-10
 ---
 
 # Plugin Changelog
@@ -12,6 +12,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
+
+## v2.3.4 — docs(instructions): add 7 universal Working Principles
+
+Expand the `## Working Principles` section in `INSTRUCTIONS.md` with seven additional rules that apply to every OneBrain user across every workflow — not dev-specific. Source: audit of recurring agent-collaboration patterns (verify before asserting, root-cause analysis, draft-first for creative work, real-time plan status, long-task delegation, equanimity under pushback, change propagation).
+
+- docs(INSTRUCTIONS.md): `## Working Principles` grows from 4 bullets to 11. Existing 4 bullets unchanged. New rules use neutral language applicable to writing, research, design, planning, organization — not just code.
+- docs(INSTRUCTIONS.md): new bullets — *Verify before asserting · Find the cause, not the symptom · Show a draft before extensive work · Update plan and task status in real time · Move long-running work off the critical path · Hold position when only the pressure changed · Propagate changes to related places.*
 
 ## v2.3.3 — feat(wrapup): PR #156 follow-ups (configurable threshold + recovered-log marker + fallback row)
 
