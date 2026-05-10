@@ -118,8 +118,10 @@ onebrain qmd-reindex
 Then register the PostToolUse hook so the index stays in sync automatically (run from vault root):
 
 ```bash
-onebrain register-hooks --qmd
+onebrain register-hooks
 ```
+
+`register-hooks` reads `qmd_collection` from `vault.yml` (written in Step 7) and registers the PostToolUse hook automatically. No flag needed.
 
 If the reindex fails, show the error : the collection is created but not indexed. User can run `/qmd reindex` to retry.
 

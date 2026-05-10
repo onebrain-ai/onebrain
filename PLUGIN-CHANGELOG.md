@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.0
+latest_version: 2.4.1
 released: 2026-05-10
 ---
 
@@ -12,6 +12,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
+
+## v2.4.1 — fix(qmd, /update): drop stale `--qmd` flag from docs
+
+CLI dropped the `--qmd` option from `onebrain register-hooks` in v2.1.0 (auto-detects from `vault.yml`'s `qmd_collection` instead), but two plugin docs still told users and `/update` to pass it. On Windows running `/update` after upgrading to CLI v2.2.1+ surfaced this as an "unknown option" error from commander.
+
+- fix(skills/qmd/SKILL.md): Step 8 now runs `onebrain register-hooks` (no flag); auto-detects qmd from vault.yml.
+- fix(skills/update/references/migration-steps.md): Step 6 merges the qmd hook bullet into the unconditional `register-hooks` call — no separate `--qmd` invocation.
 
 ## v2.4.0 — feat(07-logs): subfolder restructure + per-skill log entries
 
