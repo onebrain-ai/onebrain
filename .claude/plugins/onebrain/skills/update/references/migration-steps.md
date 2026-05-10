@@ -95,13 +95,8 @@ Always: update `updated:` frontmatter to today.
 
 Runs every /update — idempotent. Ensures all hooks point to the correct script.
 
-- Run `onebrain register-hooks` — registers Stop hook; removes stale onebrain entries from any other hook event (PreCompact, PostCompact, UserPromptSubmit, etc.); preserves user-added non-onebrain hooks under the same events
+- Run `onebrain register-hooks` — registers Stop hook; auto-registers PostToolUse qmd hook when `qmd_collection` is set in vault.yml; removes stale onebrain entries from any other hook event (PreCompact, PostCompact, UserPromptSubmit, etc.); preserves user-added non-onebrain hooks under the same events
 - Check output: "all hooks already registered" → ✅ done; "added X" → ✅ registered
-
-**PostToolUse qmd hook (only when `qmd_collection` is set in vault.yml):**
-- If `qmd_collection` is absent in vault.yml: skip
-- If `qmd_collection` is present: run `onebrain register-hooks --qmd`
-  - Check output: "all hooks already registered" → ✅ done; "added PostToolUse" → ✅ registered
 
 **Bash permission for onebrain CLI:**
 - Read `[vault]/.claude/settings.json` fresh (after `onebrain register-hooks` has written to it); check `permissions.allow` contains `"Bash(onebrain *)"` — if missing, add it using an inline Python snippet or targeted JSON edit. Never rewrite the entire file. Example:

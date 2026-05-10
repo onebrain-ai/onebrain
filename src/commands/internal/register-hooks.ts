@@ -212,10 +212,14 @@ function isLegacyQmdCmd(cmd: string): boolean {
  *   is normalized to `QMD_MATCHER` so a fresh install and a migrated install
  *   converge to the same shape.
  * - When `keepCanonical` is false (no `qmd_collection` in vault.yml — the user
- *   no longer uses qmd), legacy entries are dropped from their groups, and any
+ *   no longer uses qmd), both legacy `qmd update …` entries and canonical
+ *   `onebrain qmd-reindex` entries are dropped from their groups, and any
  *   group that becomes empty is removed. Without this, deleting `qmd_collection`
- *   from vault.yml would leave the legacy hook firing forever against a
- *   collection that no longer exists.
+ *   from vault.yml (or running `/qmd uninstall`) would leave the hook firing
+ *   forever against a collection that no longer exists. `qmd_collection`'s
+ *   absence is the authoritative signal that qmd is not in use — so the
+ *   PostToolUse hook should not survive it, even if the user previously
+ *   registered the canonical entry by hand.
  *
  * After in-place rewriting, duplicate canonical entries are deduped to one,
  * so a vault that already had a canonical entry plus a legacy entry doesn't
@@ -249,7 +253,10 @@ function migrateLegacyQmdEntries(groups: HookGroup[], keepCanonical: boolean): b
       }
     } else {
       const before = group.hooks.length;
-      group.hooks = group.hooks.filter((h) => !isLegacyQmdCmd(h.command ?? ''));
+      group.hooks = group.hooks.filter((h) => {
+        const cmd = h.command ?? '';
+        return !isLegacyQmdCmd(cmd) && cmd !== QMD_CMD;
+      });
       if (group.hooks.length !== before) touched = true;
     }
   }
