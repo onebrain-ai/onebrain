@@ -633,6 +633,35 @@ describe('qmd PostToolUse hook via vault.yml qmd_collection', () => {
     expect(cmds).toEqual(['echo user-custom-hook']);
   });
 
+  test('qmd disabled with mixed canonical + user hooks → strips canonical, keeps user entry', async () => {
+    // Pin the invariant: canonical-stripping must filter by command value,
+    // never by matcher or group membership. A future refactor that swept by
+    // matcher would silently nuke the user's hook — this test catches that.
+    await writeFile(join(vaultDir, 'vault.yml'), 'method: onebrain\n', 'utf8');
+    await writeFile(
+      join(vaultDir, '.claude', 'settings.json'),
+      JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: 'Write|Edit',
+              hooks: [
+                { type: 'command', command: 'onebrain qmd-reindex' },
+                { type: 'command', command: 'echo user-custom-hook' },
+              ],
+            },
+          ],
+        },
+      }),
+      'utf8',
+    );
+
+    await runRegisterHooks({ vaultDir });
+
+    const cmds = await readPostToolUseCommands(vaultDir);
+    expect(cmds).toEqual(['echo user-custom-hook']);
+  });
+
   test('two pre-existing canonical entries (no legacy) → dedupes to one', async () => {
     // Pathological state from a hand-edit or partial prior run. Even when
     // there's nothing legacy to migrate, the dedup pass must keep a single
