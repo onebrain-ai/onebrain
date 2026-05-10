@@ -138,6 +138,35 @@ Embeddings: {ready / not yet — run /qmd embed to enable semantic search}
 → Run /qmd status to check index health
 → Run /qmd uninstall to remove qmd integration
 
+### Step 10: Write Log Entry
+
+Append an audit-log entry for this setup run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-qmd-setup.md`
+- **Behavior:** append per (subcommand, day). One file per qmd subcommand per day; same subcommand same day → append a `## Run HH:MM` section. Different qmd subcommands produce separate files (e.g. `…qmd-setup.md`, `…qmd-embed.md`).
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, qmd]
+created: YYYY-MM-DD
+---
+
+# qmd setup — YYYY-MM-DD
+
+## Run HH:MM
+- Collection: {collection-name}
+- Files indexed: N
+- Chunks generated: M
+- Errors: 0
+- Duration: Xs
+```
+
+When appending to an existing daily file, omit the frontmatter and `# qmd setup — YYYY-MM-DD` heading — start at `## Run HH:MM`.
+
 ---
 
 ## /qmd embed
@@ -183,6 +212,34 @@ Report completion or any errors.
 
 Say:
 ✅ Embeddings generated. Semantic search now active — use natural language queries.
+
+### Step 5: Write Log Entry
+
+Append an audit-log entry for this embed run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-qmd-embed.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, qmd]
+created: YYYY-MM-DD
+---
+
+# qmd embed — YYYY-MM-DD
+
+## Run HH:MM
+- Files indexed: N
+- Chunks generated: M
+- Errors: 0
+- Duration: Xs
+```
+
+When appending, omit the frontmatter and `# qmd embed — YYYY-MM-DD` heading — start at `## Run HH:MM`.
 
 ---
 
@@ -242,6 +299,34 @@ Report progress and any errors.
 Say:
 > Index updated. All vault notes are now searchable.
 
+### Step 4: Write Log Entry
+
+Append an audit-log entry for this reindex run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-qmd-reindex.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, qmd]
+created: YYYY-MM-DD
+---
+
+# qmd reindex — YYYY-MM-DD
+
+## Run HH:MM
+- Files indexed: N
+- Chunks generated: M
+- Errors: 0
+- Duration: Xs
+```
+
+When appending, omit the frontmatter and `# qmd reindex — YYYY-MM-DD` heading — start at `## Run HH:MM`.
+
 ---
 
 ## /qmd uninstall
@@ -296,6 +381,33 @@ Say:
 > qmd search disabled for this vault. The agent will use standard Glob/Grep/Read search.
 >
 > You can re-enable anytime with `/qmd setup`.
+
+### Step 6: Write Log Entry
+
+Append an audit-log entry for this uninstall run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-qmd-uninstall.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, qmd]
+created: YYYY-MM-DD
+---
+
+# qmd uninstall — YYYY-MM-DD
+
+## Run HH:MM
+- Collection removed: {collection-name}
+- vault.yml: qmd_collection key removed
+- PostToolUse hook: removed
+```
+
+When appending, omit the frontmatter and `# qmd uninstall — YYYY-MM-DD` heading — start at `## Run HH:MM`.
 
 ---
 

@@ -1,6 +1,6 @@
 ---
-latest_version: 2.2.1
-released: 2026-05-07
+latest_version: 2.2.2
+released: 2026-05-10
 ---
 
 # CLI Changelog
@@ -12,6 +12,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > For plugin changes (skills, agents, hooks, INSTRUCTIONS), see [PLUGIN-CHANGELOG.md](PLUGIN-CHANGELOG.md).
 
 ## [Unreleased]
+
+## v2.2.2 — fix(orphan-scan): read from flat `checkpoint/` subfolder
+
+Companion to plugin v2.4.0's 07-logs restructure. `orphan-scan` now scans the post-v2.4.0 layout (checkpoints flat in `[logs_folder]/checkpoint/`, session logs nested under `[logs_folder]/session/YYYY/MM/`).
+
+- fix(orphan-scan): scan `[logs_folder]/checkpoint/` (flat) instead of iterating `[logs_folder]/YYYY/MM/`. Date prefix in filename (`YYYY-MM-DD-`) drives the 2-month lookback filter — a single flat read replaces the per-month loop.
+- fix(orphan-scan): `hasManualSessionLog` resolves the session folder from the date (`[logs_folder]/session/YYYY/MM/`) instead of receiving a pre-computed monthDir. Cross-month tokens still merge into one group keyed by token.
+- test(orphan-scan): updated 38 existing tests to write checkpoints into `checkpoint/` flat dir and session logs into `session/YYYY/MM/`. New `makeCheckpointDir` and `makeSessionMonthDir` helpers; legacy `makeMonthDir`/`makeThisMonthDir` aliased to the checkpoint helper for the parameterless call sites.
 
 ## v2.2.1 — fix(orphan-scan): symmetric Active-Session Guard (PR #156 follow-ups)
 

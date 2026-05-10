@@ -59,10 +59,15 @@ Run all applicable checks based on flags (default: all). Collect findings before
 - Warn if count > 10: suggest running /consolidate
 
 **Old unmerged checkpoints:**
-- Glob `[logs_folder]/**/*-checkpoint-*.md`
+- Glob `[logs_folder]/checkpoint/*-checkpoint-*.md` (post-v2.4.0: flat directory, no `**/`)
 - Any checkpoint file that exists is unmerged by definition — /wrapup deletes checkpoints directly after the session log is confirmed written, so leftover files indicate a session that never wrapped up. Pre-v2.2.0 vaults may contain stragglers with `merged: true` from the legacy flow; treat those the same (the field is no longer authoritative)
 - Keep only files whose date (from filename) is older than 7 days
 - Suggest running /wrapup
+
+**Log folder size (housekeeping):**
+- Count files in `[logs_folder]/log/YYYY/` for the current year
+- Warn if count > 1000: 🟡 "log/ folder: N files in YYYY — consider archive (move stale log/YYYY/MM/ folders to 06-archive/ manually)". User decides retention; OneBrain has no automatic archive policy. /reorganize does NOT touch [logs_folder]/ post-v2.4.0
+- Skip silently if `log/` doesn't exist yet (pre-migration vault)
 
 ### Config Checks (`--config`)
 
@@ -185,8 +190,34 @@ Read and follow `references/migration-safety-net.md` at the end of every `/docto
 
 ## On Completion
 
-Update `vault.yml` `stats.last_doctor_run: YYYY-MM-DD`.
-If `--fix` was run: also update `stats.last_doctor_fix: YYYY-MM-DD`.
+1. Update `vault.yml` `stats.last_doctor_run: YYYY-MM-DD`. If `--fix` was run: also update `stats.last_doctor_fix: YYYY-MM-DD`.
+
+2. **Write doctor log entry** to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-doctor.md` (append per day, sections per run). Format:
+
+   ```markdown
+   ---
+   tags: [doctor-log]
+   created: YYYY-MM-DD
+   ---
+
+   # Doctor Report — YYYY-MM-DD
+
+   ## Run HH:MM
+
+   ### Findings
+   - 🔴/🟡/✅ <one line per finding from Step 3>
+
+   ### Fixes Applied
+   - <one line per fix from Step 4 if --fix was run, otherwise: (none — diagnostic only)>
+
+   ### Recommendations
+   - <one line per actionable recommendation>
+   ```
+
+   - Append `## Run HH:MM` section if today's file already exists; create the file with frontmatter + first run section if not.
+   - Time = local time at run start, format `HH:MM` (24-hour).
+   - Create `[logs_folder]/log/YYYY/MM/` if missing.
+   - On write failure: report the error to the user and continue — the doctor report on screen is the primary output; the log entry is supplementary.
 
 ---
 

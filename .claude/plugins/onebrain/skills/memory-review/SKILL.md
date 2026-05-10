@@ -150,6 +150,39 @@ After the review session ends:
 
 Note: If more than 40 entries, review shows all entries sequentially (no truncation needed — user controls pace via manage.../stop).
 
+## Write Log Entry
+
+After completion, append an audit-log entry for this /memory-review session.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-memory.md`
+- **Shared file:** `/memory-review` and `/learn` both append to this same daily file. Always **append** a new `## HH:MM /memory-review` section — never overwrite the file. If `/learn` ran earlier today (or runs later), its `## HH:MM /learn` sections must coexist in the same file.
+- **Behavior:** if today's file exists → append a new `## HH:MM /memory-review` section. If not → create with the frontmatter + heading + first section below.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Entry types written by /memory-review:** `updated` (confirm via update flow), `deprecated` (manage → deprecate), `deleted` (manage → delete confirmed). `keep` actions do not need their own bullets — they only bump `verified` — but they may be summarized in a one-line tally bullet.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+- **Edge case:** if the user invoked **stop** without any committed action, skip writing this entry.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, memory]
+created: YYYY-MM-DD
+---
+
+# Memory Changes — YYYY-MM-DD
+
+## HH:MM /memory-review
+- **deleted** memory/feedback_outdated.md
+  - Reason: superseded by feedback_new_workflow
+  - Last content snippet: "always use bun install (replaced by /update)"
+- **deprecated** memory/project_omnibrain.md
+  - Reason: project folded into OneBrain Cloud (2026-05-04)
+  - Status: status: archived
+```
+
+When appending to an existing daily file, write only the `## HH:MM /memory-review` block — do not duplicate frontmatter or the `# Memory Changes — YYYY-MM-DD` heading.
+
 ## Edge Cases
 
 - If entry's row is missing from MEMORY-INDEX.md but file exists in memory/ (out of sync) →

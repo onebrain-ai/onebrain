@@ -11,7 +11,7 @@ Behaviors are promoted exclusively via /learn.
 
 ## Session Log Discovery
 
-Glob `[logs_folder]/**/*-session-*.md`; filter to files WITHOUT `recapped:` frontmatter field.
+Glob `[logs_folder]/session/**/*-session-*.md` (post-v2.4.0: session logs live under the dedicated `session/` subfolder); filter to files WITHOUT `recapped:` frontmatter field.
 Process only those (faster than scanning all logs).
 
 If no unrecapped logs found → tell user "No unrecapped session logs found." and stop.
@@ -139,6 +139,42 @@ Each insight that passes the frequency filter:
 - Update MEMORY-INDEX.md `updated:` and `total_active` counter
 
 Do NOT write to MEMORY.md. Critical Behaviors are promoted exclusively via /learn.
+
+## Write Log Entry
+
+Append an audit-log entry for this run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-recap.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM` section. If not → create the file with the frontmatter + first section below.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** if the write fails, report it to the user in one line and continue — log entry is supplementary, not blocking.
+
+Template (used to create the file or as the new section to append):
+
+```markdown
+---
+tags: [audit-log, recap]
+created: YYYY-MM-DD
+---
+
+# Recap — YYYY-MM-DD
+
+## Run HH:MM
+
+### Memory Changes
+- **created** memory/feedback_X.md — "always do Y" (frequency: 3 sessions)
+- **updated** memory/project_active.md — added Studio milestone
+- **deprecated** memory/feedback_old_pattern.md — superseded by feedback_X
+
+### Source Sessions
+- 07-logs/session/2026/05/2026-05-08-session-02.md
+- 07-logs/session/2026/05/2026-05-09-session-01.md
+
+### Skipped (insufficient frequency)
+- "use bun for everything" — only 1 occurrence
+```
+
+When appending to an existing file, omit the frontmatter and `# Recap — YYYY-MM-DD` heading — start the appended block at `## Run HH:MM`.
 
 ## Output
 

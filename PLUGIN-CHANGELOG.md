@@ -1,5 +1,5 @@
 ---
-latest_version: 2.3.4
+latest_version: 2.4.0
 released: 2026-05-10
 ---
 
@@ -12,6 +12,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
 
 ## [Unreleased]
+
+## v2.4.0 — feat(07-logs): subfolder restructure + per-skill log entries
+
+Restructure `07-logs/` into 4 typed subfolders and add audit log entries for 11 skills. Companion CLI release v2.2.2 updates `orphan-scan` to read from the new flat `checkpoint/` directory.
+
+- feat(07-logs): split into `session/YYYY/MM/`, `checkpoint/` (flat), `update/` (flat), `log/YYYY/MM/`. Mental model: session/checkpoint = NN per run, everything else = append per day.
+- feat(/update): one-shot, idempotent migration moves existing files to the new layout (preserve YYYY/MM for session, flatten for checkpoint+update). Migration log appended to the run's update log; verification via pre/post counts.
+- feat(startup): legacy structure detection in INSTRUCTIONS Step 3 → ⚠️ banner if `[logs_folder]/session/` is missing AND `[logs_folder]/YYYY/` exists; nudges user to run /update.
+- feat(skills): /recap, /distill, /memory-review, /learn, /consolidate, /connect, /reorganize, /onboarding, /qmd, /clone, /doctor each write a log entry to `log/YYYY/MM/YYYY-MM-DD-{skill}.md` (append per day; /distill and /qmd discriminated by topic-slug / subcommand).
+- feat(/wrapup): orphan recovery scan now reads flat `checkpoint/` filtered to current+prev month (mirrors orphan-scan); writes session log to `session/YYYY/MM/`; cross-midnight handling simplified — date math only, no folder math.
+- feat(/doctor): adds housekeeping warning when `log/YYYY/` exceeds 1000 files; checkpoint glob switched to `checkpoint/*-checkpoint-*.md` (flat).
+- fix(checkpoint-hook.sh): writes to flat `checkpoint/` regardless of date.
+- chore(INSTRUCTIONS): file-naming, Recalling Information, Auto-Checkpoint sections updated to new paths.
 
 ## v2.3.4 — docs(instructions): establish 11 iron-rule Working Principles
 

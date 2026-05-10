@@ -135,6 +135,39 @@ If the user asks to retro-tag existing notes (e.g. "update all notes in 01-proje
 
 ---
 
+## Step 9: Write Log Entry
+
+Append an audit-log entry for this connect run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-connect.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM (scope: ...)` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **No links applied:** if no wikilinks were approved/implemented in Step 5 (and no Step 8 retro-tag changes were written), skip writing — there is nothing to log.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, connect]
+created: YYYY-MM-DD
+---
+
+# Connect — YYYY-MM-DD
+
+## Run HH:MM (scope: knowledge-folder)
+
+### Wikilinks added
+- `03-knowledge/ai/Foo.md` → added `[[Bar]]`, `[[Baz]]`
+- `03-knowledge/dev/Qux.md` → added `[[Foo]]`
+
+### Total: N links added across M notes
+```
+
+When appending to an existing daily file, omit the frontmatter and `# Connect — YYYY-MM-DD` heading — start at `## Run HH:MM (...)`.
+
+---
+
 ## Known Gotchas
 
 - **"Entire knowledge base" scope can be very large.** If note count exceeds 20, Step 2b delegates to the Knowledge Linker agent — the inline Steps 3-4 path is only for small scopes. Do not try to hold hundreds of notes in context.

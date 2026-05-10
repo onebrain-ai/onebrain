@@ -154,6 +154,43 @@ onebrain qmd-reindex
 
 ---
 
+## Step 7: Write Log Entry
+
+Append an audit-log entry for this consolidate run.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-consolidate.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM (N inbox files processed)` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Empty inbox:** if Step 1 found nothing to process, skip writing — there is nothing to log.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, consolidate]
+created: YYYY-MM-DD
+---
+
+# Consolidate — YYYY-MM-DD
+
+## Run HH:MM (N inbox files processed)
+
+### Moved
+- `00-inbox/2026-05-10-ai-thoughts.md` → `03-knowledge/ai/AI Architecture Thoughts.md` (new)
+- `00-inbox/2026-05-09-meeting-notes.md` → appended to `01-projects/finastra/Finastra.md`
+
+### Wikilinks added
+- `03-knowledge/ai/AI Architecture Thoughts.md` ↔ `[[Agent Frameworks]]`, `[[OneBrain CLI]]`
+
+### Skipped
+- `00-inbox/2026-05-08-temp.md` — too short, asked user → kept in inbox
+```
+
+When appending to an existing daily file, omit the frontmatter and `# Consolidate — YYYY-MM-DD` heading — start at `## Run HH:MM (...)`.
+
+---
+
 ## Known Gotchas
 
 - **Mixed-content notes.** Braindumps often start with a personal insight but contain project tasks, external references, and reflections all in one file. Read the FULL note before classifying — the first paragraph can be misleading about the overall content type.

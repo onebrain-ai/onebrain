@@ -112,6 +112,39 @@ After writing or updating the file, say in one line:
 
 ---
 
+## Write Log Entry
+
+After confirming, append an audit-log entry for this /learn call.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-memory.md`
+- **Shared file:** `/learn` and `/memory-review` both append to this same daily file. Always **append** a new `## HH:MM /learn` section — never overwrite the file. If `/memory-review` ran earlier today (or runs later), its `## HH:MM /memory-review` sections must coexist in the same file.
+- **Behavior:** if today's file exists → append a new `## HH:MM /learn` section. If not → create with the frontmatter + heading + first section below.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Entry types written by /learn:** `created` (new memory file) or `updated` (`update` conflict resolution merged into existing file).
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, memory]
+created: YYYY-MM-DD
+---
+
+# Memory Changes — YYYY-MM-DD
+
+## HH:MM /learn
+- **created** memory/feedback_new_workflow.md
+  - Content: "always run /update after PR merge"
+  - Source: user instruction in this session
+```
+
+When appending to an existing daily file, write only the `## HH:MM /learn` block — do not duplicate frontmatter or the `# Memory Changes — YYYY-MM-DD` heading.
+
+For each memory file touched in this call, write one bullet under the section, with `**created**` or `**updated**` as the entry type. If `supersede` was chosen, also log a `**deprecated**` bullet for the superseded file.
+
+---
+
 ## In-Skill Examples
 
 **Input:** "always run 3 review rounds before merging any PR — we got burned when a PR slipped through with a broken import"

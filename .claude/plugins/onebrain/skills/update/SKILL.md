@@ -83,6 +83,35 @@ Steps:
 
 2. Read the newly-written `[vault]/.claude/plugins/onebrain/skills/update/SKILL.md` into agent context. Follow THESE instructions (not the pre-update copy) for all remaining steps.
 3. Execute migration in this order:
+   **0. 07-logs structure migration (one-shot, idempotent)** — run BEFORE backup.
+   **Detect** (handles partial-state resume — `session/` may exist from a prior interrupted run): if `[logs_folder]/YYYY/MM/` contains ANY of `*-session-*.md`, `*-checkpoint-*.md`, or `*-update-*.md` files (recursive glob across all `YYYY/MM/` subdirectories), trigger migration regardless of whether `[logs_folder]/session/` already exists. Only skip migration entirely when no recognizable legacy log files remain in `[logs_folder]/YYYY/MM/`. This way, an interrupted migration re-runs and finishes the move; a clean post-migration vault is a no-op.
+   Migration steps (only when triggered):
+   1. **Snapshot counts** ก่อน move:
+      - `session_count` = count of `[logs_folder]/YYYY/MM/*-session-*.md` recursively
+      - `checkpoint_count` = count of `[logs_folder]/YYYY/MM/*-checkpoint-*.md` recursively
+      - `update_count` = count of `[logs_folder]/YYYY/MM/*-update-*.md` recursively
+   2. **Create new layout** (4 folders, per-shell — bash brace expansion is bash/zsh-only, not portable):
+      - **Bash / zsh**: `mkdir -p [logs_folder]/{session,checkpoint,update,log}`
+      - **PowerShell**: `'session','checkpoint','update','log' | ForEach-Object { New-Item -ItemType Directory -Force -Path "[logs_folder]/$_" | Out-Null }`
+      - **Cross-shell (preferred)**: `node -e "['session','checkpoint','update','log'].forEach(d => require('fs').mkdirSync(require('path').join('[logs_folder]', d), { recursive: true }))"`
+   3. **Move files** (`mv` — atomic within same volume; iCloud Drive vault is one volume):
+      - `*-session-*.md` → `[logs_folder]/session/YYYY/MM/` (preserve YYYY/MM nesting; `mkdir -p` per file)
+      - `*-checkpoint-*.md` → `[logs_folder]/checkpoint/` (**flatten**, drop YYYY/MM)
+      - `*-update-*.md` → `[logs_folder]/update/` (**flatten**, drop YYYY/MM)
+      - **Unknown `.md` files** (no recognized type pattern) → flag warning + skip move (left in legacy location for user review)
+      - `.gitkeep`, `.DS_Store` → ignore in old location (cleanup step removes them).
+   4. **Cleanup old structure**: remove now-empty `[logs_folder]/YYYY/MM/`, `[logs_folder]/YYYY/`. Skip removal if directory is non-empty (unknown files remained). Remove stray `.DS_Store`. Keep `[logs_folder]/.gitkeep`.
+   5. **Verify counts**: post-move recursive count under each new subfolder must match the snapshot. If mismatch → **abort `/update` entirely** with the diff (counts before/after) and the list of files left in legacy. Do NOT proceed to Step 4 below (no migration log written; the next `/update` run will re-detect the partial state via Step 0's trigger and resume). User decides whether to roll back manually (no automatic rollback — files are intact, just folder structure differs).
+   6. **Buffer migration counts in memory** (do NOT write a log file here — Step 4 below owns the update log file). Buffer:
+      ```
+      session: N files moved (preserve YYYY/MM)
+      checkpoint: N files moved (flatten)
+      update: N files moved (flatten)
+      Old YYYY/MM folders removed: N
+      Unknown .md files left in place: N (list paths if any)
+      ```
+      Step 4 below appends these as a `## Migration: 07-logs restructure` section inside the update log it writes to `[logs_folder]/update/YYYY-MM-DD-update-vX.Y.Z.md`. This avoids two skills writing to the same file in the same run.
+
    a. Pre-migration backup: copy `[agent_folder]/MEMORY.md` → `[archive_folder]/05-agent/MEMORY-YYYY-MM-DD.md`
       and `[agent_folder]/context/` → `[archive_folder]/05-agent/context.YYYY-MM-DD/` (if context/ exists)
    b. Sync remaining files — run these two sub-steps in parallel, then clean cache after both complete:
@@ -90,7 +119,7 @@ Steps:
       - **Settings merge:** WebFetch `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/settings.json`, then merge into `[vault]/.claude/settings.json`. Merge strategy (never overwrite, always additive): `permissions.allow` → union; `enabledPlugins` → merge keys (skip any `onebrain@*` key whose marketplace points to a `directory` source — repo-dev-only, not valid in vault context); `extraKnownMarketplaces` → skip (repo-dev-only config, not valid in vault context); `hooks` → skip (handled by migration Step 6).
    c. Once all step 3b sub-steps are complete, load `[vault]/.claude/plugins/onebrain/skills/update/references/migration-steps.md` and run all 8 migration steps
    d. Bump `plugin.json` version to `{new}` (last — completion signal; do not bump early)
-4. Write migration log to `[logs_folder]/YYYY/MM/YYYY-MM-DD-update-vX.X.X.md`:
+4. Write migration log to `[logs_folder]/update/YYYY-MM-DD-update-vX.X.X.md` (post-v2.4.0: flat directory, no YYYY/MM). **Create the `update/` directory if missing** (`mkdir -p [logs_folder]/update` or per-shell equivalent) — fresh post-v2.4.0 vaults that never ran the migration won't have the dir yet, so Step 4 must self-bootstrap.
 
    ```markdown
    ---
@@ -121,6 +150,17 @@ Steps:
    - Mark each step `[x]` on completion; leave `[ ]` if skipped (with reason)
    - If a step had nothing to do (e.g. context/ already absent), write `[x] Step 2: Skipped — context/ not present`
    - If /doctor found issues in Step 7, list them under the step line
+   - **If Step 0 (07-logs structure migration) completed successfully** (sub-step 6 buffer exists), append the buffered counts as a `## Migration: 07-logs restructure` section after `## Summary`. If Step 0 aborted at sub-step 5 (count mismatch), this Step 4 must not run at all — the abort halts `/update` before reaching here:
+     ```
+     ## Migration: 07-logs restructure
+
+     - session: N files moved (preserve YYYY/MM)
+     - checkpoint: N files moved (flatten)
+     - update: N files moved (flatten)
+     - Old YYYY/MM folders removed: N
+     - Unknown .md files left in place: N (list paths if any)
+     ```
+     Skip this section entirely if Step 0 was a no-op (clean post-migration vault).
 
 5. Report summary to user:
 
@@ -139,7 +179,7 @@ Steps:
 ──────────────────────────────────────────────────────────────
 🔄 Dry Run — v{current} → v{new}
 ──────────────────────────────────────────────────────────────
-Would create: `[logs_folder]/YYYY/MM/YYYY-MM-DD-update-vX.X.X.md`
+Would create: `[logs_folder]/update/YYYY-MM-DD-update-vX.X.X.md`
 Would modify: `[agent_folder]/MEMORY.md` — remove Key Learnings section
 Would create: `[agent_folder]/memory/kebab-topic.md`
 Would delete: `[agent_folder]/context/`

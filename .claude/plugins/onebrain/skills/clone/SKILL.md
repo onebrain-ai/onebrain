@@ -132,6 +132,38 @@ Then say:
 
 ---
 
+## Step 5: Write Log Entry
+
+Append an audit-log entry for this clone run. Applies to both Step 4a (Folder Copy) and Step 4b (Display Paths).
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-clone.md`
+- **Behavior:** append per day. If today's file exists → append a new `## Run HH:MM` section. If not → create with frontmatter + first section.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue — log entry is supplementary, not blocking.
+
+Template (file creation form):
+
+```markdown
+---
+tags: [audit-log, clone]
+created: YYYY-MM-DD
+---
+
+# Clone — YYYY-MM-DD
+
+## Run HH:MM
+- Source vault: /Users/keng/.../ob-1
+- Destination: /tmp/clone-target/
+- Files copied: N
+- Memory bundle: included (12 files)
+```
+
+When appending to an existing daily file, omit the frontmatter and `# Clone — YYYY-MM-DD` heading — start at `## Run HH:MM`.
+
+For Step 4b (Display Paths), set `Destination:` to `(paths displayed only — no copy performed)` and `Files copied:` to `0`.
+
+---
+
 ## Known Gotchas
 
 - **`qmd_collection` in `vault.yml` is vault-specific.** When cloning to a new vault, the `qmd_collection` value will point to the old vault's collection. The user must run `/qmd setup` in the new vault to create a collection for the new vault and update `vault.yml` accordingly.

@@ -15,7 +15,7 @@ Best run on Friday afternoon or over the weekend.
 
 Determine the current week's date range (Mon–Sun).
 
-List all session log files in `[logs_folder]/**/*-session-*.md` from this week. If there are none, check the past 7 days. (Use the `*-session-*.md` pattern, not bare `*.md` — the logs folder also contains `*-checkpoint-*.md` and `*-update-*.md` files that would inflate the weekly review.)
+List all session log files in `[logs_folder]/session/**/*-session-*.md` from this week (post-v2.4.0: session logs live under the dedicated `session/` subfolder). If there are none, check the past 7 days. The `-session-*` infix is no longer strictly required since `session/` only contains session logs, but kept as defense-in-depth.
 
 Report:
 > I found N sessions this week:
@@ -114,7 +114,7 @@ If the weekly review reveals a persistent pattern or learning, save it via `/lea
 
 ## Step 8: Close Out
 
-✅ Weekly note saved to `[logs_folder]/YYYY/MM/YYYY-MM-DD-weekly.md`.
+✅ Weekly note saved to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-weekly.md`.
 [If tasks created]: I logged your 3 intentions for next week.
 [If insights saved]: Added a pattern to your memory.
 
@@ -126,4 +126,4 @@ Enjoy your {weekend/time off}. See you next week!
 
 - **No sessions this week.** If the week has no session logs, skip "What you worked on" and "Patterns I noticed" — don't fabricate activity. Acknowledge it directly: "No sessions logged this week." and jump to Step 5 (reflection questions).
 
-- **Weekly note file path.** Step 8 mentions saving to `[logs_folder]/YYYY/MM/YYYY-MM-DD-weekly.md`, but the actual write step is not explicitly in the skill — this file is a summary artifact for the user's review, not a session log. Write it with frontmatter `tags: [weekly-review]` and omit session/checkpoint fields.
+- **Weekly note file path.** Step 8 mentions saving to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-weekly.md`, but the actual write step is not explicitly in the skill — this file is a summary artifact for the user's review, not a session log. Write it with frontmatter `tags: [weekly-review]` and omit session/checkpoint fields.

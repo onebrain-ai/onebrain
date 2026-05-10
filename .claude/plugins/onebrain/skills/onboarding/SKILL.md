@@ -245,6 +245,50 @@ If user selects "Skip for now": continue to Step 12.
 
 ---
 
+## Step 11c: Write Onboarding Log
+
+Write a **one-shot** snapshot of the initial setup config to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md`. This is one snapshot per vault lifetime — onboarding is not expected to run again.
+
+- **Target path:** `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md`
+- **Behavior:** one-shot. If the file already exists (re-run scenario), overwrite is fine — re-run reflects the latest setup.
+- **Create parent dir:** `[logs_folder]/log/YYYY/MM/` if missing.
+- **Failure mode:** report once and continue to Step 12 — log entry is supplementary, not blocking onboarding completion.
+
+Template (substitute live values from the interview answers + Step 11 config):
+
+```markdown
+---
+tags: [audit-log, onboarding]
+created: YYYY-MM-DD
+---
+
+# Onboarding — YYYY-MM-DD
+
+## Identity & Personality
+- Agent name: {agent_name}
+- Personality: {agent_personality}
+- User: {preferred_name}
+- Language: {detected from interview, e.g. "Thai/English bilingual"}
+
+## Vault Configuration
+- Folders: 8-folder layout
+- Inbox: [inbox_folder]
+- Projects: [projects_folder]
+- Areas: [areas_folder]
+- Knowledge: [knowledge_folder]
+- Resources: [resources_folder]
+- Agent: [agent_folder]
+- Archive: [archive_folder]
+- Logs: [logs_folder]
+
+## Initial Capabilities Enabled
+- qmd: {yes (collection: <name>) / no}
+- Auto-summary: yes
+- Plugin hooks: registered
+```
+
+---
+
 ## Step 12: Completion Message
 
 Say:
@@ -427,7 +471,13 @@ Check if `vault.yml` already exists in the vault root:
 
 ## Path B : Step 12b: qmd Setup (Optional)
 
-Identical to Step 11b in Path A. Ask the user whether to set up qmd, and if yes, run the `/qmd setup` flow (skipping its initial confirmation question). Continue to Step 13 regardless of outcome.
+Identical to Step 11b in Path A. Ask the user whether to set up qmd, and if yes, run the `/qmd setup` flow (skipping its initial confirmation question). Continue to Step 12c regardless of outcome.
+
+---
+
+## Path B : Step 12c: Write Onboarding Log
+
+Identical to **Step 11c** in Path A. Write the one-shot snapshot to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md` using the same template (substitute live values from Path B Steps 2–8, Step 10/12 config, and qmd state from Step 12b). Create `[logs_folder]/log/YYYY/MM/` if missing. On failure, report once and continue to Step 13 — non-blocking.
 
 ---
 
