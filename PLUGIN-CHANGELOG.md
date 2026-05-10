@@ -13,12 +13,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
-## v2.3.4 — docs(instructions): add 7 universal Working Principles
+## v2.3.4 — docs(instructions): establish 11 iron-rule Working Principles
 
-Expand the `## Working Principles` section in `INSTRUCTIONS.md` with seven additional rules that apply to every OneBrain user across every workflow — not dev-specific. Source: audit of recurring agent-collaboration patterns (verify before asserting, root-cause analysis, draft-first for creative work, real-time plan status, long-task delegation, equanimity under pushback, change propagation).
+Promote `## Working Principles` in `INSTRUCTIONS.md` from 4 unnumbered guidelines to 11 numbered iron rules with a precedence-stating intro. These are non-negotiable defaults that apply across every session, every skill, every workflow — and explicitly take precedence over skill-specific instructions when in conflict. Synthesised from a 60+ memory audit, an insights-report friction analysis, and 29 reviewer-passes across 15 distinct role perspectives (writer, designer, student, PM, lawyer, doctor, therapist, teacher, sales, fiction author, financial analyst, journalist, founder, translator, dev) so the language survives universally — neither dev-jargon nor watered-down for technical work.
 
-- docs(INSTRUCTIONS.md): `## Working Principles` grows from 4 bullets to 11. Existing 4 bullets unchanged. New rules use neutral language applicable to writing, research, design, planning, organization — not just code.
-- docs(INSTRUCTIONS.md): new bullets — *Verify before asserting · Find the cause, not the symptom · Show a draft before extensive work · Update plan and task status in real time · Move long-running work off the critical path · Update on evidence, not pressure · Propagate changes to related places.*
+- docs(INSTRUCTIONS.md): convert `## Working Principles` to numbered list with intro stating these rules outrank skill-specific instructions when they conflict.
+- docs(INSTRUCTIONS.md): new rules — *Speak in the user's vocabulary · Verify before asserting · Find the cause, not the symptom · Show a draft before extensive work · Update plan and task status in real time · Don't make the user wait · Update on evidence, not pressure · Carry changes through to related places.*
+- docs(INSTRUCTIONS.md): rewrite original 4 rules per cross-role review — drop dev-only references (`AskUserQuestion`, slash-command exception list, "refactor"); merge "Surgical changes" into "Minimal footprint" with cleanup-after-yourself extension; add verifiable-criteria preference to "Define success".
+- docs(INSTRUCTIONS.md): each rule body now includes register-matching, root-cause depth, draft-first for structural work, streaming-vs-background nuance, and explicit code-context coverage (callers, tests, types, migrations) — keeping rigor for dev users while staying accessible to writers, students, lawyers, clinicians, and operators.
 
 ## v2.3.3 — feat(wrapup): PR #156 follow-ups (configurable threshold + recovered-log marker + fallback row)
 
