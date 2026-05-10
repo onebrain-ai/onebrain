@@ -88,6 +88,7 @@ Use the complete block for the matching case. Do not mix fields from different c
 ---
 tags: [session-log]
 date: YYYY-MM-DD
+session_token: <token>
 session: NN
 ---
 ```
@@ -97,6 +98,7 @@ session: NN
 ---
 tags: [session-log]
 date: YYYY-MM-DD
+session_token: <token>
 session: NN
 synthesized_from_checkpoints: true
 ---
@@ -107,6 +109,7 @@ synthesized_from_checkpoints: true
 ---
 tags: [session-log]
 date: YYYY-MM-DD
+session_token: <token>
 session: NN
 auto-saved: true
 ---
@@ -117,6 +120,7 @@ auto-saved: true
 ---
 tags: [session-log]
 date: YYYY-MM-DD
+session_token: <token>
 session: NN
 auto-saved: true
 synthesized_from_checkpoints: true
@@ -128,11 +132,14 @@ synthesized_from_checkpoints: true
 ---
 tags: [session-log]
 date: YYYY-MM-DD
+session_token: <token>
 session: NN
 synthesized_from_checkpoints: true
 auto-recovered: true
 ---
 ```
+
+`session_token` mirrors the token embedded in the filename so cross-references (orphan recovery's `recovery-of:` marker, /distill source-log filtering, /doctor checks) can match by frontmatter without parsing filenames. Source the token from the `session_token` already in agent context (set by `onebrain session-init` at startup); for **Recovered from checkpoints**, source it from the orphan group's parsed token (the same one embedded in the body marker), not the live session's token.
 
 **Body marker (required for this case):** the very first body line — placed before `# Session Summary :` — must be the recovery-of marker:
 ```markdown
