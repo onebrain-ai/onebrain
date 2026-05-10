@@ -577,6 +577,36 @@ describe('qmd PostToolUse hook via vault.yml qmd_collection', () => {
     expect(hooks?.['PostToolUse']).toBeUndefined();
   });
 
+  test('qmd disabled with canonical-only entry → strips it (the /qmd uninstall path)', async () => {
+    // The common /qmd uninstall flow: vault.yml has qmd_collection removed,
+    // and settings.json still has the canonical `onebrain qmd-reindex`
+    // PostToolUse hook from a prior /qmd setup. Running register-hooks must
+    // strip the hook — leaving it in fires forever against a deleted
+    // collection.
+    await writeFile(join(vaultDir, 'vault.yml'), 'method: onebrain\n', 'utf8');
+    await writeFile(
+      join(vaultDir, '.claude', 'settings.json'),
+      JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: 'Write|Edit',
+              hooks: [{ type: 'command', command: 'onebrain qmd-reindex' }],
+            },
+          ],
+        },
+      }),
+      'utf8',
+    );
+
+    await runRegisterHooks({ vaultDir });
+
+    const text = await readFile(join(vaultDir, '.claude', 'settings.json'), 'utf8');
+    const settings = JSON.parse(text) as Record<string, unknown>;
+    const hooks = settings['hooks'] as Record<string, unknown> | undefined;
+    expect(hooks?.['PostToolUse']).toBeUndefined();
+  });
+
   test('qmd disabled with mixed legacy + user hooks → strips legacy, keeps user entry', async () => {
     await writeFile(join(vaultDir, 'vault.yml'), 'method: onebrain\n', 'utf8');
     await writeFile(
@@ -637,10 +667,13 @@ describe('qmd PostToolUse hook via vault.yml qmd_collection', () => {
     expect(cmds.filter((c) => c === 'onebrain qmd-reindex').length).toBe(1);
   });
 
-  test('qmd disabled with mixed legacy + canonical → strips legacy, keeps canonical', async () => {
-    // The user disabled qmd in vault.yml but had previously registered the
-    // canonical hook by hand. We must strip only the broken legacy entry —
-    // never silently delete the user's manually-kept canonical one.
+  test('qmd disabled with mixed legacy + canonical → strips both', async () => {
+    // /qmd uninstall removes `qmd_collection` from vault.yml and then runs
+    // `onebrain register-hooks` to clean up. Absence of `qmd_collection` is
+    // the authoritative signal that qmd is not in use, so neither legacy
+    // `qmd update …` nor canonical `onebrain qmd-reindex` entries should
+    // survive — both would fire forever against a collection that no longer
+    // exists.
     await writeFile(join(vaultDir, 'vault.yml'), 'method: onebrain\n', 'utf8');
     await writeFile(
       join(vaultDir, '.claude', 'settings.json'),
@@ -662,8 +695,10 @@ describe('qmd PostToolUse hook via vault.yml qmd_collection', () => {
 
     await runRegisterHooks({ vaultDir });
 
-    const cmds = await readPostToolUseCommands(vaultDir);
-    expect(cmds).toEqual(['onebrain qmd-reindex']);
+    const text = await readFile(join(vaultDir, '.claude', 'settings.json'), 'utf8');
+    const settings = JSON.parse(text) as Record<string, unknown>;
+    const hooks = settings['hooks'] as Record<string, unknown> | undefined;
+    expect(hooks?.['PostToolUse']).toBeUndefined();
   });
 
   test('idempotence: re-introducing a legacy entry after migration → migrates again on next run', async () => {
