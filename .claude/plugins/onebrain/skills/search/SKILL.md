@@ -1,6 +1,6 @@
 ---
 name: search
-description: General vault retrieval — answers both "what" and "why" questions across MEMORY.md, memory/, session logs, plan files, decisions logs, and vault notes. Uses qmd (lex+vec+hyde) with grep fallback.
+description: General vault retrieval — answers both "what" and "why" questions across MEMORY.md, memory/, session logs, project trackers, and vault notes. Uses qmd (lex+vec+hyde) with grep fallback.
 auto-invoke:
   - "search vault"
   - "find in vault"
@@ -23,9 +23,9 @@ Distinct from existing skills:
 1. `[agent_folder]/MEMORY.md` — always-loaded persona/active-projects
 2. `[agent_folder]/memory/*.md` — match via MEMORY-INDEX topics
 3. `[logs_folder]/session/**/*-session-*.md` — past session logs
-4. `[projects_folder]/onebrain/plans/*.md` — implementation plans
-5. Project tracker decisions log tables (e.g. `OneBrain CLI.md`, `OneBrain Cloud.md`)
-6. Vault notes (`03-knowledge/`, `01-projects/`, `04-resources/`, `02-areas/`)
+4. `[projects_folder]/**/*.md` — project notes including embedded specs/plans/design docs
+5. Project tracker decisions log tables (project MOCs under `[projects_folder]/`)
+6. Vault notes (`[knowledge_folder]/`, `[resources_folder]/`, `[areas_folder]/`)
 7. `[logs_folder]/checkpoint/*.md` — in-session-state recovery (for current-day questions)
 
 ## Tools used
@@ -78,7 +78,7 @@ This skill is long-running for large vaults. Emit:
 
 ```
 → [step 1/4] detecting question type · routing to qmd...
-→ [step 2/4] running qmd lex+vec+hyde across 7 sources...
+→ [step 2/4] running qmd lex+vec+hyde across all sources...
 → [step 3/4] scoring + ranking results...
 → [step 4/4] formatting answer...
 ```

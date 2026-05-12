@@ -146,8 +146,8 @@ Per-skill body template (canonical `## Run HH:MM` heading; metadata in first bul
 ```markdown
 ## Run HH:MM
 - Method: folder-copy
-- Source vault: /Users/keng/.../ob-1
-- Destination: /tmp/clone-target/
+- Source vault: /path/to/source/vault
+- Destination: /path/to/destination/
 - Files copied: N
 - Memory bundle: included (12 files)
 ```
