@@ -28,8 +28,8 @@ Reads the latest snapshot of the active pause thread and announces its state in 
 
 ## Step 3: Idempotency Check
 
-1. Read the file's frontmatter `session_token`.
-2. If it equals the current session token → output "Still in active thread `<slug>`. Already resumed." and stop. Do NOT re-announce content.
+1. Read the file's frontmatter `session_token`. If frontmatter is absent, malformed, or `session_token` cannot be parsed → skip this idempotency check and proceed to Step 4 (treat as a fresh resume).
+2. If `session_token` parsed cleanly AND equals the current session token → output "Still in active thread `<slug>`. Already resumed." and stop. Do NOT re-announce content.
 
 ---
 

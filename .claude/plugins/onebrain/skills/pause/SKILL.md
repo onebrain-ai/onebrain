@@ -1,6 +1,6 @@
 ---
 name: pause
-description: "Save a snapshot of long-running work mid-flight to resume later in a future session. Use when user signals they need to pause a long task and continue another time — 'pause this work', 'หยุดก่อน', 'step away', 'ทิ้งงานไว้ก่อน', 'ค่อยมาทำต่อ'. Writes a packet to 07-logs/pause/ but does NOT end the session or clear context. Do NOT use for: ending a session (use /wrapup), capturing a single idea (use /capture), saving a memory (use /learn)."
+description: "Save a snapshot of long-running work mid-flight to resume later in a future session. Use when user signals they need to pause a long task and continue another time — 'pause this work', 'หยุดก่อน', 'พักงานนี้ก่อน', 'พักไว้ก่อน', 'step away', 'ทิ้งงานไว้ก่อน', 'ค่อยมาทำต่อ'. Writes a snapshot to 07-logs/pause/ but does NOT end the session or clear context. Do NOT use for: ending a session (use /wrapup), capturing a single idea (use /capture), saving a memory (use /learn)."
 schedulable: false
 ---
 
@@ -63,7 +63,7 @@ Review the current conversation since the last pause file of `active_slug` (or s
 
 1. Today's date as `YYYY-MM-DD`.
 2. Ensure directory exists: `mkdir -p [logs_folder]/pause/`
-3. Get `session_token` from agent context (run `onebrain session-init` to recover if missing).
+3. Get `session_token` from agent context (run `onebrain session-init` to recover if missing). **If `session-init` fails or returns no token:** abort the write. Do NOT proceed to Step 5. Output: `⚠️ Could not determine session token. Snapshot not saved — try again or run /doctor.`
 4. Write to `[logs_folder]/pause/YYYY-MM-DD-{active_slug}-pause-{next_nn}.md`:
 
 ```yaml
@@ -78,6 +78,8 @@ trigger: manual
 ```
 
 Followed by the body sections from Step 3.
+
+**If the file write fails** (disk full, permission denied, etc.): abort the skill. Do NOT proceed to Step 5 (do not update `_active.md` — that would create an instant orphan pointer). Output: `⚠️ Snapshot failed to save — check disk space or file permissions. Active thread unchanged.`
 
 ---
 
@@ -96,7 +98,7 @@ Output exactly this format (Capture profile — 1 confirmation block, no elabora
 📂 Active thread: {slug} (N snapshots)
 
 คุยต่อได้เลย — ยังไม่ตัด context.
-พิมพ์ /clear เมื่อพร้อมพักงาน (packet จะรอ session ถัดไป)
+พิมพ์ /clear เมื่อพร้อมพักงาน (snapshot จะรอ session ถัดไป)
 ```
 
 Where `N` = `next_nn` from Step 2 (the total snapshot count for this thread including the one just written).
