@@ -23,6 +23,40 @@ See `skills/startup/references/session-formats.md` → Session Log Format for fr
 
 ---
 
+## Step 0: Active Pause Thread Detection
+
+Run this BEFORE Step 1.
+
+1. Read `[logs_folder]/pause/_active.md`. If absent or empty → set `wrapup_mode = "session"`; skip to Step 1 (zero-overhead path for non-pause sessions).
+2. If a slug is present: parse the file's single-line content as `slug`. Glob `[logs_folder]/pause/*-{slug}-pause-*.md` → `pause_count` (file count) and derive `first_date` = earliest `YYYY-MM-DD` date prefix among matched files (used in Step 3's question text).
+3. Use `AskUserQuestion`:
+
+   Question: "Active pause thread: `{slug}` ({pause_count} snapshots since {first_date}). Wrap up this thread now?"
+   Options:
+   - "Yes — consolidate into one session log" (sets `wrapup_mode = "thread"`)
+   - "No — wrapup today's work only; keep pause thread active" (sets `wrapup_mode = "session"`)
+
+4. If `wrapup_mode = "session"` AND active pause exists → fall through to **Step 0b: Auto-Finalize Pause** (below) BEFORE proceeding to Step 1.
+5. If `wrapup_mode = "thread"` → proceed to Step 1 normally, then branch in Step 4 (see Step 4 modifications below).
+
+---
+
+## Step 0b: Auto-Finalize Pause (Session-mode wrapup with active thread)
+
+Runs only when `wrapup_mode = "session"` AND `_active.md` exists.
+
+Apply the three skip conditions from `skills/pause/SKILL.md` → Auto-Finalize section:
+
+1. **No-activity:** if no checkpoint file exists for current `session_token`, skip Auto-Finalize.
+2. **Already-captured-this-session:** if latest pause file's frontmatter `session_token` matches current AND no checkpoint mtime > pause file mtime, skip.
+3. **No-pause-files-and-untouched:** if no pause file exists for slug AND newest checkpoint mtime < `_active.md` mtime, skip.
+
+If not skipped: invoke `/pause` auto-finalize path (Steps 2–5 of `/pause`, with `trigger: auto-finalize` in frontmatter and "Auto-finalized at session end. " prefix in `## Where I Stopped`).
+
+After Step 0b, continue to Step 1.
+
+---
+
 ## Step 1: Gather Checkpoint Context
 
 1. Get today's date as `YYYY-MM-DD`. Extract `YYYY` and `MM`.
@@ -156,6 +190,35 @@ Reflect on the conversation that just occurred. Identify:
 
 ## Step 4: Write the Session Log
 
+**Branch on wrapup_mode (set in Step 0):**
+
+- If `wrapup_mode = "session"` → follow the existing flow below (no changes).
+- If `wrapup_mode = "thread"` → use the **Thread Wrapup Branch** below instead of the existing flow:
+
+### Thread Wrapup Branch
+
+1. Glob `[logs_folder]/pause/*-{slug}-pause-*.md` → read every file in chronological order (date prefix ascending, then NN ascending). Store as `pause_files`. Also derive `first_date` = date prefix of `pause_files[0]` and `last_date` = date prefix of `pause_files[-1]` (used in Step 7 confirm).
+2. Combine `pause_files` content + checkpoint content from Step 1 (today's session). Apply the Preservation rule (deduplication only, no summarization) across all of them.
+3. Determine session file name per existing Step 2 logic.
+4. Write `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the **Thread wrapup — pause snapshots incorporated** frontmatter case from `skills/startup/references/session-formats.md`:
+   ```yaml
+   ---
+   tags: [session-log]
+   date: YYYY-MM-DD
+   session_token: <token>
+   session: NN
+   synthesized_from_pause: true
+   pause_slug: <slug>
+   ---
+   ```
+5. Body: merged content from step 2, using the Shared Body Sections.
+6. After successful write, run `onebrain checkpoint reset`.
+7. Proceed to Step 4b (action item routing) and onward as normal.
+
+After Thread Wrapup writes the session log, the existing Step 5 (Checkpoint Cleanup) still runs — checkpoints from Step 1 are deleted. **Plus, in the new Step 5b (below), pause files and `_active.md` are deleted.**
+
+---
+
 > **Preservation rule (critical when checkpoints exist):** the session log must preserve **every unique detail** from every checkpoint file read in Step 1. Your job is **deduplication, not summarization**. Two pieces of content are duplicates only if they describe the same fact, decision, learning, action item, or question. When in doubt, keep both — the session log is the long-term archive of the session, and missing a unique decision or insight cannot be recovered later.
 >
 > Specifically:
@@ -242,6 +305,19 @@ Guard: only delete AFTER confirming the session log write succeeded. Never delet
 
 ---
 
+## Step 5b: Pause Cleanup (Thread Wrapup only)
+
+Runs only when `wrapup_mode = "thread"`.
+
+After the session log from Step 4 (Thread Wrapup Branch) is written successfully:
+
+1. Delete every file in `pause_files` from Step 4 Thread Wrapup Branch step 1.
+2. Delete `[logs_folder]/pause/_active.md`.
+
+Guard: only delete AFTER confirming the session log write succeeded. If an individual delete fails, skip silently — `/doctor` will catch stragglers.
+
+---
+
 ## Step 6: Recap Reminder
 
 At the end of every /wrapup, compute `unrecapped_count` and `last_recapped`:
@@ -288,6 +364,31 @@ Routed {R} action item(s) to project notes:
 Skipped routing (no match / tie):
   · [task text]
 (omit this block if skipped_tasks is empty; list one line per skipped task)
+
+**If `wrapup_mode = "thread"`:** replace the standard header with:
+
+```
+──────────────────────────────────────────────────────────────
+💾 Thread Wrapped Up — `{slug}`
+──────────────────────────────────────────────────────────────
+`[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md`
+
+Consolidated {P} pause snapshots from {first_date} to {last_date} + {C} checkpoint(s) from today.
+```
+
+Where `{P}` is `len(pause_files)`, `{C}` is the checkpoint count from Step 1. Then continue with action-item routing summary, orphan recovery summary, recap reminder as normal.
+
+**If `wrapup_mode = "session"` AND Step 0b Auto-Finalize ran (not skipped):** add a line after `💾 Session Saved`:
+
+```
+📂 Auto-finalized pause thread `{slug}` (snapshot {NN}). Thread still active — /resume to continue.
+```
+
+**If `wrapup_mode = "session"` AND Step 0b Auto-Finalize was skipped due to skip-condition (1, 2, or 3):** add a line after `💾 Session Saved`:
+
+```
+📂 Pause thread `{slug}` still active ({pause_count} snapshots) — /resume to continue.
+```
 
 Auto-recovered {S} orphan session(s):
   {YYYY-MM-DD} → `session-NN.md` ({C} checkpoints)

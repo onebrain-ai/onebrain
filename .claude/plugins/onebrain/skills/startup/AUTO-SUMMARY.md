@@ -10,6 +10,13 @@ Run silently (no output) if ALL of these are true:
 If conditions are met:
 - Use `session_token` from context if already loaded (set by `onebrain session-init` at startup); if absent, run `onebrain session-init` and use the `SESSION_TOKEN` value. Glob checkpoint files (post-v2.4.0: checkpoints live in flat `[logs_folder]/checkpoint/` regardless of date): `[logs_folder]/checkpoint/YYYY-MM-DD-{session_token}-checkpoint-*.md`. Also yesterday's (handles cross-midnight sessions): compute yesterday's date (accounting for month/year rollover) and glob `[logs_folder]/checkpoint/YYYY-MM-DD_PREV-{session_token}-checkpoint-*.md`. **Read every file in the glob result** and fully incorporate all of their content into the session summary (not just as background context). Any checkpoint file that exists is unmerged by definition — there is no `merged:` filter. Every checkpoint must appear in the summary before it is deleted.
 - Determine NN: count existing `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-*.md` files for today; NN = count + 1, zero-padded to 2 digits (01, 02, …). **Verify** `YYYY-MM-DD-session-NN.md` does not already exist before writing; if it does, increment NN until a free slot is found.
+
+- **Auto-finalize active pause thread (if any) — runs before the session log write.** Read `[logs_folder]/pause/_active.md`. If absent or empty, skip this step. If a slug is present, apply the three skip conditions from `skills/pause/SKILL.md` → Auto-Finalize section (canonical source — keep in sync):
+  - No-activity: no checkpoint file exists for current session_token → skip
+  - Already-captured-this-session: latest pause file's session_token == current AND no checkpoint mtime > pause file mtime → skip
+  - No-pause-files-and-untouched: no pause file for slug AND newest checkpoint mtime < `_active.md` mtime → skip
+
+  If not skipped: invoke `/pause` auto-finalize path (Steps 2–5 of `/pause`, with `trigger: auto-finalize` in frontmatter and "Auto-finalized at session end. " prefix in `## Where I Stopped`). This preserves the active pause thread's continuity when a session ends without an explicit `/pause`. Silent — no user-visible output.
 - Write to `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the Session Log Format from `references/session-formats.md`:
   - Checkpoints found and incorporated → case: **Auto-saved (auto-summary) — checkpoints incorporated**
   - No checkpoints → case: **Auto-saved (auto-summary) — no checkpoints**
