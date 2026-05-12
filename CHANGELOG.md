@@ -1,5 +1,5 @@
 ---
-latest_version: 2.2.5
+latest_version: 2.3.0
 released: 2026-05-12
 ---
 
@@ -12,6 +12,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > For plugin changes (skills, agents, hooks, INSTRUCTIONS), see [PLUGIN-CHANGELOG.md](PLUGIN-CHANGELOG.md).
 
 ## [Unreleased]
+
+## v2.3.0 — feat(scheduler): OneBrain scheduler — launchd-backed recurring + one-shot schedules (E9)
+
+- New subcommand `onebrain register-schedule` — registers scheduled skills with macOS launchd, reading the `schedule:` block from `vault.yml`
+- Flags: `--dry-run`, `--remove`, `--refresh`, `--resume <skill>`, `--status`, `--test <skill>`
+- Recurring schedules via 5-field cron syntax in `cron:` field; validated before plist emission
+- One-shot schedules via ISO `at: "YYYY-MM-DD HH:MM"` field; plist emits self-delete shell wrapper that auto-uninstalls after firing
+- Schedulable validation: rejects entries pointing at skills without `schedulable:` or `schedulable_with_args:` frontmatter (or with missing `required_args`)
+- Plist collision detection: two entries normalizing to the same `~/Library/LaunchAgents/com.onebrain.<label>.plist` path are rejected
+- XML escaping on all plist-interpolated values; double-quote in arg values rejected (would break one-shot shell wrapper)
+- macOS launchd first; Linux systemd-timer + Windows Task Scheduler deferred to follow-up
 
 ## v2.2.5 — fix(hooks): iterate all detected harnesses + raw status label in non-TTY
 
