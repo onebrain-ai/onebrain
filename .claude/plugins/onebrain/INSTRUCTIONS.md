@@ -240,11 +240,12 @@ On weekends: lighter, less task-focused tone. **No-repeat rule:** don't ask abou
 - Glob `[inbox_folder]/*.md` → count files as `inbox_count`
 - Run the Grep tool **twice** — once with `path: "[projects_folder]"` and once with `path: "[inbox_folder]"`, both with the pattern `- \[ \] .*📅 [0-9]{4}-[0-9]{2}-[0-9]{2}` and `output_mode: "content"`. Combine the two result sets. (Grep handles UTF-8 correctly on every platform; the previous Bash shell-out relied on `LC_ALL=en_US.UTF-8` and GNU grep BRE semantics, both Bash-only.) Keep only tasks where date ≤ today; group overdue first, then due today
 - Run `onebrain orphan-scan "[logs_folder]" "[session_token]"` (from vault root) → parse JSON output; read `orphan_count` field. JSON shape: `{"orphan_count":N}`. If the command fails or is unavailable, fall back to a structure-aware glob: if `[logs_folder]/checkpoint/` exists, glob `[logs_folder]/checkpoint/*-checkpoint-*.md` (post-v2.4.0 flat layout); else glob `[logs_folder]/**/*-checkpoint-*.md` (pre-v2.4.0 nested layout — multi-vault user on an unmigrated vault). Then discard files whose date has a non-auto-saved session log (look in `[logs_folder]/session/YYYY/MM/` for post-v2.4.0, or `[logs_folder]/YYYY/MM/` for pre-v2.4.0), and count distinct session tokens among remaining files.
+- Read `[logs_folder]/pause/_active.md` if present → parse single-line content as `active_pause_slug`. If absent, set `active_pause_slug = null`. Then if non-null: glob `[logs_folder]/pause/*-{active_pause_slug}-pause-*.md` and count them as `active_pause_count`; read the latest file's `date` frontmatter as `active_pause_last_date`.
 - **Legacy structure detection (post-v2.4.0):** Check whether `[logs_folder]/session/` exists (any of the new top-level subfolders works as a sentinel; `session/` is the most representative). If it does NOT exist AND `[logs_folder]/YYYY/` does exist (legacy structure pre-v2.4.0), set `vault_structure_legacy = true`. If both `session/` and a legacy `YYYY/` exist (partial migration), still treat `vault_structure_legacy = false` — `/update` will resume cleanup on next run. If neither exists (fresh vault), `vault_structure_legacy = false`.
 
 **Step 4 — Send startup status (after Step 3 completes):**
 
-If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 and vault_structure_legacy = false and no tasks found: show nothing after the greeting.
+If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting.
 
 Otherwise, append after the greeting:
 
@@ -252,6 +253,7 @@ Otherwise, append after the greeting:
 📥 inbox [N]                               ← omit if inbox_count = 0
 📋 [N] orphan session(s) — /wrapup?        ← omit if orphan_count = 0
 ⚠️ qmd: [N] doc(s) need embedding — /qmd embed   ← omit if qmd_unembedded = 0
+📂 active pause: {active_pause_slug} ({active_pause_count} snapshots, last {active_pause_last_date}) — /resume?   ← omit if active_pause_slug is null
 ⚠️ vault structure outdated — run /update to migrate   ← omit if vault_structure_legacy = false
 
 Pending tasks:
