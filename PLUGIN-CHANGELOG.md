@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.8
+latest_version: 2.4.9
 released: 2026-05-12
 ---
 
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## 2.4.9 — 2026-05-12
+
+- `/schedule-add` Step 0 first-run preset selector — Minimal / Essentials / Maintenance Plus / Custom (E15-B)
+- `/onboarding` adds preset selection step after agent identity setup (default = Essentials)
+- Canonical preset tier definitions at `_shared/schedule-presets.md` — single source of truth
+- Tier 3 preset mixes skill-mode and command-mode entries (live example of E15-A schema)
+- INSTRUCTIONS.md + README + CONTRIBUTING document preset bundles
 
 ## 2.4.8 — 2026-05-12
 
