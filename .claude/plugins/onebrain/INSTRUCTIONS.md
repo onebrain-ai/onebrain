@@ -157,6 +157,9 @@ These workflows are documented in `.claude/plugins/onebrain/skills/`:
 | `/update` | `update/SKILL.md` | Update system files from GitHub | (manual only) |
 | `/doctor` | `doctor/SKILL.md` | Vault + config health check: broken links, orphan notes, stale memory/ files, plugin config | user asks to check vault health, diagnose issues, or run /doctor |
 | `/help` | `help/SKILL.md` | List available commands with use cases | user asks what commands or skills are available, or what the agent can do |
+| `/schedule-add` | `schedule-add/SKILL.md` | Interactive wizard for adding a scheduled skill | user asks to schedule a skill / set up cron / add automation |
+| `/schedule-list` | `schedule-list/SKILL.md` | Show all scheduled entries | user asks what's scheduled / list automations |
+| `/schedule-remove` | `schedule-remove/SKILL.md` | Remove a scheduled entry | user asks to unschedule / remove automation |
 
 ## Available Agents
 

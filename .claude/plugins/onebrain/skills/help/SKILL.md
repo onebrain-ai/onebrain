@@ -53,3 +53,6 @@ Skills are organized by workflow phase — Input → Process → Recall → Main
 | `/qmd` | qmd search index management |
 | `/help` | This catalog |
 | `/wrapup` | Session log |
+| `/schedule-add` | Interactive wizard for adding a scheduled skill |
+| `/schedule-list` | Show all scheduled entries |
+| `/schedule-remove` | Remove a scheduled entry |
