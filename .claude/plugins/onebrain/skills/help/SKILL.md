@@ -1,6 +1,7 @@
 ---
 name: help
 description: "List all available OneBrain commands with descriptions and use cases. Invoke when user asks what you can do, wants to see commands, or seems confused about capabilities. Do NOT use for: actually running a command (identify the right skill and invoke it directly), answering questions about vault content (search directly), or general Claude questions."
+schedulable: false
 ---
 
 # Available Commands
@@ -52,3 +53,7 @@ Skills are organized by workflow phase — Input → Process → Recall → Main
 | `/qmd` | qmd search index management |
 | `/help` | This catalog |
 | `/wrapup` | Session log |
+| `/schedule-add` | Interactive wizard for adding a scheduled skill |
+| `/schedule-once` | One-shot wizard: schedule a skill to run once at a specific datetime |
+| `/schedule-list` | Show all scheduled entries |
+| `/schedule-remove` | Remove a scheduled entry |

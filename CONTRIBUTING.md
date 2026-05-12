@@ -28,7 +28,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
 ├── startup/                             Startup utilities loaded at session begin
 │   └── scripts/                         Predefined shell scripts called by INSTRUCTIONS.md
 │       └── open-in-obsidian.sh          Opens a vault file in the Obsidian app
-├── skills/                              One directory per slash command (25 skills)
+├── skills/                              One directory per slash command (29 skills)
 │   └── [name]/
 │       ├── SKILL.md                     The skill prompt — what the AI follows when invoked
 │       ├── references/                  Large content loaded on-demand (handlers, templates, procedures)
@@ -44,7 +44,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
 ├── settings.json                        Declarative hooks (AfterAgent, AfterTool) + model.disableLoopDetection
 └── commands/
     └── onebrain/                        Slash commands namespaced as /onebrain:<skill>
-        └── *.toml                       One TOML per user-facing skill (25 commands; description + prompt)
+        └── *.toml                       One TOML per user-facing skill (29 commands; description + prompt)
 ```
 
 Both trees are deployed to the user's vault by `vault-sync` in a single sync step. Skills, agents, and INSTRUCTIONS live single-source-of-truth in `.claude/plugins/onebrain/`; the Gemini side references them on demand via the slash command prompts.
@@ -109,6 +109,7 @@ When editing INSTRUCTIONS.md or skills, use Claude Code tool names (`Read`, `Wri
 
 3. Write the skill as a numbered sequence of steps the AI should follow
 4. Register the command in [INSTRUCTIONS.md](.claude/plugins/onebrain/INSTRUCTIONS.md) and [README.md](README.md) (also increment the command count in the README feature list)
+5. Decide schedulability — add `schedulable: true|false` or `schedulable_with_args: true` + `required_args: [...]` to YAML frontmatter. See "Adding a Scheduled Skill" below for details.
 
 ### Long-running skills: heartbeat pattern
 
@@ -119,6 +120,59 @@ Skills that run more than a few seconds (multi-step workflows, batch processing)
 ```
 
 See `/research`, `/consolidate`, `/distill`, `/reorganize`, `/connect`, `/import` for reference implementations.
+
+## Adding a Scheduled Skill
+
+If your skill should be runnable via the OneBrain scheduler (`onebrain register-schedule` / `/schedule-add` / `/schedule-once`), declare its schedulability in the skill's YAML frontmatter.
+
+### Schedulable values
+
+```yaml
+# Skill runs without user input (e.g. /daily, /weekly, /recap):
+---
+schedulable: true
+---
+
+# Skill needs arguments but no user prompts (e.g. /distill, /research):
+---
+schedulable_with_args: true
+required_args: [topic]
+---
+
+# Skill requires interactive user input (default — most skills):
+---
+schedulable: false
+---
+```
+
+### Validation
+
+`onebrain register-schedule` reads the target skill's frontmatter at register time and rejects entries that don't meet the schedulable contract:
+
+- `schedulable: false` → hard error
+- `schedulable_with_args: true` + missing required args in vault.yml → hard error
+- Arg value containing `"` → hard error (would break the one-shot shell wrapper)
+
+### Headless context
+
+Scheduled skills run via `claude --vault {VAULT} --skill {SKILL} --headless`. The session has:
+
+- Full MEMORY.md, vault.yml, MEMORY-INDEX.md (SessionStart hook fires)
+- Tool access per `settings.json` `permissions.allow`
+- No prior conversation history
+- No interactive user input
+
+Design scheduled skills to be self-contained: read state, produce output, write to vault. Avoid AskUserQuestion calls.
+
+### Output
+
+Scheduled output writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.md`. Multi-run/day: append a `## HH:MM (scheduled|manual)` section to the same file.
+
+Errors write to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md` (only created on failure). 3 consecutive `.err.md` without a success in between → schedule auto-paused; resume via `onebrain register-schedule --resume <skill>`.
+
+### One-shot vs recurring
+
+Use `cron:` for recurring schedules and `at:` for one-shot fire-once-then-uninstall entries. Exactly one must be set per entry. The launchd plist for one-shot entries emits a self-delete shell wrapper that runs the skill, calls `launchctl bootout`, and deletes its own plist file.
 
 ## Editing an Existing Skill
 

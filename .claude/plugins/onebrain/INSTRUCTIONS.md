@@ -157,6 +157,10 @@ These workflows are documented in `.claude/plugins/onebrain/skills/`:
 | `/update` | `update/SKILL.md` | Update system files from GitHub | (manual only) |
 | `/doctor` | `doctor/SKILL.md` | Vault + config health check: broken links, orphan notes, stale memory/ files, plugin config | user asks to check vault health, diagnose issues, or run /doctor |
 | `/help` | `help/SKILL.md` | List available commands with use cases | user asks what commands or skills are available, or what the agent can do |
+| `/schedule-add` | `schedule-add/SKILL.md` | Interactive wizard for adding a scheduled skill | user asks to schedule a skill / set up cron / add automation |
+| `/schedule-once` | `schedule-once/SKILL.md` | One-shot wizard: schedule a skill to run once at a specific datetime, then auto-uninstall | user asks to schedule a one-time task / fire-once / remind me at <time> |
+| `/schedule-list` | `schedule-list/SKILL.md` | Show all scheduled entries | user asks what's scheduled / list automations |
+| `/schedule-remove` | `schedule-remove/SKILL.md` | Remove a scheduled entry | user asks to unschedule / remove automation |
 
 ## Available Agents
 
@@ -363,6 +367,38 @@ These principles are the foundation of how OneBrain assists across every session
 - Don't move files to the archive folder without telling the user
 - Prefer adding to existing notes over creating new ones when a suitable note already exists
 - Keep `[agent_folder]/MEMORY.md` under ~180 lines (/doctor audits at 180)
+
+## Scheduling — which tool to use
+
+OneBrain provides scheduling via OS-level cron (launchd on macOS). It is configured in `vault.yml` `schedule:` block, not invoked via slash. This is distinct from Claude Code's built-in `/loop` and `/schedule` commands.
+
+| Tool | Use case | Runtime |
+|------|---------|---------|
+| Claude Code `/loop` | Active polling within current session | In-session, ephemeral |
+| Claude Code `/schedule` | Remote agent runs without your machine on | Anthropic-hosted (cloud) |
+| **OneBrain scheduler** | Auto-run OneBrain skill on local machine, writing to vault | Local OS scheduler (launchd) |
+
+Use the OneBrain scheduler for: `/daily` morning brief, `/weekly` Friday review, `/recap` Sunday digest, `/doctor` weekly health check — anything that should fire on a recurring local schedule and write its output back to the vault.
+
+For interactive setup:
+- `/schedule-add` — recurring schedule wizard
+- `/schedule-once` — one-shot wizard (fire once at a specific datetime, then auto-uninstall)
+- `/schedule-list` — show all scheduled entries
+- `/schedule-remove` — remove an entry
+
+For manual config: edit `vault.yml` `schedule:` block + run `onebrain register-schedule`.
+
+## Headless invocation
+
+Scheduled skills run via headless Claude Code: `claude --vault {VAULT} --skill /daily --headless`. The session loads MEMORY.md, vault.yml, MEMORY-INDEX.md as normal (SessionStart hook fires). PreToolUse, PostToolUse, Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+
+Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
+
+Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
+
+Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain register-schedule --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
+
+One-shot entries (those with `at:` instead of `cron:`) fire once, then the launchd plist self-deletes via an embedded shell wrapper. If the plist remains on disk after its timestamp passed, `/doctor` flags it as an expired one-shot to clean up.
 
 ## Permissions
 

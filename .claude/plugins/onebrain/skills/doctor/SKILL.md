@@ -1,6 +1,7 @@
 ---
 name: doctor
 description: "Diagnose vault and plugin health — checks broken links, orphan notes, stale memory/ files, inbox backlog, and plugin config validity. Use when the user asks to check vault health, notices something broken, or wants a system audit — 'run /doctor', 'check my vault', 'something seems off'. Do NOT use for: searching vault content (search directly), processing inbox (use consolidate), or updating the system (use update)."
+schedulable: true
 ---
 
 # Doctor
@@ -119,6 +120,15 @@ Run all applicable checks based on flags (default: all). Collect findings before
 - If `qmd_collection` is present:
   - Check `which qmd` (macOS/Linux) or `where qmd` (Windows): qmd binary must be installed → ✅ / 🔴 "qmd not installed — qmd_collection is set but binary is missing; run `/qmd setup` to reinstall"
   - Read `[vault]/.claude/settings.json` (same file used for the Stop hook); check that `hooks.PostToolUse` contains an entry whose `command` contains `qmd-reindex` → ✅ / 🔴 "PostToolUse qmd hook missing in settings.json — run /update to register"
+
+### Scheduler Health (added 2026-05-12)
+
+Only run when vault.yml contains a `schedule:` block. Skip entirely otherwise.
+
+- **Scheduler errors** — Glob `[logs_folder]/scheduler/**/*.err.md` from the last 7 days. If any exist, report count + most recent 3 files as wikilinks under 🟡 (warning).
+- **Consecutive failures** — For each schedulable skill in `vault.yml` `schedule:`, count consecutive `.err.md` files from newest to oldest with no intervening success `.md`. If 3 or more → 🔴 CRITICAL — suggest `onebrain register-schedule --resume <skill>`.
+- **Schedule drift** — Read `vault.yml` `schedule:` block. For each entry, check that the corresponding launchd plist exists at `~/Library/LaunchAgents/com.onebrain.<labelSafe>.plist` where `labelSafe` strips leading `/` from `entry.skill` and replaces non-`[a-zA-Z0-9-]` chars with `-`. If any entry's plist is missing → 🟡 drift — suggest `onebrain register-schedule`. If any installed plist no longer matches a vault.yml entry (stale orphan) → 🟡 stale plist — suggest `onebrain register-schedule --remove` then re-register.
+- **One-shot reachability** — For each entry with `at:` (one-shot), verify the timestamp has not already passed. If passed and the plist still exists → 🟡 expired one-shot not cleaned up — suggest `onebrain register-schedule --remove` to clear the stale plist (the self-delete shell may have failed to run).
 
 ---
 

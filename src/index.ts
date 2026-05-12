@@ -11,6 +11,7 @@ import { qmdReindexCommand } from './commands/internal/qmd-reindex.js';
 import { registerHooksCommand } from './commands/internal/register-hooks.js';
 import { resolveSessionToken, sessionInitCommand } from './commands/internal/session-init.js';
 import { vaultSyncCommand } from './commands/internal/vault-sync.js';
+import { registerSchedule } from './commands/register-schedule.js';
 import { updateCommand } from './commands/update.js';
 import { patchUtf8 } from './lib/patch-utf8.js';
 
@@ -101,6 +102,30 @@ program
       ...(opts.fix !== undefined ? { fix: opts.fix } : {}),
     });
   });
+
+program
+  .command('register-schedule')
+  .description('Register OneBrain scheduled skills with the OS scheduler (macOS launchd)')
+  .option('--vault <path>', 'Vault path', process.cwd())
+  .option('--dry-run', 'Print plist without writing')
+  .option('--remove', 'Remove all OneBrain schedule entries')
+  .option('--refresh', 'Re-emit plists with current vault path')
+  .option('--resume <skill>', 'Resume an auto-paused skill')
+  .option('--status', 'Show registered schedules + recent run status')
+  .option('--test <skill>', 'Manually invoke a scheduled skill once')
+  .action(
+    async (opts: {
+      vault: string;
+      dryRun?: boolean;
+      remove?: boolean;
+      refresh?: boolean;
+      resume?: string;
+      status?: boolean;
+      test?: string;
+    }) => {
+      await registerSchedule(opts);
+    },
+  );
 
 program
   .command('help')

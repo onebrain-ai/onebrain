@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.6
+latest_version: 2.4.7
 released: 2026-05-12
 ---
 
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## 2.4.7 — 2026-05-12
+
+- 4 new wizard skills: `/schedule-add` (recurring), `/schedule-once` (one-shot), `/schedule-list`, `/schedule-remove` (E9.1)
+- 26 user-facing skills declare `schedulable:` / `schedulable_with_args:` frontmatter — gates which skills the CLI scheduler accepts (E9.4)
+- `/doctor` extended with Scheduler Health section: scans `.err.md` files, detects drift between `vault.yml` and installed plists, flags 3+ consecutive failures + expired one-shots (E9.2)
+- INSTRUCTIONS.md adds "Scheduling — which tool to use" + "Headless invocation" sections (E9.3) — disambiguates OneBrain scheduler vs Claude Code `/loop` and `/schedule`
+- `/help` MAINTAIN tier lists the 4 new schedule commands
 
 ## 2.4.6 — 2026-05-12
 
