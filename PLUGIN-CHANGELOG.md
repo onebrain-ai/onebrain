@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.5
+latest_version: 2.4.6
 released: 2026-05-12
 ---
 
@@ -10,6 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## 2.4.6 — 2026-05-12
+
+- Remove vault-author-specific references from plugin source for genericity
+- /search SKILL.md: drop hardcoded `[projects_folder]/onebrain/plans/*.md` source — replaced with generic project tracker reference (OneBrain users don't have a fixed `plans/` directory)
+- /search SKILL.md: replace hardcoded vault folder names (`03-knowledge/`, `01-projects/`, `04-resources/`, `02-areas/`) with `[knowledge_folder]/`, `[projects_folder]/`, `[resources_folder]/`, `[areas_folder]/` placeholders
+- /clone SKILL.md: replace personal example path `/Users/keng/.../ob-1` with generic `/path/to/source/vault` in audit-log template
 
 ## 2.4.5 — 2026-05-12
 

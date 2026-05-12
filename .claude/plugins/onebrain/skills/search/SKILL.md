@@ -23,10 +23,9 @@ Distinct from existing skills:
 1. `[agent_folder]/MEMORY.md` — always-loaded persona/active-projects
 2. `[agent_folder]/memory/*.md` — match via MEMORY-INDEX topics
 3. `[logs_folder]/session/**/*-session-*.md` — past session logs
-4. `[projects_folder]/onebrain/plans/*.md` — implementation plans
-5. Project tracker decisions log tables (e.g. `OneBrain CLI.md`, `OneBrain Cloud.md`)
-6. Vault notes (`03-knowledge/`, `01-projects/`, `04-resources/`, `02-areas/`)
-7. `[logs_folder]/checkpoint/*.md` — in-session-state recovery (for current-day questions)
+4. Project tracker decisions log tables (project MOCs under `[projects_folder]/`)
+5. Vault notes (`[knowledge_folder]/`, `[projects_folder]/`, `[resources_folder]/`, `[areas_folder]/`)
+6. `[logs_folder]/checkpoint/*.md` — in-session-state recovery (for current-day questions)
 
 ## Tools used
 
