@@ -444,9 +444,7 @@ describe('checkSettingsHooks — hook schema detection', () => {
     await writeSettings({
       permissions: { allow: allowList },
       hooks: {
-        Stop: [
-          { matcher: '', hooks: [{ command: 'onebrain', args: ['checkpoint', 'stop'] }] },
-        ],
+        Stop: [{ matcher: '', hooks: [{ command: 'onebrain', args: ['checkpoint', 'stop'] }] }],
         PostToolUse: [
           { matcher: 'Write|Edit', hooks: [{ command: 'onebrain', args: ['qmd-reindex'] }] },
         ],
@@ -462,9 +460,7 @@ describe('checkSettingsHooks — hook schema detection', () => {
       permissions: { allow: allowList },
       hooks: {
         Stop: [{ matcher: '', hooks: [{ command: 'onebrain checkpoint stop' }] }],
-        PostToolUse: [
-          { matcher: 'Write|Edit', hooks: [{ command: 'onebrain qmd-reindex' }] },
-        ],
+        PostToolUse: [{ matcher: 'Write|Edit', hooks: [{ command: 'onebrain qmd-reindex' }] }],
       },
     });
 
@@ -515,9 +511,7 @@ describe('checkSettingsHooks — hook schema detection', () => {
     await writeSettings({
       permissions: { allow: allowList },
       hooks: {
-        Stop: [
-          { matcher: '', hooks: [{ command: 'onebrain', args: ['checkpoint', 'stop'] }] },
-        ],
+        Stop: [{ matcher: '', hooks: [{ command: 'onebrain', args: ['checkpoint', 'stop'] }] }],
       },
     });
 

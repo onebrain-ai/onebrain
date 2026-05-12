@@ -623,11 +623,7 @@ type HookForm = 'exec' | 'legacy' | 'absent';
 
 const CANONICAL_HOOK_COMMAND = 'onebrain';
 
-function detectHookForm(
-  settings: SettingsForCheck,
-  event: string,
-  cmdSubstring: string,
-): HookForm {
+function detectHookForm(settings: SettingsForCheck, event: string, cmdSubstring: string): HookForm {
   const groups = settings.hooks?.[event] ?? [];
   for (const g of groups) {
     for (const h of g.hooks ?? []) {
