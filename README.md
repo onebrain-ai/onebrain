@@ -84,7 +84,7 @@ A great harness already knows how to talk to an LLM, edit files, and run shell c
 | | What OneBrain adds | Why it matters |
 |---|---|---|
 | 🧠 | **Memory** — Identity, preferences, decisions, project state — promoted across four tiers as it earns trust | The harness alone starts every session from zero. OneBrain doesn't. |
-| ⚡ | **Skills** — 29+ vault-aware verbs (`/braindump`, `/research`, `/distill`, `/learn`, `/wrapup`, …) | Pre-built workflows the harness would otherwise need you to script every time. |
+| ⚡ | **Skills** — 31+ vault-aware verbs (`/braindump`, `/research`, `/distill`, `/learn`, `/wrapup`, …) | Pre-built workflows the harness would otherwise need you to script every time. |
 | 🎯 | **Calibration** — Every correction, every preference, every learned habit tunes the agent to *you* | The longer you use it, the sharper it gets — your vault is the training data. |
 | 🔀 | **Continuity** — Context lives in the vault, not the harness | Switch from Claude Code to Gemini CLI to Codex. Same memory. Same skills. Same agent. |
 
@@ -196,6 +196,8 @@ OneBrain has automatic behaviors that run without you doing anything:
 
 **`/wrapup` is manual only.** Run it yourself when you want a visible, full session summary with output shown.
 
+**Pausing long work across sessions.** For multi-day tasks that don't fit one session, run `/pause` to save a snapshot, then `/resume` in a future session to pick up seamlessly. Pause snapshots accumulate per-thread in `07-logs/pause/`; the next `/wrapup` consolidates them into one session log. This fills the gap between auto-checkpoint (involuntary) and `/wrapup` (terminal).
+
 **The practical result:** Just say "bye" and everything is saved. If the session ends unexpectedly, you lose at most 15 messages — the last checkpoint recovers the rest.
 
 > Auto Checkpoint runs on Claude Code (`Stop` hook) and Gemini CLI (`AfterAgent` hook), and uses the `onebrain` CLI binary. Install with `npm install -g @onebrain-ai/cli`. Auto Session Summary works with any agent that follows INSTRUCTIONS.md.
@@ -210,7 +212,7 @@ OneBrain doesn't just store markdown. Every feature exists to make you and the a
 |---|---|---|
 | 🧠 | **Persistent Memory** | Remembers your name, goals, preferences, and decisions across every session |
 | 🖥️ | **Personal AI OS** | Full local stack: Claude Code + Obsidian + tmux + Telegram — no cloud infra needed |
-| ⚡ | **29+ Skills** | Braindump, research, consolidate, bookmark, import files, daily briefing, and more |
+| ⚡ | **31+ Skills** | Braindump, research, consolidate, bookmark, import files, daily briefing, and more |
 | 📂 | **Vault-native Markdown** | Plain Markdown, no lock-in. Your data stays yours forever |
 | 🔀 | **Multi-Harness OS** | Switch between Claude Code, Gemini CLI, Codex, Qwen, or BYO LLM — context never breaks. [See architecture ↑](#the-harness-os-architecture) |
 | 🔌 | **Zero Config** | Clone, open in Obsidian, run `/onboarding`. Ready in under 2 minutes |
@@ -340,7 +342,9 @@ Same vault. Same skills. Same memory. The LLM swaps; OneBrain doesn't notice.
 
 <a id="commands"></a>
 
-## 📋 29+ Commands
+<!-- NEW-BADGE-CLEANUP: remove the green NEW shields.io badges from /search, /pause, /resume, /schedule-* on or after 2026-05-19 -->
+
+## 📋 31+ Commands
 
 Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (avoids collisions with Gemini built-in commands like `/help` and `/tasks`).
 
@@ -373,7 +377,7 @@ Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebr
 
 | Command | What it does |
 |---------|-------------|
-| `/search` | General vault retrieval — answers what + why questions across MEMORY, sessions, plans, decisions logs, notes |
+| `/search` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | General vault retrieval — answers what + why questions across MEMORY, sessions, plans, decisions logs, notes |
 | `/tasks` | Live task dashboard in Obsidian — creates/updates `TASKS.md` with always-current query sections |
 | `/moc` | Vault portal in Obsidian — creates/updates `MOC.md` with projects, areas, knowledge, tasks, and pinned links |
 | `/memory-review` | Interactive review of memory files — keep, update, deprecate, or delete entries |
@@ -389,10 +393,12 @@ Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebr
 | `/qmd` | Set up fast vault search index — enables semantic search across all notes |
 | `/help` | List all available commands with descriptions |
 | `/wrapup` | Wrap up session — merges any auto-checkpoints and saves full summary to session log |
-| `/schedule-add` | Interactive wizard for adding a recurring scheduled skill |
-| `/schedule-once` | One-shot wizard: schedule a skill to run once at a specific datetime |
-| `/schedule-list` | Show all scheduled entries |
-| `/schedule-remove` | Remove a scheduled entry |
+| `/pause` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Save a snapshot of long-running work mid-flight so a future session can `/resume` (does NOT end the session or clear context) |
+| `/resume` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Load the latest snapshot of an active pause thread and pick up seamlessly in a fresh session |
+| `/schedule-add` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Interactive wizard for adding a recurring scheduled skill |
+| `/schedule-once` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | One-shot wizard: schedule a skill to run once at a specific datetime |
+| `/schedule-list` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Show all scheduled entries |
+| `/schedule-remove` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Remove a scheduled entry |
 
 <details>
 <summary><strong>📁 Vault Structure</strong></summary>
