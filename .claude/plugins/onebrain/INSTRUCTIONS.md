@@ -368,6 +368,38 @@ These principles are the foundation of how OneBrain assists across every session
 - Prefer adding to existing notes over creating new ones when a suitable note already exists
 - Keep `[agent_folder]/MEMORY.md` under ~180 lines (/doctor audits at 180)
 
+## Scheduling — which tool to use
+
+OneBrain provides scheduling via OS-level cron (launchd on macOS). It is configured in `vault.yml` `schedule:` block, not invoked via slash. This is distinct from Claude Code's built-in `/loop` and `/schedule` commands.
+
+| Tool | Use case | Runtime |
+|------|---------|---------|
+| Claude Code `/loop` | Active polling within current session | In-session, ephemeral |
+| Claude Code `/schedule` | Remote agent runs without your machine on | Anthropic-hosted (cloud) |
+| **OneBrain scheduler** | Auto-run OneBrain skill on local machine, writing to vault | Local OS scheduler (launchd) |
+
+Use the OneBrain scheduler for: `/daily` morning brief, `/weekly` Friday review, `/recap` Sunday digest, `/doctor` weekly health check — anything that should fire on a recurring local schedule and write its output back to the vault.
+
+For interactive setup:
+- `/schedule-add` — recurring schedule wizard
+- `/schedule-once` — one-shot wizard (fire once at a specific datetime, then auto-uninstall)
+- `/schedule-list` — show all scheduled entries
+- `/schedule-remove` — remove an entry
+
+For manual config: edit `vault.yml` `schedule:` block + run `onebrain register-schedule`.
+
+## Headless invocation
+
+Scheduled skills run via headless Claude Code: `claude --vault {VAULT} --skill /daily --headless`. The session loads MEMORY.md, vault.yml, MEMORY-INDEX.md as normal (SessionStart hook fires). PreToolUse, PostToolUse, Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+
+Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
+
+Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
+
+Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → schedule auto-paused; `/doctor` surfaces it as CRITICAL; user runs `onebrain register-schedule --resume <skill>` to re-enable.
+
+One-shot entries (those with `at:` instead of `cron:`) fire once, then the launchd plist self-deletes via an embedded shell wrapper. If the plist remains on disk after its timestamp passed, `/doctor` flags it as an expired one-shot to clean up.
+
 ## Permissions
 
 Proceed autonomously — no confirmation needed for:
