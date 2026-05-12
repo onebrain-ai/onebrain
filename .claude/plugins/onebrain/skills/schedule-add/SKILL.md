@@ -19,6 +19,32 @@ For users who don't want to hand-edit vault.yml or learn cron syntax. Walks thro
 
 ## Skill flow
 
+### Step 0: First-run preset detection (skip if schedule already has entries)
+
+1. Read `vault.yml`. Check if the `schedule:` key exists AND its value is a non-empty list.
+   - If `schedule:` is missing, null, or `[]` → continue with this step (preset selector).
+   - If `schedule:` has one or more entries → skip Step 0 entirely; go straight to Step 1.
+
+2. Read the canonical preset tier table from `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`. The four tiers are defined there — never duplicate them inline in this skill file.
+
+3. Show preset selection via `AskUserQuestion`:
+   - **Tier 1 — Minimal** (1 entry: `/daily` 09:00 every day)
+   - **Tier 2 — Essentials (Recommended)** (3 entries: `/daily`, `/weekly` Friday, `/recap` Sunday)
+   - **Tier 3 — Maintenance Plus** (6 entries: Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd-reindex` Sunday command-mode entry)
+   - **Tier 4 — Custom** (skip presets, go to manual wizard)
+
+4. Apply the chosen tier:
+   - **Tier 1, 2, or 3:** atomically write the preset entries (verbatim from `_shared/schedule-presets.md`) to `vault.yml` `schedule:` block (load → mutate → write entire file; use a tmp file + rename). Then run `onebrain register-schedule`. Confirm: `✓ Installed Tier N preset (M entries).`
+   - **Tier 4 (Custom):** fall through to Step 1 (the existing skill picker wizard).
+
+5. On Tier 1/2/3 success → the skill exits here. The user has scheduled entries. Subsequent invocations of `/schedule-add` will see `schedule:` is non-empty and skip Step 0, falling straight into the manual wizard for adding additional entries.
+
+#### Edge cases
+
+- **vault.yml missing entirely** → wizard creates it with the preset entries as the only content of a new `schedule:` block.
+- **vault.yml has `schedule:` as a comment or YAML null** → treat as empty; proceed with preset selector.
+- **Atomic write failure** → rollback (do not leave partial state); report the YAML error and exit.
+
 ### Step 1: Pick skill
 
 List all schedulable skills by reading each SKILL.md frontmatter under `.claude/plugins/onebrain/skills/`. Filter for entries where `schedulable: true` OR `schedulable_with_args: true`.
