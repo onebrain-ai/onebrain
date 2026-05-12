@@ -54,5 +54,6 @@ Skills are organized by workflow phase — Input → Process → Recall → Main
 | `/help` | This catalog |
 | `/wrapup` | Session log |
 | `/schedule-add` | Interactive wizard for adding a scheduled skill |
+| `/schedule-once` | One-shot wizard: schedule a skill to run once at a specific datetime |
 | `/schedule-list` | Show all scheduled entries |
 | `/schedule-remove` | Remove a scheduled entry |
