@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.9
+latest_version: 2.4.10
 released: 2026-05-12
 ---
 
@@ -10,6 +10,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## v2.4.10 — 2026-05-12
+
+- feat(pause): new `/pause` skill saves snapshot of long-running work to `07-logs/pause/`; non-terminal — does not clear context
+- feat(resume): new `/resume` skill loads active pause-thread state in fresh sessions; idempotent in same-session
+- feat(wrapup): Step 0 detects active pause thread; "Yes" branch consolidates all pause files of slug + current checkpoints into one session log
+- feat(wrapup, auto-summary): auto-finalize active pause thread before daily session log write (3 skip conditions prevent noise)
+- feat(startup): banner shows `📂 active pause: {slug} ({N} snapshots)` when `_active.md` present
+- feat(doctor): 3 new pause health checks (orphan pointer, missing pointer, idle > 14d)
+- docs(instructions): wire `/pause` `/resume` into skills table, vault structure, file naming, routing, response profiles
+- docs(session-formats): add Pause File Format + `synthesized_from_pause` session-log frontmatter case
 
 ## 2.4.9 — 2026-05-12
 
