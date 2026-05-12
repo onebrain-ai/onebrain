@@ -5,6 +5,8 @@ const ctx = {
   vaultPath: '/Users/test/vault',
   skillCliPath: '/usr/local/bin/claude-code',
   logBasePath: '/Users/test/vault/07-logs/scheduler/2026/05',
+  homedir: '/Users/test',
+  uid: 501,
 };
 
 describe('generatePlist', () => {
@@ -37,6 +39,33 @@ describe('generatePlist', () => {
   test('no blank line in <array> when args absent', () => {
     const out = generatePlist({ cron: '0 9 * * *', skill: '/daily' }, ctx);
     expect(out).not.toMatch(/<string>--headless<\/string>\n\n\s*<\/array>/);
+  });
+
+  test('one-shot plist emits Year/Month/Day/Hour/Minute', () => {
+    const out = generatePlist({ at: '2026-05-13 14:30', skill: '/reminder' }, { ...ctx, uid: 501 });
+    expect(out).toContain('<key>Year</key>\n        <integer>2026</integer>');
+    expect(out).toContain('<key>Month</key>\n        <integer>5</integer>');
+    expect(out).toContain('<key>Day</key>\n        <integer>13</integer>');
+    expect(out).toContain('<key>Hour</key>\n        <integer>14</integer>');
+    expect(out).toContain('<key>Minute</key>\n        <integer>30</integer>');
+  });
+
+  test('one-shot plist wraps command in self-delete shell', () => {
+    const out = generatePlist({ at: '2026-05-13 14:30', skill: '/reminder' }, { ...ctx, uid: 501 });
+    expect(out).toContain('<string>/bin/sh</string>');
+    expect(out).toContain('<string>-c</string>');
+    expect(out).toContain('launchctl bootout gui/501/com.onebrain.reminder');
+    expect(out).toContain('rm -f');
+  });
+
+  test('one-shot plist escapes XML in args inside wrapper', () => {
+    const out = generatePlist(
+      { at: '2026-05-13 14:30', skill: '/echo', args: { msg: 'a & b' } },
+      { ...ctx, uid: 501 },
+    );
+    // Shell line: --msg="a & b" — the whole line is XML-escaped once, so
+    // " → &quot; and & → &amp;, giving --msg=&quot;a &amp; b&quot;.
+    expect(out).toContain('--msg=&quot;a &amp; b&quot;');
   });
 });
 

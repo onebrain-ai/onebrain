@@ -1,5 +1,6 @@
 export interface ScheduleEntry {
-  cron: string;
+  cron?: string;
+  at?: string;
   skill: string;
   args?: Record<string, string>;
 }

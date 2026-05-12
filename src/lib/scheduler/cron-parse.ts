@@ -32,3 +32,41 @@ export function cronFieldsToLaunchd(cron: string): {
   if (dow !== '*') out.Weekday = Number.parseInt(dow, 10);
   return out;
 }
+
+const AT_RE = /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})$/;
+
+export function validateAt(at: string): { valid: boolean; reason?: string } {
+  const m = at.match(AT_RE);
+  if (!m) {
+    return { valid: false, reason: `expected 'YYYY-MM-DD HH:MM', got "${at}"` };
+  }
+  const [, , mo, d, h, mi] = m;
+  const month = Number.parseInt(mo, 10);
+  const day = Number.parseInt(d, 10);
+  const hour = Number.parseInt(h, 10);
+  const minute = Number.parseInt(mi, 10);
+  if (month < 1 || month > 12) return { valid: false, reason: `month out of range: ${month}` };
+  if (day < 1 || day > 31) return { valid: false, reason: `day out of range: ${day}` };
+  if (hour > 23) return { valid: false, reason: `hour out of range: ${hour}` };
+  if (minute > 59) return { valid: false, reason: `minute out of range: ${minute}` };
+  return { valid: true };
+}
+
+/** Convert a one-shot 'YYYY-MM-DD HH:MM' to a launchd `StartCalendarInterval` dict. Assumes input passed `validateAt`. */
+export function atToLaunchd(at: string): {
+  Year: number;
+  Month: number;
+  Day: number;
+  Hour: number;
+  Minute: number;
+} {
+  const m = at.match(AT_RE) as RegExpMatchArray;
+  const [, y, mo, d, h, mi] = m;
+  return {
+    Year: Number.parseInt(y, 10),
+    Month: Number.parseInt(mo, 10),
+    Day: Number.parseInt(d, 10),
+    Hour: Number.parseInt(h, 10),
+    Minute: Number.parseInt(mi, 10),
+  };
+}
