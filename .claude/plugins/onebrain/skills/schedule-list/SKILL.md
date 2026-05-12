@@ -30,24 +30,16 @@ Stop.
 
 ### Step 2: Fetch status
 
-Run from the vault root:
+Read the `schedule:` block from vault.yml directly to get the cron/at expression and skill name for each entry.
+
+Optionally run from the vault root:
 ```
 onebrain register-schedule --status
 ```
 
-Parse the JSON output. Expected shape per entry:
-```json
-{
-  "skill": "/daily",
-  "cron": "0 9 * * *",
-  "last_run": "2026-05-11T09:00:00",
-  "last_status": "success",
-  "next_run": "2026-05-12T09:00:00",
-  "paused": false
-}
-```
+This emits plain text (not JSON). Parse line-by-line to extract the installed-on-disk marker (`✓` = plist exists on disk, `✗` = plist missing) for each entry. The CLI does not track last-run, next-run, or last-status — that detail is in `[logs_folder]/scheduler/YYYY/MM/`.
 
-If `onebrain register-schedule --status` is unavailable or fails: fall back to reading launchd plist modification times from `~/Library/LaunchAgents/` for each scheduled entry. If neither source is available, show only the cron expressions from vault.yml and omit last/next run columns.
+If `onebrain register-schedule --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. If neither source is available, show only the cron/at expressions from vault.yml and omit the installed-status column.
 
 ### Step 3: Format output
 
@@ -56,27 +48,28 @@ Print the schedule table:
 ```
 📅 Scheduled skills:
 
-  ✓ 0 9 * * *      /daily         next: tomorrow 09:00   last: 2026-05-11 09:00 (success)
-  ✓ 0 18 * * 5     /weekly        next: Friday 18:00     last: 2026-05-08 18:00 (success)
-  ✓ 0 12 * * 0     /recap         next: Sunday 12:00     last: 2026-05-10 12:00 (success)
+  ✓ 0 9 * * *      /daily         (installed)
+  ✓ 0 18 * * 5     /weekly        (installed)
+  ✗ 0 12 * * 0     /recap         (plist missing — re-run /schedule-add)
 ```
 
 Column layout:
-- Status icon: `✓` for active, `⏸` for paused
-- Cron expression (left-padded to align)
+- Installed icon: `✓` = plist on disk, `✗` = plist missing
+- Cron or at expression (left-padded to align)
 - Skill name
-- Next run (human-readable: "tomorrow HH:MM", "Friday HH:MM", "in 3 days HH:MM")
-- Last run datetime + status (`success` | `error` | `never`)
+- Installed status note
 
-### Step 4: Surface errors and paused entries
+Detailed run history (stdout, stderr, error files) lives in `[logs_folder]/scheduler/YYYY/MM/`.
 
-If `last_status` is `error`:
-- Show `(error)` in the last-run column
-- Append a hint line below the table: `→ See 07-logs/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md for details`
+### Step 4: Surface errors
 
-If `paused` is `true` (auto-paused after 3 consecutive failures):
-- Show `⏸ paused` status icon instead of `✓`
-- Append a hint line: `→ Fix the error, then run /schedule-add to re-register {skill}`
+If `✗` entries are found:
+- Append a hint line below the table: `→ Run /schedule-add to re-register missing entries`
+
+For error log detail:
+- Append: `→ See [logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md for failure details`
+
+Note: auto-pause-on-failure (⏸ paused after 3 consecutive failures) is not yet implemented in the CLI. The marker file mechanism is planned for a future release. `/doctor` currently flags 3+ consecutive `.err.md` files as CRITICAL — use that for failure monitoring.
 
 ### Step 5: Footer
 

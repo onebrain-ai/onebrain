@@ -1,5 +1,5 @@
-// Field regex: supports digits, `*`, ranges (`-`), and lists (`,`). Step syntax (`*/N`) is not supported.
-const CRON_FIELD_RE = /^[\d*,\-/]+$/;
+// Field regex: single wildcard '*' OR single integer. Ranges (1-5), lists (1,2,3), step syntax (*/N) are not supported — launchd StartCalendarInterval only accepts a single integer per field.
+const CRON_FIELD_RE = /^(\*|\d+)$/;
 
 export function validateCron(cron: string): { valid: boolean; reason?: string } {
   const fields = cron.trim().split(/\s+/);

@@ -6,8 +6,16 @@ describe('validateCron', () => {
     expect(validateCron('0 9 * * *')).toEqual({ valid: true });
   });
 
-  test('accepts weekday-range cron', () => {
-    expect(validateCron('0 9 * * 1-5')).toEqual({ valid: true });
+  test('rejects step syntax', () => {
+    expect(validateCron('*/5 * * * *').valid).toBe(false);
+  });
+
+  test('rejects range syntax', () => {
+    expect(validateCron('0 9 * * 1-5').valid).toBe(false);
+  });
+
+  test('rejects list syntax', () => {
+    expect(validateCron('0 9 * * 1,3,5').valid).toBe(false);
   });
 
   test('rejects wrong field count', () => {

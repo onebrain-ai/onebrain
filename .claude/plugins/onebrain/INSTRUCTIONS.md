@@ -396,7 +396,7 @@ Headless sessions have no prior conversation history — each invocation is fres
 
 Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
 
-Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → schedule auto-paused; `/doctor` surfaces it as CRITICAL; user runs `onebrain register-schedule --resume <skill>` to re-enable.
+Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain register-schedule --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
 
 One-shot entries (those with `at:` instead of `cron:`) fire once, then the launchd plist self-deletes via an embedded shell wrapper. If the plist remains on disk after its timestamp passed, `/doctor` flags it as an expired one-shot to clean up.
 

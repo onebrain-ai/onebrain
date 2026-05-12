@@ -47,7 +47,7 @@ export function generatePlist(entry: ScheduleEntry, ctx: LaunchdContext): string
 
     const argsBlock = entry.args
       ? `\n${Object.entries(entry.args)
-          .map(([k, v]) => `        <string>--${k}=${xmlEscape(v)}</string>`)
+          .map(([k, v]) => `        <string>--${xmlEscape(k)}=${xmlEscape(v)}</string>`)
           .join('\n')}`
       : '';
 

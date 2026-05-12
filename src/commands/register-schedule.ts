@@ -62,6 +62,8 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
   const ctx = {
     vaultPath: opts.vault,
     skillCliPath,
+    // TODO: read folders.logs from vault.yml instead of hardcoding '07-logs'
+    // — for vaults using a non-default logs folder. Tracked for follow-up.
     logBasePath: join(opts.vault, '07-logs/scheduler'),
     // process.getuid is undefined on Windows; fall back to 501 (default macOS UID).
     // TODO: surface an error if running on a non-POSIX platform where getuid is absent.
@@ -138,13 +140,15 @@ async function validateSchedulable(vault: string, entry: ScheduleEntry): Promise
     throw new Error(`Skill ${entry.skill} does not declare schedulable: true in frontmatter`);
   }
 
-  // Reject double-quote in args values: the one-shot shell wrapper interpolates
-  // arg values into a sh -c string, so unescaped double-quotes would break the
-  // generated shell command.
+  // Reject shell-special chars in args values: the one-shot shell wrapper interpolates
+  // arg values into a sh -c "..." string, so double-quote, $, backtick, and backslash
+  // can execute arbitrary commands or break the generated shell command.
   if (entry.args) {
     for (const [k, v] of Object.entries(entry.args)) {
-      if (v.includes('"')) {
-        throw new Error(`Arg "${k}" value must not contain double-quote: ${v}`);
+      if (/["$`\\]/.test(v)) {
+        throw new Error(
+          `Arg "${k}" value must not contain shell-special chars (", $, backtick, \\): ${v}`,
+        );
       }
     }
   }
@@ -187,6 +191,8 @@ async function testRun(vault: string, skill: string): Promise<void> {
 }
 
 async function resumeSkill(vault: string, skill: string): Promise<void> {
+  // TODO: read folders.logs from vault.yml instead of hardcoding '07-logs'
+  // — for vaults using a non-default logs folder. Tracked for follow-up.
   const marker = join(vault, '07-logs/scheduler/.paused', `${skill.replace(/^\//, '')}.txt`);
   if (existsSync(marker)) {
     await unlink(marker);

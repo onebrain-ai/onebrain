@@ -28,7 +28,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
 ├── startup/                             Startup utilities loaded at session begin
 │   └── scripts/                         Predefined shell scripts called by INSTRUCTIONS.md
 │       └── open-in-obsidian.sh          Opens a vault file in the Obsidian app
-├── skills/                              One directory per slash command (25 skills)
+├── skills/                              One directory per slash command (29 skills)
 │   └── [name]/
 │       ├── SKILL.md                     The skill prompt — what the AI follows when invoked
 │       ├── references/                  Large content loaded on-demand (handlers, templates, procedures)
@@ -44,7 +44,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
 ├── settings.json                        Declarative hooks (AfterAgent, AfterTool) + model.disableLoopDetection
 └── commands/
     └── onebrain/                        Slash commands namespaced as /onebrain:<skill>
-        └── *.toml                       One TOML per user-facing skill (25 commands; description + prompt)
+        └── *.toml                       One TOML per user-facing skill (29 commands; description + prompt)
 ```
 
 Both trees are deployed to the user's vault by `vault-sync` in a single sync step. Skills, agents, and INSTRUCTIONS live single-source-of-truth in `.claude/plugins/onebrain/`; the Gemini side references them on demand via the slash command prompts.

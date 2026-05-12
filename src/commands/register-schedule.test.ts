@@ -82,14 +82,30 @@ describe('registerSchedule', () => {
     );
   });
 
-  test('rejects arg value containing double-quote', async () => {
-    writeFileSync(
-      join(testVault, 'vault.yml'),
-      `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n    args:\n      msg: 'bad "value"'\n`,
-    );
-    await expect(registerSchedule({ vault: testVault, dryRun: true })).rejects.toThrow(
-      /double-quote/,
-    );
+  test('rejects arg value containing shell-special chars', async () => {
+    for (const [_key, yaml] of [
+      [
+        'double-quote',
+        `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n    args:\n      msg: 'bad "value"'\n`,
+      ],
+      [
+        'dollar-sign',
+        `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n    args:\n      msg: 'has $var'\n`,
+      ],
+      [
+        'backtick',
+        'schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n    args:\n      msg: \'has `cmd`\'\n',
+      ],
+      [
+        'backslash',
+        `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n    args:\n      msg: 'back\\\\slash'\n`,
+      ],
+    ] as [string, string][]) {
+      writeFileSync(join(testVault, 'vault.yml'), yaml);
+      await expect(registerSchedule({ vault: testVault, dryRun: true })).rejects.toThrow(
+        /shell-special chars/,
+      );
+    }
   });
 
   test('--refresh logs notice and re-emits plists', async () => {
