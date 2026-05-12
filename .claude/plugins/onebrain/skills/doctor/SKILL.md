@@ -112,14 +112,14 @@ Run all applicable checks based on flags (default: all). Collect findings before
 **OneBrain hooks:**
 - Read `[vault]/.claude/settings.json` (vault-level settings — the `.claude/` folder inside the vault, not `~/.claude/settings.json`)
 - Allowed events: only `Stop` and `PostToolUse` (the latter conditional on `qmd_collection`).
-- Check required `Stop` hook: entry exists under `hooks.Stop` and command contains `checkpoint stop` → ✅ / 🔴 missing or wrong
-- Sweep all other hook events (PreCompact, PostCompact, UserPromptSubmit, SessionStart, etc.): any entry whose command contains `onebrain` → 🟡 stale onebrain hook under non-allowed event — suggest running /update to remove it. Non-onebrain entries under those events are user-added and must be preserved (not flagged).
+- Check required `Stop` hook: entry exists under `hooks.Stop` and its **effective command** (the `command` field joined with `args[]` by spaces — so both legacy `{command: "onebrain checkpoint stop"}` and exec-form `{command: "onebrain", args: ["checkpoint", "stop"]}` reduce to the same string) contains `onebrain checkpoint stop` → ✅ / 🔴 missing or wrong
+- Sweep all other hook events (PreCompact, PostCompact, UserPromptSubmit, SessionStart, etc.): any entry whose effective command contains `onebrain` → 🟡 stale onebrain hook under non-allowed event — suggest running /update to remove it. Non-onebrain entries under those events are user-added and must be preserved (not flagged).
 
 **qmd PostToolUse hook (only when `qmd_collection` is set in vault.yml):**
 - If `qmd_collection` is absent in vault.yml: skip this entire check
 - If `qmd_collection` is present:
   - Check `which qmd` (macOS/Linux) or `where qmd` (Windows): qmd binary must be installed → ✅ / 🔴 "qmd not installed — qmd_collection is set but binary is missing; run `/qmd setup` to reinstall"
-  - Read `[vault]/.claude/settings.json` (same file used for the Stop hook); check that `hooks.PostToolUse` contains an entry whose `command` contains `qmd-reindex` → ✅ / 🔴 "PostToolUse qmd hook missing in settings.json — run /update to register"
+  - Read `[vault]/.claude/settings.json` (same file used for the Stop hook); check that `hooks.PostToolUse` contains an entry whose effective command (see Stop hook note above for the legacy + exec-form merge rule) contains `onebrain qmd-reindex` → ✅ / 🔴 "PostToolUse qmd hook missing in settings.json — run /update to register"
 
 ### Scheduler Health (added 2026-05-12)
 
