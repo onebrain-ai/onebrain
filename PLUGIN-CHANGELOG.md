@@ -1,5 +1,5 @@
 ---
-latest_version: 2.4.10
+latest_version: 2.4.11
 released: 2026-05-12
 ---
 
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## v2.4.11 — 2026-05-12
+
+- docs(doctor): update SKILL.md hook-check description to match new validator behavior — effective command = `command` joined with `args[]`, so canonical exec-form `{command: "onebrain", args: ["checkpoint", "stop"]}` is recognized alongside legacy shell form
 
 ## v2.4.10 — 2026-05-12
 
