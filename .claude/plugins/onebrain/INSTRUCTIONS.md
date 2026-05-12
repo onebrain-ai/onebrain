@@ -415,6 +415,8 @@ schedule:
 
 Use skill mode for OneBrain workflows. Use command mode for CLI maintenance and generic binaries that don't have (or don't need) a skill wrapper.
 
+**Adding entries:** the `/schedule-add` wizard targets skill mode only. To add a command-mode entry, edit `vault.yml` directly and re-run `onebrain register-schedule`. The `/schedule-list` and `/schedule-remove` skills handle both modes transparently.
+
 ## Headless invocation
 
 Scheduled skills run via headless Claude Code: `claude --vault {VAULT} --skill /daily --headless`. The session loads MEMORY.md, vault.yml, MEMORY-INDEX.md as normal (SessionStart hook fires). PreToolUse, PostToolUse, Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).

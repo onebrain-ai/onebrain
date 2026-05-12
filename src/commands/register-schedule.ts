@@ -167,9 +167,9 @@ async function validateSchedulable(vault: string, entry: ScheduleEntry): Promise
     throw new Error(`Skill ${entry.skill} does not declare schedulable: true in frontmatter`);
   }
 
-  // Reject shell-special chars in args values for skill mode: the one-shot shell wrapper
-  // interpolates arg values into a sh -c "..." string, and recurring mode's plist generator
-  // also embeds arg values. Reject early here to provide a clear error message.
+  // Reject shell-special chars in args values for recurring skill mode: the plist generator
+  // embeds arg values as --key=value strings inside a sh -c "..." wrapper. One-shot entries
+  // are checked earlier by sanitizeArgsForOneShot before generatePlist is called.
   if (entry.args) {
     for (const [k, v] of Object.entries(entry.args as Record<string, string>)) {
       if (/["$`\\]/.test(v)) {

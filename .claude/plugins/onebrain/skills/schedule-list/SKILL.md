@@ -41,7 +41,7 @@ This emits plain text (not JSON). Each line is one entry with the `[cron]` or `[
 
 The CLI does not track last-run, next-run, or last-status — that detail is in `[logs_folder]/scheduler/YYYY/MM/`.
 
-If `onebrain register-schedule --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. Compute the plist filename as `com.onebrain.<labelSafe>.plist` where `labelSafe` is the binary name (for command mode) or the skill name with leading slash stripped (for skill mode), with non-alphanumeric characters replaced by `-`.
+If `onebrain register-schedule --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. Compute the plist filename as `com.onebrain.<labelSafe>.plist` where `labelSafe` is the binary name (for command mode) or the skill name with leading slash stripped (for skill mode), with non-alphanumeric, non-hyphen characters replaced by `-`.
 
 ### Step 3: Format output
 

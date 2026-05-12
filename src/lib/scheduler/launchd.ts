@@ -33,14 +33,8 @@ export function generatePlist(entry: ScheduleEntry, ctx: LaunchdContext): string
 
   if (isOneShot(entry)) {
     if (isCommandMode(entry)) {
+      // Args pre-validated by sanitizeArgsForOneShot in register-schedule.ts before reaching here.
       const argv = (entry.args as string[] | undefined) ?? [];
-      for (const a of argv) {
-        if (/["$`\\]/.test(a)) {
-          throw new Error(
-            `Command-mode arg must not contain shell-special chars (", $, \`, \\): ${a}`,
-          );
-        }
-      }
       const quotedArgs = argv.map((a) => `"${a}"`).join(' ');
       const innerCommand = `"${entry.command}"${quotedArgs ? ` ${quotedArgs}` : ''}`;
       const plistFilePath = `${ctx.homedir}/Library/LaunchAgents/${label}.plist`;

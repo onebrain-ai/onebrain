@@ -111,12 +111,6 @@ describe('generatePlist — command mode', () => {
     expect(out).toContain('rm -f');
   });
 
-  test('one-shot rejects shell-special chars in args', () => {
-    expect(() =>
-      generatePlist({ at: '2026-05-13 14:30', command: 'onebrain', args: ['$evil'] }, cctx),
-    ).toThrow(/shell-special chars/);
-  });
-
   test('command with no args produces single-element argv', () => {
     const out = generatePlist({ cron: '0 3 * * 0', command: 'onebrain' }, cctx);
     expect(out).toContain('<string>onebrain</string>');
@@ -130,5 +124,15 @@ describe('generatePlist — command mode', () => {
     expect(out).toContain('<string>rsync</string>');
     expect(out).toContain('<string>-av</string>');
     expect(out).toContain('<string>com.onebrain.rsync</string>');
+  });
+
+  test('command-mode args containing XML-special chars are escaped', () => {
+    const out = generatePlist(
+      { cron: '0 5 * * *', command: 'rclone', args: ['--exclude', 'a & b'] },
+      cctx,
+    );
+    expect(out).toContain('<string>--exclude</string>');
+    expect(out).toContain('<string>a &amp; b</string>');
+    expect(out).not.toContain('<string>a & b</string>'); // raw `&` must not appear
   });
 });
