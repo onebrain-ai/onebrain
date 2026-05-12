@@ -28,7 +28,7 @@ See `skills/startup/references/session-formats.md` → Session Log Format for fr
 Run this BEFORE Step 1.
 
 1. Read `[logs_folder]/pause/_active.md`. If absent or empty → set `wrapup_mode = "session"`; skip to Step 1 (zero-overhead path for non-pause sessions).
-2. If a slug is present: count pause files via glob `[logs_folder]/pause/*-{slug}-pause-*.md` → `pause_count`.
+2. If a slug is present: parse the file's single-line content as `slug`. Glob `[logs_folder]/pause/*-{slug}-pause-*.md` → `pause_count` (file count) and derive `first_date` = earliest `YYYY-MM-DD` date prefix among matched files (used in Step 3's question text).
 3. Use `AskUserQuestion`:
 
    Question: "Active pause thread: `{slug}` ({pause_count} snapshots since {first_date}). Wrap up this thread now?"
@@ -197,7 +197,7 @@ Reflect on the conversation that just occurred. Identify:
 
 ### Thread Wrapup Branch
 
-1. Glob `[logs_folder]/pause/*-{slug}-pause-*.md` → read every file in chronological order (date prefix ascending, then NN ascending). Store as `pause_files`.
+1. Glob `[logs_folder]/pause/*-{slug}-pause-*.md` → read every file in chronological order (date prefix ascending, then NN ascending). Store as `pause_files`. Also derive `first_date` = date prefix of `pause_files[0]` and `last_date` = date prefix of `pause_files[-1]` (used in Step 7 confirm).
 2. Combine `pause_files` content + checkpoint content from Step 1 (today's session). Apply the Preservation rule (deduplication only, no summarization) across all of them.
 3. Determine session file name per existing Step 2 logic.
 4. Write `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the **Thread wrapup — pause snapshots incorporated** frontmatter case from `skills/startup/references/session-formats.md`:

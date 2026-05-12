@@ -99,7 +99,7 @@ Output exactly this format (Capture profile — 1 confirmation block, no elabora
 พิมพ์ /clear เมื่อพร้อมพักงาน (packet จะรอ session ถัดไป)
 ```
 
-Where `N` is the total count of pause files for `active_slug` after this write.
+Where `N` = `next_nn` from Step 2 (the total snapshot count for this thread including the one just written).
 
 ---
 

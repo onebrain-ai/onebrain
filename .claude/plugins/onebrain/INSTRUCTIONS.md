@@ -349,7 +349,7 @@ Different commands have different verbosity expectations. Match output to the pr
 | **Interactive** | `/research`, `/connect`, `/consolidate`, `/reading-notes`, `/weekly`, `/distill`, `/recap`, `/resume` | Normal verbosity : depth matches task complexity. |
 | **Diagnostic** | `/doctor` | Structured report output. No meta-commentary. Lead with findings. |
 | **Config/Setup** | `/onboarding`, `/tasks`, `/moc`, `/qmd` | Confirm actions taken. No verbose explanation unless asked. |
-> **Terminal rendering:** The Obsidian terminal plugin renders markdown natively (tables, bold, headers, code blocks). Interactive and Diagnostic profiles should use full markdown. Capture profile: 1-line plain-text confirm only. Automated profile: no headers — output is read async via Telegram where markdown rendering varies.
+> **Terminal rendering:** The Obsidian terminal plugin renders markdown natively (tables, bold, headers, code blocks). Interactive and Diagnostic profiles should use full markdown. Capture profile: 1-line plain-text confirm only (exception: `/pause` emits a 2-line confirm + 2-line user instruction block per its SKILL.md Step 6). Automated profile: no headers — output is read async via Telegram where markdown rendering varies.
 
 
 For cron/automated agents specifically: output is read by the user async (often via Telegram) : lead with the content, skip all meta-commentary about what you're doing.
