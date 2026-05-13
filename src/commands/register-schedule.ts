@@ -1,7 +1,8 @@
+import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { readFile, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { isAbsolute, join, resolve as pathResolve } from 'node:path';
 import pc from 'picocolors';
 import { parse as parseYaml } from 'yaml';
 import { validateAt, validateCron } from '../lib/scheduler/cron-parse.js';
@@ -37,7 +38,9 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
     return;
   }
 
-  // Validate each entry (exactly-one-of cron/at + skill/command, plus format checks)
+  // Validate each entry (exactly-one-of cron/at + skill/command, plus format
+  // checks). This pass does NOT mutate input — `registerSchedule` is exported,
+  // and a caller-supplied entry array must round-trip unchanged.
   for (const entry of entries) {
     const ve = validateEntry(entry);
     if (!ve.valid) throw new Error(`Invalid schedule entry: ${ve.reason}`);
@@ -54,16 +57,26 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
     if (isSkillMode(entry)) {
       await validateSchedulable(opts.vault, entry);
     }
-    // Command mode: no schedulable-frontmatter validation (hook-style trust model)
+    // Command mode: binary resolution happens below when we build the
+    // launchd-bound entries (so the original `entry.command` stays
+    // user-friendly for status/collision reporting).
   }
 
-  // TODO: resolve the real `onebrain` binary path for production use.
-  // In production the CLI is invoked as `onebrain`, so the installed path should
-  // be resolvable (e.g. via `which onebrain` or a known install prefix). For now
-  // process.argv[1] gives the script path being executed, which works in dev and
-  // in the Bun bundle where argv[1] is the compiled binary path. process.execPath
-  // points to the Bun runtime itself, which is wrong for launchd invocations.
-  const skillCliPath = process.argv[1] ?? 'onebrain';
+  // Build the list of entries that actually flow into the plist generator:
+  // command-mode entries are shallow-cloned with `command` rewritten to an
+  // absolute path so launchd's restricted PATH can find the binary.
+  const resolvedEntries: ScheduleEntry[] = entries.map((entry) =>
+    isCommandMode(entry)
+      ? { ...entry, command: resolveCommandBinary(entry.command as string, opts.vault) }
+      : entry,
+  );
+
+  // The skill-mode plist invokes `<onebrain> run-skill --vault X --skill /name`.
+  // process.argv[1] is the running onebrain script — in production this is the
+  // Bun-compiled binary (executable). In dev (`bun run src/index.ts`), argv[1]
+  // is the absolute path to `src/index.ts`, which launchd cannot exec. Detect
+  // that case and fall back to a `which onebrain` lookup.
+  const skillCliPath = resolveSkillCliPath();
 
   const ctx = {
     vaultPath: opts.vault,
@@ -77,9 +90,11 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
     homedir: homedir(),
   };
 
-  // Collision detection: two entries normalizing to the same plist path conflict
+  // Collision detection: two entries normalizing to the same plist path
+  // conflict. Use `resolvedEntries` so the basename-driven label sees the
+  // already-resolved command name.
   const seen = new Map<string, ScheduleEntry>();
-  for (const entry of entries) {
+  for (const entry of resolvedEntries) {
     const target = plistPath(labelForEntry(entry), ctx.homedir);
     if (seen.has(target)) {
       const existing = seen.get(target);
@@ -96,7 +111,7 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
     seen.set(target, entry);
   }
 
-  for (const entry of entries) {
+  for (const entry of resolvedEntries) {
     const plistContent = generatePlist(entry, ctx);
     const targetPath = plistPath(labelForEntry(entry), ctx.homedir);
 
@@ -112,10 +127,24 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
 
   console.log(pc.green(`\nRegistered ${entries.length} schedule entries.`));
   console.log(pc.dim('Use launchctl to load (or restart launchd):'));
-  for (const entry of entries) {
+  for (const entry of resolvedEntries) {
     const target = plistPath(labelForEntry(entry), ctx.homedir);
     console.log(pc.dim(`  launchctl load ${target}`));
   }
+}
+
+/**
+ * Resolve the absolute path of the running `onebrain` binary, for embedding
+ * in the plist `ProgramArguments[0]`. Production runs use the Bun-compiled
+ * binary path from `process.argv[1]`; dev runs (`bun run src/index.ts`)
+ * expose an unexecutable `.ts` source path, so we fall back to `which onebrain`.
+ */
+function resolveSkillCliPath(): string {
+  const argv1 = process.argv[1];
+  if (argv1 && !argv1.endsWith('.ts') && !argv1.endsWith('.js') && existsSync(argv1)) {
+    return argv1;
+  }
+  return resolveCommandBinary('onebrain');
 }
 
 async function readVaultConfig(vault: string): Promise<ScheduleConfig> {
@@ -223,13 +252,77 @@ async function printStatus(vault: string): Promise<void> {
 
 async function testRun(vault: string, skill: string): Promise<void> {
   console.log(pc.cyan(`Testing scheduled invocation of ${skill}...`));
-  // The CLI binary is `claude` (not `claude-code`; that name is incorrect).
-  console.log(pc.dim('(Spawns headless Claude Code. Output streams here.)'));
-  const { spawn } = await import('node:child_process');
-  const child = spawn('claude', ['--vault', vault, '--skill', skill, '--headless'], {
-    stdio: 'inherit',
-  });
-  await new Promise((resolve) => child.on('exit', resolve));
+  console.log(pc.dim('(Spawns `onebrain run-skill` which shells out to Claude Code.)'));
+  const { runSkillCommand } = await import('./run-skill.js');
+  const code = await runSkillCommand({ vault, skill });
+  if (code !== 0) {
+    console.error(pc.red(`Test run exited with code ${code}`));
+    process.exit(code);
+  }
+}
+
+// `which` works on every POSIX system we support; macOS ships `/usr/bin/which`
+// and Linux ships it via debianutils or coreutils. Hard-coding `/usr/bin/which`
+// keeps the binary lookup itself out of PATH (which is exactly the problem
+// we're trying to solve here).
+const WHICH_BIN = '/usr/bin/which';
+
+/**
+ * Resolve a command-mode binary name to an absolute path. launchd's
+ * ProgramArguments[0] needs to be findable in launchd's restricted PATH
+ * (`/usr/bin:/bin:/usr/sbin:/sbin`), which excludes Homebrew, Bun, and
+ * ~/.local/bin prefixes. Users keep the friendly `command: onebrain` form
+ * in vault.yml; this returns the absolute path that goes into the plist.
+ *
+ * @param name  Binary name or path from `vault.yml` `command:`
+ * @param vaultRoot  Vault root directory — relative paths (`./foo`) resolve
+ *                   against this, not the caller's `process.cwd()`, so
+ *                   running `onebrain register-schedule` from anywhere
+ *                   produces the same plist content.
+ *
+ * Behavior:
+ * - Absolute path → checked for existence, returned as-is (so a typo in
+ *   vault.yml fails at register time, not silently at run time)
+ * - Relative path (`./foo`, `../foo`) → resolved against `vaultRoot`,
+ *   existence-checked
+ * - Bare name → looked up via `/usr/bin/which` against the caller's PATH
+ *
+ * Throws on miss so the failure surfaces at register time rather than at
+ * run time (when launchd would silently exit ENOENT with no stderr).
+ */
+export function resolveCommandBinary(name: string, vaultRoot?: string): string {
+  if (isAbsolute(name)) {
+    if (!existsSync(name)) {
+      throw new Error(
+        `Command not found at absolute path: ${name}. Check the path in vault.yml — launchd will silently fail at run time if the binary is missing.`,
+      );
+    }
+    return name;
+  }
+  if (name.startsWith('./') || name.startsWith('../')) {
+    // Resolve relative to the vault root when supplied; otherwise fall back
+    // to process.cwd() for callers that didn't pass it (e.g. unit tests).
+    const base = vaultRoot ?? process.cwd();
+    const resolved = pathResolve(base, name);
+    if (!existsSync(resolved)) {
+      throw new Error(`Command not found at relative path: ${name} (resolved: ${resolved})`);
+    }
+    return resolved;
+  }
+  try {
+    // execFileSync with argv array is shell-injection-safe — `name` is a
+    // single positional arg, never interpreted by /bin/sh.
+    const out = execFileSync(WHICH_BIN, [name], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (out && existsSync(out)) return out;
+  } catch {
+    // `which` exits non-zero when not found — fall through to throw below.
+  }
+  throw new Error(
+    `Command "${name}" not found in PATH. Use an absolute path in vault.yml (launchd's PATH is restricted to /usr/bin:/bin:/usr/sbin:/sbin and won't find ${name}).`,
+  );
 }
 
 async function resumeSkill(vault: string, skill: string): Promise<void> {

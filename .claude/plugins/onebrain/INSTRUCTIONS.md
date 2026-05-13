@@ -443,9 +443,13 @@ Users with a populated `schedule:` block never see the preset prompt — preset 
 
 ## Headless invocation
 
-Scheduled skills run via headless Claude Code: `claude --vault {VAULT} --skill /daily --headless`. The session loads MEMORY.md, vault.yml, MEMORY-INDEX.md as normal (SessionStart hook fires). PreToolUse, PostToolUse, Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+Scheduled skills run via `onebrain run-skill --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+
+The plist emitted by `onebrain register-schedule` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
 
 Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
+
+Skill arguments declared in `vault.yml` (`args: { topic: this-week }`) are appended to the slash-command prompt as `key=value` tokens — the skill receives them via Claude Code's standard ARGUMENTS slot.
 
 Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
 
