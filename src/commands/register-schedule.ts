@@ -73,10 +73,13 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
 
   // The skill-mode plist invokes `<onebrain> run-skill --vault X --skill /name`.
   // process.argv[1] is the running onebrain script — in production this is the
-  // Bun-compiled binary (executable). In dev (`bun run src/index.ts`), argv[1]
-  // is the absolute path to `src/index.ts`, which launchd cannot exec. Detect
-  // that case and fall back to a `which onebrain` lookup.
-  const skillCliPath = resolveSkillCliPath();
+  // Bun-compiled binary at an absolute path that launchd can exec. In dev
+  // (`bun run src/index.ts`), argv[1] is a `.ts` source path that launchd
+  // can't exec — that case will surface via the planned `/doctor` stale-plist
+  // check rather than blocking `--dry-run` here (which would break CI/test
+  // runs where global `onebrain` isn't installed). The `?? 'onebrain'`
+  // fallback covers the very-rare case where argv[1] is undefined.
+  const skillCliPath = process.argv[1] ?? 'onebrain';
 
   const ctx = {
     vaultPath: opts.vault,
@@ -131,20 +134,6 @@ export async function registerSchedule(opts: RegisterScheduleOptions): Promise<v
     const target = plistPath(labelForEntry(entry), ctx.homedir);
     console.log(pc.dim(`  launchctl load ${target}`));
   }
-}
-
-/**
- * Resolve the absolute path of the running `onebrain` binary, for embedding
- * in the plist `ProgramArguments[0]`. Production runs use the Bun-compiled
- * binary path from `process.argv[1]`; dev runs (`bun run src/index.ts`)
- * expose an unexecutable `.ts` source path, so we fall back to `which onebrain`.
- */
-function resolveSkillCliPath(): string {
-  const argv1 = process.argv[1];
-  if (argv1 && !argv1.endsWith('.ts') && !argv1.endsWith('.js') && existsSync(argv1)) {
-    return argv1;
-  }
-  return resolveCommandBinary('onebrain');
 }
 
 async function readVaultConfig(vault: string): Promise<ScheduleConfig> {
