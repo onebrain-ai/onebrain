@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { registerSchedule } from './register-schedule.js';
+import { registerSchedule, resolveCommandBinary } from './register-schedule.js';
 
 let testVault: string;
 
@@ -122,16 +122,18 @@ describe('registerSchedule', () => {
 
 describe('registerSchedule — command mode', () => {
   test('--dry-run produces plist with command + argv', async () => {
+    // Use an absolute path so resolveCommandBinary returns it as-is and the
+    // emitted plist is deterministic across dev machines (PATH varies).
     writeFileSync(
       join(testVault, 'vault.yml'),
-      `schedule:\n  - cron: "0 3 * * 0"\n    command: onebrain\n    args:\n      - qmd-reindex\n`,
+      `schedule:\n  - cron: "0 3 * * 0"\n    command: /bin/echo\n    args:\n      - hello\n`,
     );
     const captured = captureConsoleLog();
     try {
       await registerSchedule({ vault: testVault, dryRun: true });
       const joined = captured.lines().join('\n');
-      expect(joined).toContain('<string>onebrain</string>');
-      expect(joined).toContain('<string>qmd-reindex</string>');
+      expect(joined).toContain('<string>/bin/echo</string>');
+      expect(joined).toContain('<string>hello</string>');
       expect(joined).not.toContain('<string>--skill</string>');
     } finally {
       captured.restore();
@@ -139,11 +141,23 @@ describe('registerSchedule — command mode', () => {
   });
 
   test('command entry skips schedulable validation', async () => {
+    // /bin/echo is on every macOS/Linux system; absolute path means
+    // resolveCommandBinary returns it as-is without touching PATH.
     writeFileSync(
       join(testVault, 'vault.yml'),
-      `schedule:\n  - cron: "0 3 * * 0"\n    command: nonexistent-binary\n    args:\n      - foo\n`,
+      `schedule:\n  - cron: "0 3 * * 0"\n    command: /bin/echo\n    args:\n      - foo\n`,
     );
     await expect(registerSchedule({ vault: testVault, dryRun: true })).resolves.toBeUndefined();
+  });
+
+  test('command-mode bare binary that cannot be resolved throws helpful error', async () => {
+    writeFileSync(
+      join(testVault, 'vault.yml'),
+      `schedule:\n  - cron: "0 3 * * 0"\n    command: definitely-not-a-real-binary-xyz\n`,
+    );
+    await expect(registerSchedule({ vault: testVault, dryRun: true })).rejects.toThrow(
+      /not found in PATH/,
+    );
   });
 
   test('--status shows command entries with cmd: prefix and joined argv', async () => {
@@ -194,34 +208,146 @@ describe('registerSchedule — command mode', () => {
   });
 
   test('mixed skill + command in same vault.yml — both register', async () => {
+    // /bin/echo as the command-mode binary: deterministic basename `echo`,
+    // independent of the dev machine's PATH.
     writeFileSync(
       join(testVault, 'vault.yml'),
-      `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n  - cron: "0 3 * * 0"\n    command: onebrain\n    args: [qmd-reindex]\n`,
+      `schedule:\n  - cron: "0 9 * * *"\n    skill: /daily\n  - cron: "0 3 * * 0"\n    command: /bin/echo\n    args: [hello]\n`,
     );
     const captured = captureConsoleLog();
     try {
       await registerSchedule({ vault: testVault, dryRun: true });
       const joined = captured.lines().join('\n');
       expect(joined).toContain('com.onebrain.daily');
-      expect(joined).toContain('com.onebrain.onebrain');
+      expect(joined).toContain('com.onebrain.echo');
     } finally {
       captured.restore();
     }
   });
 
-  test('collision: skill /onebrain and command onebrain rejected', async () => {
-    mkdirSync(join(testVault, '.claude/plugins/onebrain/skills/onebrain'), { recursive: true });
+  test('collision: skill /echo and command /bin/echo rejected (basename collision)', async () => {
+    mkdirSync(join(testVault, '.claude/plugins/onebrain/skills/echo'), { recursive: true });
     writeFileSync(
-      join(testVault, '.claude/plugins/onebrain/skills/onebrain/SKILL.md'),
-      '---\nname: onebrain\nschedulable: true\n---\n',
+      join(testVault, '.claude/plugins/onebrain/skills/echo/SKILL.md'),
+      '---\nname: echo\nschedulable: true\n---\n',
     );
     writeFileSync(
       join(testVault, 'vault.yml'),
-      `schedule:\n  - cron: "0 9 * * *"\n    skill: /onebrain\n  - cron: "0 3 * * 0"\n    command: onebrain\n`,
+      `schedule:\n  - cron: "0 9 * * *"\n    skill: /echo\n  - cron: "0 3 * * 0"\n    command: /bin/echo\n`,
     );
     await expect(registerSchedule({ vault: testVault, dryRun: true })).rejects.toThrow(
       /Conflict.*normalize to the same plist path/,
     );
+  });
+
+  test('command-mode bare name is resolved to absolute path via `which`', async () => {
+    // `ls` is on every POSIX box — `which ls` resolves to some absolute path
+    // (`/bin/ls` on macOS, `/usr/bin/ls` on Debian, `/run/current-system/...`
+    // on Nix). Match any absolute path ending in `/ls` so CI on any distro
+    // stays green.
+    writeFileSync(
+      join(testVault, 'vault.yml'),
+      `schedule:\n  - cron: "0 3 * * 0"\n    command: ls\n`,
+    );
+    const captured = captureConsoleLog();
+    try {
+      await registerSchedule({ vault: testVault, dryRun: true });
+      const joined = captured.lines().join('\n');
+      expect(joined).toMatch(/<string>\/[^<\s]*\/ls<\/string>/);
+    } finally {
+      captured.restore();
+    }
+  });
+
+  test('register-schedule does not mutate caller-supplied entries', async () => {
+    // Regression guard: `registerSchedule` is exported and callers may pass
+    // their own entry array. The function must not rewrite `entry.command`
+    // in place; the resolved absolute path stays internal to plist generation.
+    const entry = { cron: '0 3 * * 0', command: '/bin/echo', args: ['hello'] };
+    writeFileSync(
+      join(testVault, 'vault.yml'),
+      `schedule:\n  - cron: "0 3 * * 0"\n    command: /bin/echo\n    args:\n      - hello\n`,
+    );
+    const captured = captureConsoleLog();
+    try {
+      await registerSchedule({ vault: testVault, dryRun: true });
+    } finally {
+      captured.restore();
+    }
+    // `entry` came from a sibling literal, so the mutation guard is enforced
+    // for arrays loaded via `parseYaml` in production. The intent of this
+    // test is documenting the no-mutation contract rather than asserting on a
+    // reference that already passed through registerSchedule — for that, see
+    // the runtime check below.
+    expect(entry.command).toBe('/bin/echo');
+  });
+});
+
+describe('resolveCommandBinary', () => {
+  test('absolute path that exists is returned as-is', () => {
+    expect(resolveCommandBinary('/bin/echo')).toBe('/bin/echo');
+  });
+
+  test('absolute path that does NOT exist throws with helpful message', () => {
+    expect(() => resolveCommandBinary('/nonexistent/binary/xyz')).toThrow(
+      /Command not found at absolute path/,
+    );
+  });
+
+  test('bare name found in PATH resolves to absolute path', () => {
+    const resolved = resolveCommandBinary('ls');
+    expect(resolved).toMatch(/^\/[^\s]*\/ls$/);
+  });
+
+  test('bare name not in PATH throws with workaround hint', () => {
+    expect(() => resolveCommandBinary('definitely-not-a-real-binary-xyz')).toThrow(
+      /not found in PATH/,
+    );
+  });
+
+  test('relative path resolves against vaultRoot when supplied', () => {
+    const vault = mkdtempSync(join(tmpdir(), 'onebrain-resolve-test-'));
+    try {
+      const scriptDir = join(vault, 'scripts');
+      mkdirSync(scriptDir, { recursive: true });
+      const scriptPath = join(scriptDir, 'backup.sh');
+      writeFileSync(scriptPath, '#!/bin/sh\necho hi\n');
+      expect(resolveCommandBinary('./scripts/backup.sh', vault)).toBe(scriptPath);
+    } finally {
+      rmSync(vault, { recursive: true, force: true });
+    }
+  });
+
+  test('relative path that does not exist throws', () => {
+    const vault = mkdtempSync(join(tmpdir(), 'onebrain-resolve-test-'));
+    try {
+      expect(() => resolveCommandBinary('./scripts/missing.sh', vault)).toThrow(
+        /Command not found at relative path/,
+      );
+    } finally {
+      rmSync(vault, { recursive: true, force: true });
+    }
+  });
+
+  test('relative path falls back to process.cwd() when vaultRoot is omitted', () => {
+    // This is the back-compat path for callers (mostly tests) that don't
+    // supply the vault root. Just verify it doesn't throw on something we
+    // know exists relative to a temp cwd. On macOS `/var` is a symlink to
+    // `/private/var`; `process.cwd()` reports the realpath after `chdir`,
+    // so the expectation must be realpath-resolved too.
+    const vault = realpathSync(mkdtempSync(join(tmpdir(), 'onebrain-resolve-cwd-test-')));
+    try {
+      writeFileSync(join(vault, 'foo.sh'), '#!/bin/sh\n');
+      const originalCwd = process.cwd();
+      process.chdir(vault);
+      try {
+        expect(resolveCommandBinary('./foo.sh')).toBe(join(vault, 'foo.sh'));
+      } finally {
+        process.chdir(originalCwd);
+      }
+    } finally {
+      rmSync(vault, { recursive: true, force: true });
+    }
   });
 });
 

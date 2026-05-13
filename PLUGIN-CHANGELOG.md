@@ -1,6 +1,6 @@
 ---
-latest_version: 2.4.11
-released: 2026-05-12
+latest_version: 2.4.12
+released: 2026-05-13
 ---
 
 # Plugin Changelog
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## v2.4.12 — 2026-05-13
+
+- docs(INSTRUCTIONS): rewrite "Headless invocation" section to describe the real contract — scheduler now goes through `onebrain run-skill` which spawns `claude -p "/skill args" --add-dir <vault>` (the previous `claude --vault X --skill /name --headless` shape was never implemented on any binary; see CLI v2.3.3 for the fix)
+- docs(INSTRUCTIONS): document `CLAUDE_BIN` env override for setups where `claude` is installed outside the probe list (`~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin`)
+- docs(INSTRUCTIONS): clarify that skill `args:` map values are appended as `key=value` tokens to the slash-command prompt and reach skills via Claude Code's standard ARGUMENTS slot
 
 ## v2.4.11 — 2026-05-12
 

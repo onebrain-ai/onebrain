@@ -12,6 +12,7 @@ import { registerHooksCommand } from './commands/internal/register-hooks.js';
 import { resolveSessionToken, sessionInitCommand } from './commands/internal/session-init.js';
 import { vaultSyncCommand } from './commands/internal/vault-sync.js';
 import { registerSchedule } from './commands/register-schedule.js';
+import { runSkillCommand } from './commands/run-skill.js';
 import { updateCommand } from './commands/update.js';
 import { patchUtf8 } from './lib/patch-utf8.js';
 
@@ -194,6 +195,26 @@ program
   });
 
 program
+  .command('run-skill', { hidden: true })
+  .description('Run a OneBrain skill headlessly via Claude Code (used by the scheduler)')
+  .requiredOption('--vault <path>', 'Vault root directory')
+  .requiredOption('--skill <name>', 'Skill name (e.g. /daily)')
+  .option(
+    '--arg <key=value>',
+    'Skill argument, repeatable (e.g. --arg topic=this-week)',
+    collectKeyValue,
+    {} as Record<string, string>,
+  )
+  .action(async (opts: { vault: string; skill: string; arg: Record<string, string> }) => {
+    const exitCode = await runSkillCommand({
+      vault: opts.vault,
+      skill: opts.skill,
+      ...(Object.keys(opts.arg).length > 0 ? { args: opts.arg } : {}),
+    });
+    process.exit(exitCode);
+  });
+
+program
   .command('migrate', { hidden: true })
   .description('Run one-time migration scripts')
   .argument('<name>', 'migration name: backfill-recapped')
@@ -201,5 +222,17 @@ program
   .action(async (name: string, cutoffDate?: string) => {
     await migrateCommand(name, cutoffDate);
   });
+
+// Commander option collector for repeatable --arg key=value flags.
+function collectKeyValue(value: string, prev: Record<string, string>): Record<string, string> {
+  const eq = value.indexOf('=');
+  if (eq === -1) {
+    throw new Error(`Invalid --arg format: "${value}" (expected key=value)`);
+  }
+  if (eq === 0) {
+    throw new Error(`Invalid --arg: key is empty in "${value}"`);
+  }
+  return { ...prev, [value.slice(0, eq)]: value.slice(eq + 1) };
+}
 
 program.parse(process.argv);

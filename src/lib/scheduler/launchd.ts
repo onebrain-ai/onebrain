@@ -1,3 +1,4 @@
+import { basename } from 'node:path';
 import { atToLaunchd, cronFieldsToLaunchd } from './cron-parse.js';
 import { isCommandMode, isOneShot } from './entry.js';
 import type { ScheduleEntry } from './types.js';
@@ -14,7 +15,14 @@ interface LaunchdContext {
 }
 
 export function labelForEntry(entry: ScheduleEntry): string {
-  const raw = isCommandMode(entry) ? entry.command : (entry.skill ?? '').replace(/^\//, '');
+  // For command mode, derive the label from the binary basename so that
+  // `command: onebrain` and `command: /opt/homebrew/bin/onebrain` produce
+  // the same plist file path — that consistency is what the collision
+  // detector in register-schedule.ts relies on. For skill mode, strip the
+  // leading slash.
+  const raw = isCommandMode(entry)
+    ? basename(entry.command as string)
+    : (entry.skill ?? '').replace(/^\//, '');
   return raw.replace(/[^a-zA-Z0-9-]/g, '-');
 }
 
@@ -45,15 +53,19 @@ export function generatePlist(entry: ScheduleEntry, ctx: LaunchdContext): string
         <string>-c</string>
         <string>${shellLine}</string>`;
     } else {
-      // Skill mode one-shot — PR #172 form preserved VERBATIM
-      const plistFilePath = plistPath(entry.skill ?? '', ctx.homedir);
+      // Skill mode one-shot — invoke `onebrain run-skill ...`, which shells
+      // out to Claude Code internally. Self-delete + bootout after the run.
+      // Derive plistFilePath from `label` (same expression as the command-mode
+      // branch above) so the cleanup path can never drift from the label used
+      // in `launchctl bootout` and the actual on-disk filename.
+      const plistFilePath = `${ctx.homedir}/Library/LaunchAgents/${label}.plist`;
       const argsFlags = entry.args
         ? ` ${Object.entries(entry.args as Record<string, string>)
-            .map(([k, v]) => `--${k}="${v}"`)
+            .map(([k, v]) => `--arg="${k}=${v}"`)
             .join(' ')}`
         : '';
       const shellLine = xmlEscape(
-        `"${ctx.skillCliPath}" --vault="${ctx.vaultPath}" --skill="${entry.skill}" --headless${argsFlags}; launchctl bootout gui/${ctx.uid}/${label}; rm -f "${plistFilePath}"`,
+        `"${ctx.skillCliPath}" run-skill --vault="${ctx.vaultPath}" --skill="${entry.skill}"${argsFlags}; launchctl bootout gui/${ctx.uid}/${label}; rm -f "${plistFilePath}"`,
       );
       programArgumentsBlock = `        <string>/bin/sh</string>
         <string>-c</string>
@@ -67,19 +79,24 @@ export function generatePlist(entry: ScheduleEntry, ctx: LaunchdContext): string
       ...argv.map((a) => `        <string>${xmlEscape(a)}</string>`),
     ].join('\n');
   } else {
-    // Recurring skill mode — PR #172 form preserved VERBATIM
+    // Recurring skill mode — invoke `onebrain run-skill --vault X --skill /name
+    // [--arg key=value ...]`. The CLI shells out to `claude -p` internally and
+    // streams output through to launchd's stdout/stderr paths.
     const argsBlock = entry.args
       ? `\n${Object.entries(entry.args as Record<string, string>)
-          .map(([k, v]) => `        <string>--${xmlEscape(k)}=${xmlEscape(v)}</string>`)
+          .flatMap(([k, v]) => [
+            '        <string>--arg</string>',
+            `        <string>${xmlEscape(`${k}=${v}`)}</string>`,
+          ])
           .join('\n')}`
       : '';
 
     programArgumentsBlock = `        <string>${xmlEscape(ctx.skillCliPath)}</string>
+        <string>run-skill</string>
         <string>--vault</string>
         <string>${xmlEscape(ctx.vaultPath)}</string>
         <string>--skill</string>
-        <string>${xmlEscape(entry.skill ?? '')}</string>
-        <string>--headless</string>${argsBlock}`;
+        <string>${xmlEscape(entry.skill ?? '')}</string>${argsBlock}`;
   }
 
   return `<?xml version="1.0" encoding="UTF-8"?>
