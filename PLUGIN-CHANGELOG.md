@@ -1,6 +1,6 @@
 ---
-latest_version: 2.4.12
-released: 2026-05-13
+latest_version: 2.4.13
+released: 2026-05-19
 ---
 
 # Plugin Changelog
@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## v2.4.13 — 2026-05-19
+
+- docs(update): add Known Gotcha about WebFetch returning summarized markdown — recommend `curl -fsSL` for raw-content fetches (`plugin.json`/`settings.json` JSON parsing, `PLUGIN-CHANGELOG.md` verbatim display, `SKILL.md` self-update bootstrap). Symptoms section helps diagnose silent corruption from summarized fetches.
+- docs(update): add inline ⚠️ pointers at the four WebFetch call sites (version check, changelog display, SKILL.md bootstrap, settings.json merge) directing readers to the Known Gotcha when raw-content semantics matter — closes the "warning lives at the bottom but step prose says use WebFetch" coherence gap.
 
 ## v2.4.12 — 2026-05-13
 
