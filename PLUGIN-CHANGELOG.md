@@ -1,5 +1,5 @@
 ---
-latest_version: 3.0.0-alpha.1
+latest_version: 2.4.14
 released: 2026-05-20
 ---
 
@@ -11,12 +11,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
 
-## v3.0.0-alpha.1 — 2026-05-20
+## v2.4.14 — 2026-05-20
 
-- chore(plugin.json): bump version 2.4.13 → 3.0.0-alpha.1 to mark prerelease compatibility with the Rust CLI rewrite
-- feat(plugin.json): add `requires.cli: ">=3.0.0-alpha.1"` — refuses to load against the Bun-era CLI (v2.x) where the new internal CLI shape would silently misbehave
-- audit(skills): all 13 CLI subcommands referenced by skills (`session-init`, `checkpoint stop`, `checkpoint reset`, `orphan-scan`, `vault-sync`, `register-hooks`, `register-schedule`, `qmd-reindex`, `run-skill`, `update`, plus `--version`) preserved on the Rust side per the v3.0.0-alpha.1 parity smoke test — no skill rewrites required for this bump
-- audit(skills): flagged `node -e "…"` usage in `skills/qmd/SKILL.md`, `skills/update/SKILL.md`, `skills/reorganize/SKILL.md`, `skills/import/**`, and `startup/scripts/open-in-obsidian.sh` as a follow-up — these assume Node is on PATH "because the OneBrain CLI requires it", which the Rust CLI no longer guarantees; deferred per minimal-changes rule, tracked separately
+- chore: revert the "pin plugin to CLI v3.0 (Rust)" PR (#180). Keeping the plugin compatible with both the Bun v2.3.3 CLI and the in-flight v3.0.0-alpha.* line until the Rust port reaches GA. The `requires.cli` pin will be re-applied (likely to `>=3.0.0`) once the CLI GA tag ships.
+- Plugin version stays at 2.4.x; the previous bump to `3.0.0-alpha.1` in PR #180 was a leading-edge signal that turned out to be premature.
 
 ## v2.4.13 — 2026-05-19
 
