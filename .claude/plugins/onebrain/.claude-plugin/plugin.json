@@ -1,11 +1,8 @@
 {
   "name": "onebrain",
-  "version": "3.0.0-alpha.1",
+  "version": "2.4.13",
   "description": "OneBrain — Where human and AI thinking become one. A powerful thinking partner powered by AI synergy.",
   "author": {
     "name": "OneBrain Contributors"
-  },
-  "requires": {
-    "cli": ">=3.0.0-alpha.1"
   }
 }
