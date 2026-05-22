@@ -46,10 +46,24 @@ if [ -z "${CURRENT_VERSION}" ]; then
   exit 0
 fi
 
-# Lowest of (current, MIN). If MIN sorts lowest, current >= MIN → pass.
-LOWEST=$(printf '%s\n%s\n' "${CURRENT_VERSION}" "${MIN_VERSION}" | sort -V | head -1)
+# Pure-bash MAJOR.MINOR.PATCH comparison so we don't depend on `sort -V`,
+# which is a GNU coreutils extension absent from some older macOS BSD
+# `sort` builds (Reviewer A+B consensus, PR #183 round 1).
+version_gte() {
+  # Returns 0 if $1 >= $2; both must be bare semver triples (no prerelease).
+  local IFS=.
+  # shellcheck disable=SC2206  # intentional unquoted expansion to split
+  local a=($1) b=($2)
+  local i
+  for i in 0 1 2; do
+    local ai=${a[i]:-0} bi=${b[i]:-0}
+    if [ "${ai}" -gt "${bi}" ]; then return 0; fi
+    if [ "${ai}" -lt "${bi}" ]; then return 1; fi
+  done
+  return 0
+}
 
-if [ "${LOWEST}" != "${MIN_VERSION}" ]; then
+if ! version_gte "${CURRENT_VERSION}" "${MIN_VERSION}"; then
   block_message "OneBrain plugin v3.x requires CLI >= ${MIN_VERSION}, but found v${CURRENT_VERSION}.\n\nUpdate in place:\n  onebrain update\n\nOr reinstall:\n  • macOS:   brew tap onebrain-ai/onebrain && brew upgrade onebrain (or brew install onebrain-ai/onebrain/onebrain)\n  • Linux/Windows: download from https://github.com/onebrain-ai/onebrain-cli/releases/latest\n\nThen restart this session."
   exit 0
 fi
