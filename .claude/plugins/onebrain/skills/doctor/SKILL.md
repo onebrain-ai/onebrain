@@ -48,7 +48,13 @@ Run `onebrain doctor --json` (or `onebrain doctor --fix --json` if `--fix` is ac
 
 Status → render emoji: `ok` → ✅, `warn` → 🟡, `error` → 🔴.
 
-If the CLI is not installed (`onebrain` not on PATH or exit ≠ 0 with "command not found"): emit one finding — 🔴 `onebrain CLI not installed — hooks will not fire; install via brew tap onebrain-ai/onebrain && brew install onebrain (or npm install -g @onebrain-ai/cli)` — and **skip the rest of CLI doctor**. The CLI is the source of truth for the 8 core checks; without it, fall through to skill checks only.
+**Detection logic (run in this order):**
+
+1. **PATH lookup first.** If `onebrain` is not on PATH (`which onebrain` / `where onebrain` empty): emit 🔴 `onebrain CLI not installed — hooks will not fire; install via brew install onebrain-ai/onebrain/onebrain (or npm install -g @onebrain-ai/cli)` — and **skip the rest of CLI doctor**. Skill checks still run.
+
+2. **Otherwise, parse stdout as JSON regardless of exit code.** The CLI is sysexits-compliant: exit `1` is the normal "issues found" path when `summary.errors > 0` — JSON is still emitted on stdout and is still the source of truth. Only fall back to "CLI absent" if the parse fails AND stderr contains "command not found" or similar — surface the parse error in one line and fall through to skill checks only.
+
+3. **Defensive field handling.** Treat `details` as optional — it may be absent, `null`, or an empty array; render nothing in those cases. `hint` is also optional. `fix` is present only when `--fix --json` was invoked.
 
 When `--fix --json` returned `fix[]`, render each fix's outcome under the matching check ("✓ fixed", "✕ failed", or "skip"); the post-fix `checks[]` reflects state after the fix attempts.
 
@@ -95,6 +101,20 @@ The CLI doctor does NOT cover the following — they remain in the skill:
 **vault.yml `recap:` block** (the CLI's `vault.yml-keys` schema check covers required keys; `recap:` may be optional)
 - If `recap:` block is absent: 🟡 `recap: block missing — /recap will use defaults (min_sessions: 6, min_frequency: 2); run /update to add it`.
 
+**Plugin install path** (CLI `plugin-files` validates structural integrity but not the install-path registry)
+- Read `$HOME/.claude/plugins/installed_plugins.json` (Unix) or `$env:USERPROFILE/.claude/plugins/installed_plugins.json` (Windows PowerShell). Don't pass an unexpanded `~` to file-reading tools — they don't expand it.
+- Find the entry where key starts with `onebrain@` and `scope == "project"` and `projectPath` matches the current vault.
+- If not found: 🟡 `onebrain not found in installed_plugins.json — run /onboarding or /plugin to install`.
+- Before any path comparison, normalize `installPath` separators with `installPath.replaceAll('\\', '/')` — Windows paths can mix backslashes and forward slashes, and substring matches against `'/.claude/plugins/cache/'` will silently fail otherwise.
+- If the normalized `installPath` contains `/.claude/plugins/cache/`: 🔴 `Plugin loading from user cache — run /doctor --fix to pin to vault` (Pass A in `references/autofix-procedures.md` handles the fix).
+- If the normalized `installPath` ends with `.claude/plugins/onebrain`: ✅ `Plugin: vault-level`.
+
+**AUTO-SUMMARY.md existence**
+- Check `.claude/plugins/onebrain/skills/startup/AUTO-SUMMARY.md` exists. If missing: 🔴 `AUTO-SUMMARY.md not found — auto session summary disabled; run /update to restore`. (The CLI `plugin-files` check counts skills + agents + INSTRUCTIONS.md but does NOT validate every individual skill reference file.)
+
+**Stale `PLUGIN-CHANGELOG.md` at vault root** (post-v3.0.2 migration cleanup)
+- Check if `PLUGIN-CHANGELOG.md` exists at vault root. If yes: 🟡 `Stale PLUGIN-CHANGELOG.md at vault root — renamed to CHANGELOG.md in plugin v3.0.2. Run \`rm PLUGIN-CHANGELOG.md\` to clean up`. (vault-sync currently doesn't delete files renamed-away from upstream — tracked for a future CLI fix.)
+
 **Scheduler health** — only when `vault.yml` has a `schedule:` block.
 - **Errors**: glob `[logs_folder]/scheduler/**/*.err.md` from the last 7 days. If any → 🟡 report count + most recent 3 as wikilinks.
 - **Consecutive failures**: for each `schedule:` entry, count consecutive `.err.md` files from newest with no intervening success `.md`. If ≥ 3 → 🔴 CRITICAL — suggest `onebrain register-schedule --resume <skill>`.
@@ -116,25 +136,25 @@ The CLI doctor does NOT cover the following — they remain in the skill:
 
 ## Step 3: Merge + Report
 
-Combine CLI doctor findings (Step 2a) and skill findings (Step 2b) into one unified report.
+Combine CLI doctor findings (Step 2a) and skill findings (Step 2b) into one unified report. **Omit any section that has zero findings** to keep the report focused — empty section headers add noise without information.
 
 ```
 ──────────────────────────────────────────────────────────────
 🏥 OneBrain Doctor · YYYY-MM-DD
 ──────────────────────────────────────────────────────────────
-⚙️ Config (from `onebrain doctor`)
+⚙️ Config (from `onebrain doctor`)   (omit under --vault flag, or when CLI ran and emitted 0 findings worth showing)
   <one line per CLI check — use the JSON `message` and emoji from status>
 
-📁 Vault
-  <broken-links, orphan-notes, inbox-backlog, 07-logs structure, old checkpoints, log folder size>
+📁 Vault                              (omit under --config flag, or when 0 vault findings)
+  <broken-links, orphan-notes, inbox-backlog, 07-logs structure, old checkpoints, log folder size, plugin install path, AUTO-SUMMARY.md, stale PLUGIN-CHANGELOG.md>
 
-🧠 Memory
+🧠 Memory                              (omit under --config flag, or when 0 memory findings)
   <MEMORY.md size, stale memory/ files, MEMORY.md structure, memory-health checks>
 
-📅 Scheduler   (only if schedule: block present)
+📅 Scheduler                          (only if `schedule:` block present in vault.yml AND has findings)
   <errors, consecutive failures, drift, expired one-shots>
 
-⏸️ Pause   (only if pause state has findings)
+⏸️ Pause                              (only if pause state has findings)
   <orphan pointer, missing pointer, idle thread>
 
 ──────────────────────────────────────────────────────────────
