@@ -358,11 +358,11 @@ MEMORY-INDEX.md must be kept in sync at all times. Every skill that creates, upd
 
 Vault setup is owned by the `onebrain` CLI binary (`src/`), **not** by shell scripts in this repo. The user flow is:
 
-1. `npm install -g @onebrain-ai/cli` — installs the CLI globally
+1. Install the CLI from any path — `brew install onebrain-ai/onebrain/onebrain` (macOS) or `npm install -g @onebrain-ai/cli` or direct download from [onebrain-ai/onebrain-cli/releases](https://github.com/onebrain-ai/onebrain-cli/releases/latest)
 2. `onebrain init` — in a new or existing folder, writes `vault.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, installs the recommended Obsidian community plugins, and registers the `Stop` hook (plus a `PostToolUse` qmd-reindex hook when `qmd_collection` is set). Aborts safely if a `vault.yml` already exists
 3. `/onboarding` — inside the chosen harness, personalises identity + active projects
 
-There are no `install.sh` or `install.ps1` scripts to maintain — the equivalent logic lives in the CLI's `init` and `update` commands and ships with each release. Bug fixes for vault bootstrap belong in `src/commands/init.ts` and `src/commands/update.ts`.
+There are no `install.sh` or `install.ps1` scripts to maintain — the equivalent logic lives in the CLI's `init` and `update` commands. Bug fixes for vault bootstrap belong in the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli) repo, not this one.
 
 ## Pull Request Guidelines
 
@@ -375,20 +375,19 @@ There are no `install.sh` or `install.ps1` scripts to maintain — the equivalen
 
 ## Versioning
 
-Two independent version tracks — bump only the track that changed:
+This repo is plugin-only. Bump `plugin.json` for any vault-deployed content change.
 
-| Track | Files | Bump when |
-|---|---|---|
-| **Plugin** | `plugin.json` · `PLUGIN-CHANGELOG.md` | ANY vault-deployed content changes — `.claude/plugins/onebrain/` (Claude plugin), `.gemini/` (Gemini config), or any future harness config. "Plugin" here means OneBrain content shipped to the vault, regardless of which harness reads it. |
-| **CLI** | `package.json` · `CHANGELOG.md` | TypeScript source changes (`src/`) only — the `@onebrain-ai/cli` binary. |
+| File | Bump when |
+|---|---|
+| `plugin.json` · `CHANGELOG.md` | ANY vault-deployed content changes — `.claude/plugins/onebrain/` (Claude plugin), `.gemini/` (Gemini config), or any future harness config. "Plugin" here means OneBrain content shipped to the vault, regardless of which harness reads it. |
 
 **Bump rules**
 
-- **Plugin:** patch for fixes/docs, minor for new content (skills, commands, hooks, harness configs), major for breaking schema changes.
-- **CLI:** patch for bug fixes, minor for new commands, major for breaking changes.
+- patch for fixes/docs
+- minor for new content (skills, commands, hooks, harness configs)
+- major for breaking schema changes or `requires.cli` floor bumps
 
-After merging a CLI change → push tag `v{cli-version}` to trigger release workflow (builds binaries + publishes npm).
-The Plugin track has its own changelog (`PLUGIN-CHANGELOG.md`) but no separate git tag — `plugin.json` is the source of truth and `vault-sync` reads it on every `/update` to detect drift.
+The plugin has its own changelog (`CHANGELOG.md`) but no GitHub Release / git tag — `plugin.json` is the source of truth and `vault-sync` reads it on every `/update` to detect drift. The OneBrain CLI is versioned and released separately at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli).
 
 ## Reporting Issues
 
