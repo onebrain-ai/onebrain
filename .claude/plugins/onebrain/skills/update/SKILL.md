@@ -21,7 +21,7 @@ Update OneBrain system files from GitHub to the latest version.
    where `{branch}` is the mapped branch from step 2.
    Parse the `version` field from the JSON response. (⚠️ JSON parsing — see Known Gotchas: WebFetch may summarize; use `curl -fsSL` if a version mismatch is suspected.)
 4. If equal → say: ✅ Already up to date — v{X.X.X}. and stop
-5. If newer → WebFetch `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/PLUGIN-CHANGELOG.md`; display before proceeding (do not skip or summarize — and if the fetched content already looks paraphrased, re-fetch via `curl -fsSL`; see Known Gotchas):
+5. If newer → WebFetch `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/CHANGELOG.md`; display before proceeding (do not skip or summarize — and if the fetched content already looks paraphrased, re-fetch via `curl -fsSL`; see Known Gotchas):
 
    ```
    ──────────────────────────────────────────────────────────────
@@ -195,10 +195,10 @@ Dry run complete — {N} files would be created, {M} modified, {P} deleted.
 
 - **Harness file merge is vault-primary.** If a user removed a plugin `@` import from CLAUDE.md/GEMINI.md/AGENTS.md (e.g., `@.claude/plugins/onebrain/INSTRUCTIONS.md`), `/update` will re-inject it on the next run because the script cannot distinguish intentional deletion from never having had it. If a specific import should stay absent, re-remove it after updating.
 
-- **Root files live at the repo root, not the plugin folder.** `onebrain vault-sync` handles all seven root-level files: README.md, CONTRIBUTING.md, CHANGELOG.md, PLUGIN-CHANGELOG.md (simple overwrite) and CLAUDE.md, GEMINI.md, AGENTS.md (merge — preserves user `@` imports). Never copy any of these into the plugin folder.
+- **Root files live at the repo root, not the plugin folder.** `onebrain vault-sync` handles all six root-level files: README.md, CONTRIBUTING.md, CHANGELOG.md (simple overwrite) and CLAUDE.md, GEMINI.md, AGENTS.md (merge — preserves user `@` imports). Never copy any of these into the plugin folder. (Pre-v3.0.2 vaults also had `PLUGIN-CHANGELOG.md` — renamed to `CHANGELOG.md` in the plugin-only trim; `vault-sync` cleans up the stale `PLUGIN-CHANGELOG.md` on the next run.)
 
 - **Failure recovery path:** If interrupted before step 3d (plugin.json bump), re-running /update will retry from step 1. The early bootstrap (download SKILL.md) is idempotent — safe to repeat.
 
 - **CLI update delegates to `onebrain update`.** Do not call `npm install -g @onebrain-ai/cli` or `bun install -g @onebrain-ai/cli` from this skill — `onebrain update` is the single source of truth for the CLI bump (version check, package-manager choice, validation). Raw npm/bun is reserved for first-time CLI bootstrap, which is a README/install-script concern, not a `/update` concern.
 
-- **WebFetch may return summarized markdown — use `curl -fsSL` when raw content is required.** WebFetch can post-process content even with `raw.githubusercontent.com` URLs and explicit "return verbatim" prompts. Anywhere `/update` parses JSON (`plugin.json`, `settings.json`) or downloads/displays files verbatim (`PLUGIN-CHANGELOG.md`, `SKILL.md`), prefer `curl -fsSL <raw-url>` via the Bash tool instead. Symptoms of a summarized fetch: version mismatch on `plugin.json`, truncated/paraphrased changelog display, corrupted SKILL.md after self-update bootstrap.
+- **WebFetch may return summarized markdown — use `curl -fsSL` when raw content is required.** WebFetch can post-process content even with `raw.githubusercontent.com` URLs and explicit "return verbatim" prompts. Anywhere `/update` parses JSON (`plugin.json`, `settings.json`) or downloads/displays files verbatim (`CHANGELOG.md`, `SKILL.md`), prefer `curl -fsSL <raw-url>` via the Bash tool instead. Symptoms of a summarized fetch: version mismatch on `plugin.json`, truncated/paraphrased changelog display, corrupted SKILL.md after self-update bootstrap.

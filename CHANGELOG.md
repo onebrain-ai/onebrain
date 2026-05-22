@@ -1,356 +1,546 @@
 ---
-latest_version: 2.3.3
-released: 2026-05-13
+latest_version: 3.0.2
+released: 2026-05-22
 ---
 
-# CLI Changelog
+# Changelog
 
-All notable changes to the OneBrain CLI binary (`@onebrain-ai/cli`).
+All notable changes to the OneBrain plugin — i.e., any vault-deployed content (Claude plugin under `.claude/plugins/onebrain/`, Gemini config under `.gemini/`, future harness configs).
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-> **Versioning:** CLI version is tracked in `package.json`. Bump only when TypeScript source changes.
-> For plugin changes (skills, agents, hooks, INSTRUCTIONS), see [PLUGIN-CHANGELOG.md](PLUGIN-CHANGELOG.md).
+> **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
+> For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.0.2 — 2026-05-22
+
+- **chore: plugin-only trim** — this repo is now strictly the OneBrain plugin (skills, agents, hooks, INSTRUCTIONS, harness configs). The legacy v2.x TypeScript/Bun CLI source has been removed; the Rust CLI lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli) and ships from its own GitHub Releases.
+- **rm Bun toolchain from repo root**: `src/`, `package.json`, `bun.lock`, `tsconfig.json`, `biome.json`. AGPL on the legacy code stays preserved in git history.
+- **CHANGELOG split**: previous repo-root `CHANGELOG.md` was the legacy CLI changelog — removed. `PLUGIN-CHANGELOG.md` renamed to `CHANGELOG.md` (one changelog per repo per [`[[onebrain-changelog-structure]]`](../05-agent/memory/onebrain-changelog-structure.md)). All historical plugin entries preserved verbatim.
+- **README update**: install instructions now point at the Rust CLI install paths (Homebrew tap, npm wrapper `@onebrain-ai/cli@3.0.0+`, GitHub Releases direct download, `onebrain update` self-installer). License badge MIT → AGPL-3.0-only (matches the [`v3.0.1` relicense](#v301--2026-05-22)).
+- **GitHub Releases**: all 39 Bun-era releases (v2.0.0 → v2.3.3) and matching tags removed from this repo. The plugin repo no longer publishes Releases — the canonical Releases stream is [`onebrain-ai/onebrain-cli/releases`](https://github.com/onebrain-ai/onebrain-cli/releases).
+- **No skill / hook / agent code changes** in this release — purely repo trim + manifest.
+
+## v3.0.1 — 2026-05-22
+
+- **chore: relicense MIT → AGPL-3.0-only** to align with the OneBrain CLI (`onebrain-ai/onebrain-cli`), which has shipped under AGPL since v3.0.0-alpha.0. Same license now spans the binary and the plugin manifest / skills / hooks that consume it, so the network-use copyleft (AGPL §13) applies consistently across the whole OneBrain runtime.
+- **LICENSE**: replaced 21-line MIT text with the canonical 661-line GNU Affero General Public License v3.
+- **plugin.json**: added `"license": "AGPL-3.0-only"` field. Previously absent; existing copies of the plugin (v2.x and v3.0.0) inherited the repo-root LICENSE — explicit field documents intent at the manifest level.
+- **plugin.json**: bump `3.0.0` → `3.0.1` for the license-field addition (manifest change ⇒ version bump per repo convention).
+- **MIT compatibility**: prior releases (v2.x through v3.0.0) remain available under MIT for downstream users who pinned to those versions. AGPL applies from v3.0.1 forward.
+- **No skill / hook / agent code changes** in this release — purely the license + manifest update.
+
+## v3.0.0 — 2026-05-22
+
+- **feat(plugin.json): pin plugin to CLI v3.0+** — adds `requires.cli: ">=3.0.0"` field. Aligned with the OneBrain CLI v3.0.0 (Rust) GA shipped 2026-05-22. The pin in PR #180 was reverted in PR #181 because the CLI wasn't ready; this re-applies it now that v3.0.0 is live.
+- **feat(hooks): SessionStart enforcement hook** — new `hooks/hooks.json` + `hooks/check-cli-version.sh` emits a `decision: block` JSON payload when the plugin boots alongside a CLI older than v3.0.0 (or no CLI on PATH); Claude Code refuses to start the session on that payload. Passes silently when v3.x is present. Pairs with the `requires.cli` field — the field is metadata for tooling, the hook is the runtime enforcement. Hook execution capped at 10 s via `timeout` in `hooks.json`.
+- **chore(plugin.json): bump 2.4.14 → 3.0.0** — major-version break: this plugin release refuses to load against v2.x Bun-era CLIs. Existing v2.x users will see the SessionStart `decision: block` until they `onebrain update` (or reinstall via the new Homebrew tap / forthcoming npm wrapper).
+- **Version comparison strategy**: hook extracts bare `MAJOR.MINOR.PATCH` via `grep -oE` (strips prerelease suffixes), then walks a pure-bash integer compare per field against the v3.0.0 floor. No dependency on GNU `sort -V` (absent from some older macOS BSD `sort` builds). Practical effect: any v3.0.0-alpha.x user passes (they're already on the Rust binary), only v2.x is blocked.
+- **Distribution channels live at this release**: GitHub Releases (canonical, since v3.0.0 GA), Homebrew tap (`onebrain-ai/homebrew-onebrain` → `brew install onebrain-ai/onebrain/onebrain`), `onebrain update` self-installer.
+- **What is NOT in this PR** (tracked for a follow-up plugin-trim PR per `[[onebrain-skill-design]]` single-responsibility): plugin repo README rewrite, trim to plugin-only (move CLI legacy `CHANGELOG.md` out of this repo), rename `PLUGIN-CHANGELOG.md` → `CHANGELOG.md`. Today's PR is scoped strictly to the pin + the runtime enforcement.
+
+## v2.4.14 — 2026-05-20
+
+- chore: revert the "pin plugin to CLI v3.0 (Rust)" PR (#180). Keeping the plugin compatible with both the Bun v2.3.3 CLI and the in-flight v3.0.0-alpha.* line until the Rust port reaches GA. The `requires.cli` pin will be re-applied (likely to `>=3.0.0`) once the CLI GA tag ships.
+- Plugin version stays at 2.4.x; the previous bump to `3.0.0-alpha.1` in PR #180 was a leading-edge signal that turned out to be premature.
+
+## v2.4.13 — 2026-05-19
+
+- docs(update): add Known Gotcha about WebFetch returning summarized markdown — recommend `curl -fsSL` for raw-content fetches (`plugin.json`/`settings.json` JSON parsing, `PLUGIN-CHANGELOG.md` verbatim display, `SKILL.md` self-update bootstrap). Symptoms section helps diagnose silent corruption from summarized fetches.
+- docs(update): add inline ⚠️ pointers at the four WebFetch call sites (version check, changelog display, SKILL.md bootstrap, settings.json merge) directing readers to the Known Gotcha when raw-content semantics matter — closes the "warning lives at the bottom but step prose says use WebFetch" coherence gap.
+
+## v2.4.12 — 2026-05-13
+
+- docs(INSTRUCTIONS): rewrite "Headless invocation" section to describe the real contract — scheduler now goes through `onebrain run-skill` which spawns `claude -p "/skill args" --add-dir <vault>` (the previous `claude --vault X --skill /name --headless` shape was never implemented on any binary; see CLI v2.3.3 for the fix)
+- docs(INSTRUCTIONS): document `CLAUDE_BIN` env override for setups where `claude` is installed outside the probe list (`~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin`)
+- docs(INSTRUCTIONS): clarify that skill `args:` map values are appended as `key=value` tokens to the slash-command prompt and reach skills via Claude Code's standard ARGUMENTS slot
+
+## v2.4.11 — 2026-05-12
+
+- docs(doctor): update SKILL.md hook-check description to match new validator behavior — effective command = `command` joined with `args[]`, so canonical exec-form `{command: "onebrain", args: ["checkpoint", "stop"]}` is recognized alongside legacy shell form
+
+## v2.4.10 — 2026-05-12
+
+- feat(pause): new `/pause` skill saves snapshot of long-running work to `07-logs/pause/`; non-terminal — does not clear context
+- feat(resume): new `/resume` skill loads active pause-thread state in fresh sessions; idempotent in same-session
+- feat(wrapup): Step 0 detects active pause thread; "Yes" branch consolidates all pause files of slug + current checkpoints into one session log
+- feat(wrapup, auto-summary): auto-finalize active pause thread before daily session log write (3 skip conditions prevent noise)
+- feat(startup): banner shows `📂 active pause: {slug} ({N} snapshots)` when `_active.md` present
+- feat(doctor): 3 new pause health checks (orphan pointer, missing pointer, idle > 14d)
+- docs(instructions): wire `/pause` `/resume` into skills table, vault structure, file naming, routing, response profiles
+- docs(session-formats): add Pause File Format + `synthesized_from_pause` session-log frontmatter case
+
+## 2.4.9 — 2026-05-12
+
+- `/schedule-add` Step 0 first-run preset selector — Minimal / Essentials / Maintenance Plus / Custom (E15-B)
+- `/onboarding` adds preset selection step after agent identity setup (default = Essentials)
+- Canonical preset tier definitions at `_shared/schedule-presets.md` — single source of truth
+- Tier 3 preset mixes skill-mode and command-mode entries (live example of E15-A schema)
+- INSTRUCTIONS.md + README + CONTRIBUTING document preset bundles
+
+## 2.4.8 — 2026-05-12
+
+- `/schedule-list` displays both skill-mode (`skill: /name (k=v)`) and command-mode (`cmd: binary arg1 arg2`) entries
+- INSTRUCTIONS.md adds "Skill mode vs command mode" subsection with full YAML example
+- README + CONTRIBUTING document command mode as alternative to thin wrapper skills
+- Companion to CLI v2.3.1 which introduces the command-mode backend
+
+## 2.4.7 — 2026-05-12
+
+- 4 new wizard skills: `/schedule-add` (recurring), `/schedule-once` (one-shot), `/schedule-list`, `/schedule-remove` (E9.1)
+- 26 user-facing skills declare `schedulable:` / `schedulable_with_args:` frontmatter — gates which skills the CLI scheduler accepts (E9.4)
+- `/doctor` extended with Scheduler Health section: scans `.err.md` files, detects drift between `vault.yml` and installed plists, flags 3+ consecutive failures + expired one-shots (E9.2)
+- INSTRUCTIONS.md adds "Scheduling — which tool to use" + "Headless invocation" sections (E9.3) — disambiguates OneBrain scheduler vs Claude Code `/loop` and `/schedule`
+- `/help` MAINTAIN tier lists the 4 new schedule commands
+
+## 2.4.6 — 2026-05-12
+
+- Remove vault-author-specific references from plugin source for genericity
+- /search: drop hardcoded `[projects_folder]/onebrain/plans/*.md` source; replace with generic `[projects_folder]/**/*.md` covering embedded specs/plans/design docs (keeps search coverage for projects with any folder layout)
+- /search: replace hardcoded vault folder names with `[knowledge_folder]`/`[projects_folder]`/`[resources_folder]`/`[areas_folder]` placeholders; update progress line + frontmatter description to match
+- /clone: replace personal example path with generic `/path/to/source/vault` in audit-log template
+- /capture, /consolidate: replace concrete vault-author note paths in routing/moved examples with `[folder]/example/...` placeholders
+
+## 2.4.5 — 2026-05-12
+
+- Hot-fix: enforced English-only across /search per `onebrain-repo-english-only` rule
+- Removed non-English auto-invoke triggers; kept 3 English: `search vault`, `find in vault`, `why did`
+- Removed non-English example phrases and regex tokens from SKILL.md body + references + INSTRUCTIONS routing description
+- Removed premature `schedulable` / `schedulable_with_args` / `required_args` frontmatter (defer to E9 scheduler shipping in a later PR)
+- Bilingual user input still routes via agent's intent matching on the English description; non-English literals were redundant
+
+## 2.4.4 — 2026-05-12
+
+- New skill /search — general vault retrieval (E5)
+- Answers both what + why questions across MEMORY/memory/sessions/plans/decisions logs/notes
+- Uses qmd (lex+vec+hyde) with grep fallback
+- Auto-invoke triggers: `search vault`, `find in vault`, `why did` (initial entry shipped with non-English triggers; hot-fixed in 2.4.5)
+- Registered under 🔍 RECALL tier in /help
+
+## 2.4.3 — 2026-05-12
+
+- Added `## Progress reporting` section to 6 long-running skills (E3)
+- Skills updated: /research, /consolidate, /distill, /reorganize, /connect, /import
+- Format: `→ [step N/M] <action>` emitted at each major step
+- Trust improvement during multi-step skill runs
+
+## 2.4.2 — 2026-05-12
+
+- /help reorganized into 4 Workflow tiers: 📥 INPUT · ⚙️ PROCESS · 🔍 RECALL · 🔧 MAINTAIN
+- /onboarding moved from Maintain → Input (first run only)
+- README skill list reordered to mirror tier structure
+- Discoverability win for new users; existing users now see skills by phase
 
 ## [Unreleased]
 
-## v2.3.3 — fix(scheduler): make scheduled skills actually run
+## v2.4.1 — fix(qmd, /update): drop stale `--qmd` / `--remove-qmd` flags from docs
 
-- New hidden subcommand `onebrain run-skill --vault X --skill /name [--arg key=value ...]` spawns `claude -p "/onebrain:skill args" --add-dir <vault>` with `cwd=<vault>`; resolves `claude` via `CLAUDE_BIN` env → known prefixes (`~/.local/bin`, `/opt/homebrew/bin`, `/usr/local/bin`) → PATH; the scheduler plist now invokes this instead of the never-implemented `--vault/--skill/--headless` flags
-- `register-schedule` resolves command-mode binary names to absolute paths via `/usr/bin/which`, since launchd inherits a restricted PATH that excludes Homebrew/Bun/`~/.local/bin`; absolute paths now also `existsSync`-checked and relative paths resolve against the vault root (not `process.cwd()`); unresolved binaries throw at register time so failures don't hide until run time
-- `labelForEntry` derives command-mode labels from the binary basename so `command: onebrain` and `command: /opt/homebrew/bin/onebrain` produce the same plist (and still collide correctly with skill `/onebrain`); `register-schedule` no longer mutates caller-supplied entries — the resolved path stays internal to plist generation
-- `register-schedule --test <skill>` drives `runSkillCommand` instead of spawning `claude` with non-existent flags, and propagates the child exit code (POSIX-conventional `128 + signal` for signal kills, `127` for spawn errors, `78`/`EX_CONFIG` for missing `vault.yml`)
-- Hardening: `--arg` collector rejects empty keys; `buildPrompt` throws on empty skill names; `CLAUDE_BIN` typos surface as warnings instead of silently falling through to the probe list; one-shot plist's self-delete path now derives from the same label as the `launchctl bootout` target so they can never drift
-- `process.argv[1]` dev-mode fallback: when running via `bun run src/index.ts`, argv[1] resolves to an unexecutable `.ts` file; `register-schedule` now detects that and falls back to `which onebrain`
-- 23 new unit tests covering `buildPrompt`, `resolveCommandBinary` (4 branches incl. relative-path resolution), the spawn surface, signal/error/exit-code propagation, and the `CLAUDE_BIN` typo + override paths; existing scheduler tests rewritten for the new plist shape with explicit `not.toContain('--headless')` regression sentinels
-- Plists generated by pre-v2.3.3 CLI silently exit 78 on every fire — run `onebrain register-schedule` once after upgrading to regenerate them; a `/doctor` check for stale-shape plists is filed as a follow-up
+CLI dropped both `--qmd` and `--remove-qmd` from `onebrain register-hooks` in v2.1.0 (auto-detects from `vault.yml`'s `qmd_collection` instead — present registers the hook, absent strips it). Three plugin docs still told users and `/update` to pass these flags. On Windows after upgrading to CLI v2.2.1+, both `/update` and `/qmd uninstall` surfaced this as `unknown option` errors from commander.
 
-## v2.3.2 — fix(doctor): detect new Claude Code hook exec-form schema
+- fix(skills/qmd/SKILL.md): Step 8 (`/qmd setup`) and Step 4b (`/qmd uninstall`) now run `onebrain register-hooks` (no flag); auto-detects from vault.yml.
+- fix(skills/update/references/migration-steps.md): Step 6 merges the qmd-hook bullet into the unconditional `register-hooks` call — no separate `--qmd` invocation.
 
-- `checkSettingsHooks` now joins `command` + `args[]` into the effective command string before substring matching, so canonical exec-form hooks (`{command: "onebrain", args: ["checkpoint", "stop"]}`) are no longer false-flagged as missing
-- New `detectHookForm` helper classifies each matching entry as `exec` (canonical), `legacy` (shell-form, wrapper, etc.), or `absent` — legacy entries now warn with "--fix will migrate to exec form" instead of staying invisible
-- `detectHookForm` scans all matching entries per event: if any entry is in canonical exec form, the hook is reported as exec even when a legacy duplicate also matches (handles partial-migration state where a stale legacy entry was left behind alongside the new canonical one)
-- `effectiveCommand` filters non-string `args[]` entries — hand-edited `settings.json` with stray `null`/numbers can't produce ghost substring matches
-- Stale-hook sweep also uses the joined effective command, so a stale `onebrain` reference hidden in `args[]` of a wrapper entry is no longer missed
-- 10 unit tests covering exec, legacy shell, bash-wrapper, absent, partial migration, mixed-state Stop+PostToolUse, stale exec-form events, defensive args filtering, and qmd-conditional skipping
-- No behavior change for vaults already in canonical exec form (the common case post-v2.3.0)
+## v2.4.0 — feat(07-logs): subfolder restructure + per-skill log entries
 
-## v2.3.1 — feat(scheduler): hook-style command mode for direct CLI scheduling
+Restructure `07-logs/` into 4 typed subfolders and add audit log entries for 12 skills. Companion CLI release v2.2.2 updates `orphan-scan` and the Stop hook's NN-counting helper to read from the new flat `checkpoint/` directory.
 
-- `ScheduleEntry.command` field added: schedule any CLI binary using the same `command + args[]` shape as Claude Code hooks
-- `args` is now `Record<string, string>` (skill mode → `--key=value` flags) OR `string[]` (command mode → positional argv)
-- `validateEntry` enforces exactly-one-of(skill, command) + matching args shape; type guards `isSkillMode` / `isCommandMode` exported
-- One-shot command entries reject shell-special chars in args (`"`, `$`, backtick, `\`) — same guard as v2.3.0
-- `register-schedule --status` displays command entries as `cmd: <binary> <args>` and skill entries with inline `(key=value)` args
-- Collision detection extended: skill and command entries derive plist labels independently; conflicts reported with mode-tagged names
-- Zero breaking change to existing skill-mode entries — full v2.3.0 test suite passes without modification
+- feat(07-logs): split into `session/YYYY/MM/`, `checkpoint/` (flat), `update/` (flat), `log/YYYY/MM/`. Mental model: session/checkpoint = NN per run, everything else = append per day.
+- feat(/update Step 0): idempotent migration moves files to the new layout (preserve YYYY/MM for session; flatten checkpoint + update). Detect-by-residual-files re-runs cleanly on interrupt.
+- feat(startup): legacy structure detection nudges /update with a one-line banner; orphan-scan fallback auto-detects pre- vs post-v2.4.0 layout (multi-vault user safety).
+- feat(skills): /recap, /distill, /memory-review, /learn, /consolidate, /connect, /reorganize, /onboarding, /qmd, /clone, /doctor, /weekly each write an audit log to `log/YYYY/MM/`. Shared `_shared/audit-log-format.md` reference deduplicates frontmatter + append-per-day algorithm + run-section heading + failure-mode rules.
+- feat(audit-log frontmatter): canonical 3-field schema (`tags: [audit-log, X]`, `skill: /X`, `date: YYYY-MM-DD`) across all skill audit logs; per-skill discriminators (topic, subcommand, mode, path, version). Tag taxonomy unified — `[doctor-log]`, `[update-log]`, `[weekly-review]` flipped to the `[audit-log, X]` umbrella so a single Obsidian `tag:#audit-log` query surfaces every skill run.
+- feat(session log + checkpoint frontmatter): `session_token: <token>` added to all 5 Session Log Format cases and the Checkpoint Format. Token previously lived only in checkpoint filenames; cross-referencing a session log to its checkpoints required parsing filenames. Now `rg "session_token: abc12345" 07-logs/` surfaces every artifact for that session.
+- feat(/wrapup): orphan recovery reads flat `checkpoint/`, writes to `session/YYYY/MM/`. Cross-midnight handling simplified to filename-date math. Progress signal for N>3 orphan groups. CRLF-safe marker check.
+- feat(/doctor): 07-logs structure check (verifies the 4 subfolders); housekeeping warning at >1000 log files. /reorganize now aborts if pre-v2.4.0 structure is detected (run /update first).
+- fix(checkpoint-hook.sh + checkpoint.ts): both write to and read from flat `checkpoint/`. Pre-fix, NN counting was reading from legacy `YYYY/MM/` path → every checkpoint after migration would have collided at NN=01.
+- fix(/update backup): `[archive_folder]/[agent_folder]/...` instead of hardcoded `05-agent` so users who remapped `folders.agent` see backups land in the matching subfolder.
+- fix(migrate.ts runBackfillRecapped): walks `[logs_folder]/session/YYYY/MM/` post-v2.4.0 (was walking `[logs_folder]/YYYY/MM/` and silently skipping all session logs).
 
-## v2.3.0 — feat(scheduler): OneBrain scheduler — launchd-backed recurring + one-shot schedules (E9)
+## v2.3.4 — docs(instructions): establish 11 iron-rule Working Principles
 
-- New subcommand `onebrain register-schedule` — registers scheduled skills with macOS launchd, reading the `schedule:` block from `vault.yml`
-- Flags: `--dry-run`, `--remove`, `--refresh`, `--resume <skill>`, `--status`, `--test <skill>`
-- Recurring schedules via 5-field cron syntax in `cron:` field; validated before plist emission
-- One-shot schedules via ISO `at: "YYYY-MM-DD HH:MM"` field; plist emits self-delete shell wrapper that auto-uninstalls after firing
-- Schedulable validation: rejects entries pointing at skills without `schedulable:` or `schedulable_with_args:` frontmatter (or with missing `required_args`)
-- Plist collision detection: two entries normalizing to the same `~/Library/LaunchAgents/com.onebrain.<label>.plist` path are rejected
-- XML escaping on all plist-interpolated values; double-quote in arg values rejected (would break one-shot shell wrapper)
-- macOS launchd first; Linux systemd-timer + Windows Task Scheduler deferred to follow-up
+Promote `## Working Principles` in `INSTRUCTIONS.md` from 4 unnumbered guidelines to 11 numbered iron rules with a precedence-stating intro. These are non-negotiable defaults that apply across every session, every skill, every workflow — and explicitly take precedence over skill-specific instructions when in conflict. Synthesised from a 60+ memory audit, an insights-report friction analysis, and 29 reviewer-passes across 15 distinct role perspectives (writer, designer, student, PM, lawyer, doctor, therapist, teacher, sales, fiction author, financial analyst, journalist, founder, translator, dev) so the language survives universally — neither dev-jargon nor watered-down for technical work.
 
-## v2.2.5 — fix(hooks): iterate all detected harnesses + raw status label in non-TTY
+- docs(INSTRUCTIONS.md): convert `## Working Principles` to numbered list with intro stating these rules outrank skill-specific instructions when they conflict.
+- docs(INSTRUCTIONS.md): new rules — *Speak in the user's vocabulary · Verify before asserting · Find the cause, not the symptom · Show a draft before extensive work · Update plan and task status in real time · Don't make the user wait · Update on evidence, not pressure · Carry changes through to related places.*
+- docs(INSTRUCTIONS.md): rewrite original 4 rules per cross-role review — drop dev-only references (`AskUserQuestion`, slash-command exception list, "refactor"); merge "Surgical changes" into "Minimal footprint" with cleanup-after-yourself extension; add verifiable-criteria preference to "Define success".
+- docs(INSTRUCTIONS.md): each rule body now includes register-matching, root-cause depth, draft-first for structural work, streaming-vs-background nuance, and explicit code-context coverage (callers, tests, types, migrations) — keeping rigor for dev users while staying accessible to writers, students, lawyers, clinicians, and operators.
+- docs(INSTRUCTIONS.md): bullet 11 restructured per round-3 cross-role consensus — universal list (other notes, files that reference it, similar cases) leads, dev-specific examples fenced as `(in code: …)` so non-dev readers have a clear visual signal to skim past while dev users keep their precision.
 
-- Fix: `register-hooks` now updates ALL configured harnesses (.claude AND .gemini) instead of exiting on the first match
-- Multi-harness vaults previously had `.claude/settings.json` silently skipped when `.gemini/` was also present
-- `detectHarnesses()` returns `Harness[]`; `detectHarness()` kept as thin single-value wrapper for backward compat
-- Fix: non-TTY hook status report now shows raw status (`Stop migrated`) instead of collapsing all to `ok`
-- Workaround for affected vaults (pre-2.2.5): `ONEBRAIN_HARNESS=claude onebrain register-hooks`
+## v2.3.3 — feat(wrapup): PR #156 follow-ups (configurable threshold + recovered-log marker + fallback row)
 
-## v2.2.4 — feat(register-hooks): emit exec-form hooks (Claude Code 2.1.139)
+Three PR #156 follow-ups bundled. CLI track ships matching changes in v2.3.0 (see [CHANGELOG.md](CHANGELOG.md)).
 
-Hooks emitted by `onebrain register-hooks` now use Claude Code 2.1.139's exec form (`command: "onebrain", args: [...]`) instead of shell form. Exec form spawns the binary directly without a shell, eliminating path-quoting issues for vault paths containing spaces (e.g. Obsidian-on-iCloud).
+- feat(wrapup/SKILL.md): Step 1b resolves `threshold_minutes = max(60, 2 * checkpoint.minutes)` from vault.yml once before scanning groups (was: hard-coded 60). Users who raised `checkpoint.minutes` to 60/90 now get a proportionally larger guard. Missing/malformed vault.yml falls back to 60-min default — recovery is critical-path, never block on config issues. Cross-link to the symmetric CLI helper documents the contract.
+- feat(session-formats.md, wrapup/SKILL.md): standardise the `<!-- recovery-of: {token}:{date} -->` body marker for recovered session logs. The `already-recovered` short-circuit (Step 1b → step a) now matches via the marker instead of `case: recovered` frontmatter — version-independent, harness-independent, names the specific token+date pair so multi-group recovery logs short-circuit per group rather than as a whole.
+- fix(wrapup/SKILL.md): the marker match is **anchored to start-of-line**, not bare substring. A session log that quotes the marker as documentation in mid-paragraph cannot trigger a false short-circuit (which would have destructively deleted checkpoints based on a documentation quote). Spec text in session-formats.md tightened in lockstep.
+- fix(wrapup/SKILL.md): step (f) now re-reads the recovered session log and verifies the marker survived the write before falling through to step (g)'s checkpoint delete. If the marker is missing (LLM omission / partial write / encoding glitch), recovery aborts for that group: no delete, recovered-log path lands in `orphaned_recovered_logs`, and `skipped_active` records `marker_write_failed` for each file. This converts a silent destructive duplicate into an investigable skip.
+- feat(wrapup/SKILL.md): new `marker_write_failed` enum value added to `skipped_active.reason` with its own row in the `{reason_summary}` rendering table.
+- feat(wrapup/SKILL.md): `{reason_summary}` rendering table gets a catch-all fallback row for unmapped enum values. The surface signal stays generic so a missing explicit row is visible to the user and prompts contributors to add the proper mapping. Cross-linked to the enum definition at the top of Step 1b so future contributors who add a new `reason` value see both anchors.
 
-- feat(register-hooks): Stop and PostToolUse qmd hooks emit `{ command: "onebrain", args: [...] }` exec form
-- fix(register-hooks): idempotent shell→exec migration — legacy shell-form entries (`command: "onebrain checkpoint stop"`) are rewritten in place on next register-hooks run, no duplicates
-- fix(register-hooks): legacy `qmd update -c <col>` entries now migrate directly to exec form, skipping the intermediate shell-form state
-- test(register-hooks): new tests for fresh exec-form emission, shell→exec Stop migration, shell→exec qmd migration, and direct-to-exec legacy qmd migration
+## v2.3.2 — refactor(update): delegate CLI bump to `onebrain update`
 
-## v2.2.3 — fix(register-hooks): strip canonical qmd hook when qmd_collection absent
+`/update`'s "CLI Version Check" section was duplicating logic that the `onebrain update` CLI already owns: GitHub release lookup, package-manager detection, install, and binary validation. The skill now defers to the CLI as the single source of truth for the CLI bump.
 
-Companion to plugin v2.4.1's `/qmd uninstall` doc fix. `migrateLegacyQmdEntries(groups, false)` previously stripped only legacy `qmd update …` entries, preserving the canonical `onebrain qmd-reindex` entry on the assumption that a hand-registered hook should survive. In practice no realistic user setup separates the two — `/qmd setup` always writes both, `/qmd uninstall` always removes both — and the preservation made the post-uninstall hook fire forever against a deleted collection.
+- refactor(update/SKILL.md): replace 30-line "CLI Version Check" block (raw `npm view` + AskUserQuestion + per-shell bun/npm detection + `npm install -g` / `bun install -g`) with a 3-step delegation: probe `onebrain --version`, run `onebrain update`, surface non-zero exits.
+- refactor(update/SKILL.md): drop the npm/bun selection prompt — `onebrain update` already picks `bun` on macOS/Linux and `npm` on Windows; user already consented to `/update` upstream, so a second AskUserQuestion is noise.
+- docs(update/SKILL.md): add Known Gotcha — raw `npm install -g` / `bun install -g` calls are reserved for first-time CLI bootstrap (README/install scripts), never `/update`.
+- note: pure SKILL.md change, no CLI/binary change. CLI version unchanged at 2.2.0.
 
-- fix(register-hooks): when `qmd_collection` is absent from `vault.yml`, strip both legacy `qmd update …` AND canonical `onebrain qmd-reindex` PostToolUse entries. `qmd_collection`'s absence is now the authoritative signal that qmd is not in use.
-- test(register-hooks): flip the "mixed legacy + canonical → strips legacy, keeps canonical" assertion to "strips both"; add "canonical-only entry → strips it" test pinning the `/qmd uninstall` path; add "canonical + user hook co-resident → strips canonical, keeps user" test pinning the strip-by-command-value invariant.
+## v2.3.1 — fix(wrapup): active-session guard prevents cross-harness checkpoint loss
 
-## v2.2.2 — fix(checkpoint, orphan-scan, migrate): read from new 07-logs layout
+Wrapup's orphan recovery (Step 1b) auto-recovered any non-current-token checkpoint into a synthesised session log and deleted the originals — including in-flight checkpoints belonging to a *different live harness* in the same vault. Closes the cross-harness contamination path observed when running Claude + Gemini concurrently.
 
-Companion to plugin v2.4.0's 07-logs restructure. Three TypeScript modules updated to read from the post-v2.4.0 layout (checkpoints flat in `[logs_folder]/checkpoint/`, session logs nested under `[logs_folder]/session/YYYY/MM/`). Includes two **data-loss bug fixes** that the initial implementation missed.
+- fix(wrapup/SKILL.md): add Active-Session Guard to Step 1b — for each orphan group, stat the newest checkpoint mtime; if `age_minutes < 60`, skip recovery (do not read, do not write a session log, do not delete) and surface in the Step 7 report as `skipped_active`.
+- fix(wrapup/SKILL.md): explicit fail-safe — any stat error, unparseable mtime, or negative age forces skip-active. Destructive default on ambiguity is forbidden.
+- fix(wrapup/SKILL.md): pre-delete re-stat in step 1b/f aborts the delete (and removes the just-written recovered log) if the owning session wrote a new checkpoint mid-recovery — closes the read→write→delete race.
+- fix(wrapup/SKILL.md): exact `stat -f '%m'` (BSD) / `stat -c '%Y'` (GNU) commands spelled out so the LLM doesn't pick the wrong flag silently across platforms.
+- fix(wrapup/SKILL.md): Step 7 `skipped_active` block is now MUST-emit (not soft-conditional) and renders `{path, age_minutes}` tuples — the user's only signal that a parallel harness owns checkpoints on disk.
+- note: 60-minute threshold gives a buffer of two full auto-checkpoint windows (hook fires every 15 messages or 30 minutes). False-positives (idle but live sessions > 60 min) remain non-destructive — the owning user's next /wrapup consumes its own checkpoints.
+- note: pure SKILL.md change, no CLI/binary change. CLI version unchanged at 2.2.0.
 
-- **fix(checkpoint.ts)** — `maxCheckpointNnSync` was reading from the legacy `[logs_folder]/YYYY/MM/` path. Post-migration, every checkpoint would land at `NN=01` (silently overwriting prior checkpoints in the same session). Now reads from flat `[logs_folder]/checkpoint/`. Tests updated. **Critical fix.**
-- **fix(migrate.ts)** — `runBackfillRecapped` walked two levels under `[logs_folder]/YYYY/MM/`. Post-migration session logs live at `[logs_folder]/session/YYYY/MM/` (three levels) — the walk never reached them and silently skipped every backfill (`backfilled: 0` always). Now walks `session/YYYY/MM/`. Tests updated. **Critical fix.**
-- fix(orphan-scan) — scan `[logs_folder]/checkpoint/` (flat) instead of iterating `[logs_folder]/YYYY/MM/`. The 2-month allowlist filter (originally kept for compat) was removed in round-4 simplification: `checkpoint/` is ephemeral, so any file present is a real candidate; the Active-Session Guard handles cross-harness sessions, /doctor's "old checkpoint" warning surfaces anything else stale.
-- fix(orphan-scan) — `hasManualSessionLog` resolves the session folder from the date (`[logs_folder]/session/YYYY/MM/`) instead of receiving a pre-computed monthDir.
-- test(orphan-scan, checkpoint, migrate) — 84 tests updated for new paths. New helpers (`makeCheckpointDir`, `makeSessionMonthDir`); legacy `makeMonthDir`/`makeThisMonthDir` aliased for parameterless call sites; one update-log dead-code-path test rewritten to test the post-v2.4.0 stray-file scenario.
+## v2.3.0 — feat(gemini): project-level `.gemini/` config alongside `.claude/`
 
-## v2.2.1 — fix(orphan-scan): symmetric Active-Session Guard (PR #156 follow-ups)
+Project-level `.gemini/` config ships alongside the Claude plugin so a single `onebrain init` (or `/update`) sets up both harnesses in the user's vault. Skills, agents, and INSTRUCTIONS stay single-source-of-truth in `.claude/plugins/onebrain/` — both harnesses reference them on demand, no duplication.
 
-Companion to plugin v2.3.3's /wrapup Step 1b mtime guard (PR #156 follow-ups). The startup banner's `onebrain orphan-scan` previously surfaced cross-harness in-flight checkpoints as orphans even though /wrapup correctly refused to recover them — confusing UX loop where the banner advertised orphans the recovery skill would skip. CLI now applies the identical mtime window so banner and recovery agree, scales with `vault.yml`'s `checkpoint.minutes` so users who raised it don't false-positive on live sessions, and surfaces malformed-config telemetry on stderr.
+- feat(.gemini/settings.json): declarative hooks — `AfterAgent` (matcher `*`) → `onebrain checkpoint stop` (= Claude `Stop` parity); `AfterTool` (matcher `write_file|replace`, regex against Gemini's actual tool names) → `onebrain qmd-reindex` (= Claude `PostToolUse` parity). Both wrapped as `{cmd} > /dev/null 2>&1; echo '{}'` to satisfy Gemini's JSON-on-stdout protocol.
+- feat(.gemini/settings.json): `model.disableLoopDetection: true` so legitimate multi-file skill activations (e.g. `/onebrain:help` reading SKILL.md + plugin.json + skills folder) don't trip Gemini's repetitive-tool-call heuristic.
+- feat(.gemini/commands/onebrain): 25 hand-curated `.toml` slash commands under the `onebrain:` namespace (`/onebrain:braindump`, `/onebrain:capture`, ...). Namespacing avoids collisions with Gemini built-ins (`/help`, `/tasks`) and mirrors the Claude plugin path. Tab-complete on the suffix works (`/dail<tab>` → `/onebrain:daily`).
+- note: this release establishes the unified-plugin policy — anything inside `.claude/plugins/onebrain/` OR `.gemini/` (or future harness configs) bumps the plugin track. CLI track (`package.json`) stays independent for TS source changes only.
+- note: distribution — `vault-sync` (CLI v2.2.0+) auto-deploys `.gemini/` to the vault root alongside `.claude/plugins/onebrain/`. No manual install step required.
 
-- fix(orphan-scan): groups whose newest checkpoint mtime is younger than `max(60, 2 * checkpoint.minutes)` minutes are NOT counted — they belong to a still-active session in another harness. Cross-month token groups are merged before the guard runs, so globally-newest mtime wins (not per-month). The `max(60, ...)` floor preserves PR #156's baseline so users who lowered `checkpoint.minutes` below 30 don't accidentally tighten the guard.
-- fix(orphan-scan): fail-safe on stat error / clock skew / negative age / missing-or-malformed vault.yml — group / threshold is treated as ambiguous and falls back safely, never partially counted or block-on-config-error.
-- fix(orphan-scan): malformed vault.yml now writes a one-line warning to stderr (parse errors, non-mapping root, EACCES) so the user can discover their config is being silently ignored. The classifier matches `parser.ts`'s exported `VAULT_YML_NOT_FOUND_PREFIX` constant so changing the prefix in one place propagates to the classifier — no two-file string drift. The stderr write is wrapped in try/catch so EPIPE/ENOSPC under closed-stderr conditions can't crash the stdout JSON contract.
-- fix(orphan-scan): `runOrphanScan` rejects empty `vaultRoot` with a clear error — empty string would resolve `vault.yml` against `process.cwd()` and silently consume an unrelated vault config. Programming-bug guard for future programmatic callers.
-- fix(types): `VaultConfig.checkpoint` is now non-optional. The parser unconditionally constructs it from `DEFAULT_CHECKPOINT` (now exported); the `?` modifier was vestigial and forced consumers to write defensive `?.minutes` chains the runtime never needed. `doctor.ts` + `doctor.test.ts` now spread the exported `DEFAULT_CHECKPOINT` instead of duplicating the literal.
-- test(orphan-scan): 19 new cases — boundary 30/60/90 min, newest-mtime-wins, future-mtime fail-safe, cross-month globally-newest, mixed stale+active groups, threshold scaling for `checkpoint.minutes` ∈ {15, 30, 60}, malformed/missing vault.yml fallback, prefix-not-substring ENOENT classifier (verified against a real parse failure whose message contains-but-doesn't-start-with the prefix), and EPIPE-style stderr-write-throws regression.
+## v2.2.5 — fix: Windows skill + script compat (PowerShell / cmd / native Python)
 
-## v2.2.0 — feat(vault-sync): deploy `.gemini/` project config alongside the plugin
+Audit pass over every skill snippet that assumed Bash / Unix-only tooling. Closes #128, #129, #130.
 
-Companion to plugin v2.3.0. `.gemini/` (Gemini's project-level settings + slash commands) now lives at the same level as `.claude/` and ships through the same release artifact, so a single `onebrain init` or `/update` sets up both Claude and Gemini in the user's vault — no harness picker, no manual extension link.
+- fix(open-in-obsidian.sh): use `cygpath -m` on MINGW/CYGWIN/MSYS to emit `C:/...` paths Obsidian accepts; percent-encode the URI so spaces and `#`/`&`/`?` in vault paths or filenames no longer truncate the launch (#130)
+- fix(reading-notes): default filename template uses ` - ` instead of ` : ` so notes save on NTFS without truncation; gotcha note removed (#130)
+- fix(import/markitdown-setup): drop the WSL-only gate on Windows; detect `python3` / `python` / `py -3` (and matching `pip` / `py -3 -m pip`) so native Windows installs can install markitdown (#128)
+- fix(qmd setup): replace `openssl rand -hex 3` / `python3 -c …` with `node -e "…randomBytes(3)…"`; `basename` swapped for a Node one-liner — Node is portable and already required by the CLI (#128)
+- fix(skills): cross-platform shell guidance — `which X || where X` for package detection; describe outcome (mkdir / mv / cp / rm / ls) so the model picks the shell-native form on PowerShell/cmd; drop `"$PWD"` from `onebrain vault-sync` (CLI defaults to cwd) (#129)
+- fix(INSTRUCTIONS startup): replace `LC_ALL=en_US.UTF-8 grep -r …` with the Grep tool — UTF-8 handling is platform-correct and PowerShell can dispatch it (#129)
+- fix(doctor SKILL): always strip trailing whitespace from vault.yml-derived paths (CRLF on Windows); normalize `installPath` separators before substring checks against the cache dir (#129)
+- fix(skills/help, /onboarding, /learn): use `$HOME` / `$env:USERPROFILE` instead of the literal `~` for Glob/Read calls — the Glob tool does not expand tildes (#129)
 
-- feat(vault-sync): new `syncGeminiConfig` step copies `.gemini/` from the extracted release tarball into the vault root, mirroring the plugin-folder semantics (full mirror, stale entries swept). Best-effort: silently skipped when the tarball predates the `.gemini/` shipping cutoff.
-- chore(register-hooks): remove the legacy `registerGeminiHooks` helper that wrote a Claude-shaped `Stop` hook into any pre-existing `.gemini/settings.json`. Gemini hooks now come from the bundled `.gemini/settings.json` declaratively — the CLI does not mutate user-owned settings. Existing leftover `Stop` entries from earlier versions become harmless dead config (Gemini ignores `Stop`; it fires `AfterAgent` instead).
-- test(vault-sync): 3 new cases — `.gemini/` deploy from tarball, stale-file sweep on resync, missing-source-tree silent no-op.
-- test(register-hooks): replace the gemini Stop-write tests with two no-op assertions — register-hooks does not touch user-owned `.gemini/settings.json` and does not create one when absent.
+## v2.2.4 — feat(update): backfill vault-side config drift after migration
 
-## v2.1.16 — test(cli-banner): smoke tests for static-banner exit paths
+- feat(/update SKILL): Step 8 now adds `update_channel: stable` to vault.yml when missing
+- feat(/update SKILL): new Step 9 rewrites stale `extraKnownMarketplaces.onebrain.source.repo` (`kengio/onebrain` → `onebrain-ai/onebrain`) in vault `.claude/settings.json`
 
-- test(cli-banner): assert `printBanner()` resolves under 250ms in both non-TTY and TTY-without-truecolor modes — guards both early-return branches against regressions where animation accidentally runs in CI/piped/16-color contexts
+## v2.2.3 — fix: session-log glob across /wrapup, /daily, /weekly, /distill, /reorganize, INSTRUCTIONS
 
-## v2.1.15 — fix(vault-sync, register-hooks): Windows + iCloud reliability
-
-- fix(vault-sync): set `TAR_OPTIONS=--force-local` on win32 so MSYS/Git Bash GNU tar stops parsing `C:\…` vault paths as `host:path` and the extraction completes (#126)
-- fix(vault-sync, register-hooks, init): swallow EEXIST from `mkdir({ recursive: true })` when the path is already a directory — covers the iCloud-Drive-on-Windows quirk where `mkdir` throws despite the recursive flag; non-EEXIST errors and EEXIST-on-a-file still propagate (#126)
-- new(lib): `mkdirIdempotent` helper in `@onebrain/core` — single shared EEXIST-tolerant `mkdir` used by all CLI write paths, replacing four ad-hoc `mkdir({ recursive: true })` call sites
-- test: 4 new cases for `mkdirIdempotent` (fresh dir, idempotent, EEXIST-on-file rethrow, EACCES rethrow) and 4 for `buildTarSpawnEnv` (darwin/linux passthrough, win32 sets `--force-local`, win32 overrides user-set `TAR_OPTIONS`)
-
-## v2.1.14 — fix(register-hooks): migrate legacy `qmd update -c …` PostToolUse entries
-
-- fix(register-hooks): rewrite legacy `qmd update <args>` PostToolUse hooks to canonical `onebrain qmd-reindex` so `/doctor`'s substring check no longer flags working hooks as missing (#127)
-- fix(register-hooks): match wrapped legacy forms too (`powershell.exe ... qmd update -c …`, `bash -lc 'qmd update …'`) so older Windows installs migrate cleanly
-- fix(register-hooks): dedupe canonical entries after migration and normalize the parent group's matcher to `Write|Edit`, so a settings.json with both legacy and canonical hooks doesn't end up firing the reindex twice
-- fix(register-hooks): strip legacy `qmd update …` entries when `qmd_collection` is unset in vault.yml (instead of leaving them firing against a collection the user no longer maintains)
-- fix(register-hooks): status line reports `PostToolUse migrated` (with `↑` icon in TTY) instead of conflating into `added`/`ok`
-- test(register-hooks): 12 new cases — migration, idempotence, dedup (with and without legacy entries present), narrow-matcher normalization, PowerShell-wrapped legacy form, qmd-disabled cleanup with mixed legacy + canonical
-
-## v2.1.13 — fix(session-init): walk process tree to find claude PID
-
-- fix(session-init): walk parent chain to resolve the claude ancestor PID, matching what the bash hook's `$PPID` already sees
-- fix(session-init): eliminate token collisions across Claude sessions on terminals that set no session env vars (notably Obsidian terminal plugin on macOS) — every session now gets a distinct token instead of sharing the day-scoped cache
-- refactor(session-init): inject a `ProcLookup` into `resolveSessionToken` / `runSessionInit` for deterministic walk-up tests
-- test(session-init): add unit coverage for `findClaudeAncestorPid` (chain walk, basename + `.exe` strip, depth bound, cycles) and walk-up integration in `resolveSessionToken`
-
-## v2.1.12 — fix(vault-sync): registry matching by projectPath + test isolation
-
-- fix(vault-sync): broaden per-vault registry match — fall back to projectPath when installPath is stale (#147)
-- fix(vault-sync): on projectPath fallback, rewrite stale installPath to canonical vaultPluginDir (#147)
-- fix(vault-sync): inject `installedPluginsPath` option so tests don't pollute real `~/.claude/plugins/installed_plugins.json` (#146)
-- fix(init): same `installedPluginsPath` injection (#146)
-- test(vault-sync): cover stale-installPath + matching-projectPath case
-- test: assert real registry is byte-identical before/after `bun test`
-
-## v2.1.11 — feat(doctor + vault-sync): backfill vault-side config drift
-
-- feat(validator): downgrade missing `update_channel` from error → warning (#133)
-- feat(validator): warn on stale `extraKnownMarketplaces.onebrain.source.repo: kengio/onebrain` in vault `.claude/settings.json`
-- feat(doctor --fix): auto-add `update_channel: stable` to vault.yml (#133)
-- feat(doctor --fix): auto-rewrite stale `extraKnownMarketplaces.onebrain.source.repo` → `onebrain-ai/onebrain` in vault `.claude/settings.json`
-- feat(vault-sync): write `lastUpdated` to `installed_plugins.json` entry after pin (#132)
-- feat(vault-sync): dedup orphan `onebrain@onebrain` entries whose `projectPath` is missing (#132)
-- test(doctor): cover new validator severity + auto-fix behavior
-- test(vault-sync): cover lastUpdated write + orphan dedup
-
-## v2.1.10 — fix: whitelist `-session-` infix in orphan-scan + migrate filters
-
-Companion to plugin v2.2.3. Two CLI sites had the same bug class — blacklisting `-checkpoint-` and accepting any other date-prefixed `.md` file in the logs folder, which let `/update` migration logs (`YYYY-MM-DD-update-vX.Y.Z.md`) and `/weekly` review files (`YYYY-MM-DD-weekly.md`) fall through.
-
-- fix(orphan-scan): `hasManualSessionLog` filter switched to whitelist (`includes('-session-')`). Previously an update or weekly file sharing a date with an orphan checkpoint silently suppressed the orphan count — `runOrphanScan` would report `orphan_count: 0` even though the orphan was real.
-- fix(migrate.runBackfillRecapped): same whitelist switch. The blacklist version was rewriting frontmatter on every non-checkpoint `.md` file in the logs folder, silently injecting a meaningless `recapped: <today>` field into update logs and weekly reviews.
-- test(orphan-scan): three regression cases — orphan still counts when only an update-log or weekly file exists for the date; orphan still skipped when both a non-session log AND a real session log exist on the same date.
-- test(migrate): two regression cases — update-log frontmatter and weekly-review frontmatter are left untouched (idempotent reads, byte-equal contents, no `recapped:` field injected).
+Same class of bug across multiple skills: globbing `[logs_folder]/.../*.md` matches checkpoint files (`*-checkpoint-*.md`) and `/update` migration logs (`*-update-*.md`) in addition to actual session logs. Tightened every affected pattern to `*-session-*.md` and added an inline note explaining why so it doesn't drift back.
 
-## v2.1.9 — feat: brand-aligned CLI banner (neural-mesh brain + slant wordmark + brand gradient)
-
-- feat(cli-banner): redesign banner — figlet "big" font camelcase "OneBrain" wordmark, alone (no borders, no logo); the wordmark itself is the brand mark and the animation canvas. Compact 6-row footprint keeps every command's banner output cheap on terminal real estate
-- feat(cli-banner): canonical uppercase tagline "YOUR AI THINKING PARTNER" + secondary subtitle "A unified intelligence in your Obsidian vault" rendered as a faint cyan layered tagline below the primary line
-- feat(cli-banner): replace full-hue rainbow with a 3-stop magenta → mid-pink → cyan brand gradient (matches the SVG brain logo's stops); animation paints directly on the wordmark — every glyph cell takes its own gradient color along the diagonal sweep, with the white shimmer settling each cell back to its gradient color
-- feat(cli-banner): non-interactive output (piped, redirected, CI logs) now prints a static brand-colored banner instead of nothing — truecolor host paints brand RGB, 16-color falls back to `pc.cyan`; animation only runs when stdout is an interactive TTY with truecolor
-- fix(cli-banner): brand colors now align with website CI — `PREFIX_COLOR` `[0,243,255]` (#00f3ff), `TRAILING_COLOR` `[255,45,146]` (#ff2d92); shimmer trail settles on brand cyan, subtitle uses brand cyan dimmed along its own hue axis, dim-state stays inside the cyan family
-- fix(cli-banner): honor `FORCE_COLOR=3` / `ONEBRAIN_FORCE_TTY=1` overrides for stdout-isTTY detection — partial fix for #131 (Git Bash MinTTY on Windows); animation now reachable for users whose terminals under-report TTY-ness
-- test(cli-banner): new `cli-banner.test.ts` covers non-TTY static path (asserts brand RGB, no animation, no cursor toggling), TTY-without-truecolor 16-color fallback (asserts uppercase tagline + subtitle ordering), and brand-color exports
+- fix(/wrapup SKILL): Step 6 recap-reminder glob narrowed from `07-logs/YYYY/MM/*.md` to `*-session-*.md`. The bare `*.md` pattern was inflating the displayed unrecapped count (reporting 10 unrecapped when only 2 actual session logs were unrecapped).
+- fix(/daily SKILL): Phase 1 "find most recent session log" glob narrowed to `*-session-*.md`. Previously a more recent checkpoint or `/update` log could be picked as "most recent", causing the briefing to read the wrong file.
+- fix(/weekly SKILL): Step 1 weekly file list narrowed to `*-session-*.md` so the review doesn't include checkpoint or update logs.
+- fix(/distill SKILL): Step 2 session-log search narrowed to `*-session-*.md` so non-session files in the logs folder don't contribute distillation content.
+- fix(/reorganize SKILL): flat-root logs glob narrowed from `[logs_folder]/*.md` to `*-session-*.md` so a flat checkpoint or update log isn't treated as a legacy session log to migrate.
+- fix(INSTRUCTIONS Recalling Information): Step 3 grep hint now specifies `**/*-session-*.md` so the agent doesn't default to bare `*.md` when searching past decisions.
 
-## v2.1.8 — chore: point npm `homepage` to onebrain.run
+## v2.2.2 — chore: migrate to onebrain-ai org
 
-- chore(package.json): `homepage` field updated from `github.com/onebrain-ai/onebrain` → `https://onebrain.run` so npm registry links to the marketing site
-- note: `repository.url` and `bugs` still point to GitHub (correct for npm metadata)
+- chore(/update SKILL): raw GitHub URL templates updated to `onebrain-ai/onebrain` for plugin file fetches
+- chore(plugin.json): version bump aligned with CLI v2.1.7 org migration
+- note: existing vaults still work via GitHub auto-redirect; `/update` will pick up new URLs going forward
 
-## v2.1.7 — chore: migrate to onebrain-ai org
+## v2.2.1 — fix: align with CLI v2.1.6 (Stop-hook-only)
 
-- chore: GitHub repo transferred from `kengio/onebrain` to `onebrain-ai/onebrain` — npm `@onebrain-ai/cli` package unchanged
-- chore(package.json): update `homepage`, `repository.url`, `bugs` URLs to new org
-- chore(postinstall): release binary download URL points to onebrain-ai/onebrain
-- chore(vault-sync): tarball API URL + extracted folder prefix (`onebrain-ai-onebrain-<sha>`) updated; tests aligned
-- chore(update): `GITHUB_REPO` constant points to onebrain-ai org
-- chore(README): badge URLs updated to new org
-- note: existing GitHub URLs auto-redirect — no breaking change for users with current install
+- fix(INSTRUCTIONS): drop entire PostCompact section (Path A/B + auto-wrapup routing). Single dispatch row — `NN since <context>` → write checkpoint. Note added explaining why PostCompact + PreCompact are not registered
+- feat(/wrapup + AUTO-SUMMARY): explicit **preservation rule** — deduplicate, don't summarize. Every unique decision, action item, learning, and topic must appear in the session log. No length cap. Heuristic: combined Key Decisions + Action Items + Open Questions length ≥ sum across all checkpoints
+- fix(/doctor SKILL): hook check rewritten to allowed-events sweep (Stop + PostToolUse only); sample report shows stale-entry warnings instead of PostCompact-specific failure
+- fix(session-formats.md): drop "PostCompact Path A/B" frontmatter case; keep "Recovered from checkpoints" for /wrapup orphan recovery
+- fix(/wrapup SKILL.md): state-file note updated to 3-field `0:<epoch>:00`; PostCompact follow-up signal wording removed
+- fix(/update migration-steps + SKILL): clarify Stop-hook-only registration; session-end synthesis is via AUTO-SUMMARY or manual /wrapup
 
-## v2.1.6 — fix: drop PostCompact hook; trust Stop hook threshold
+## v2.2.0 — fix: PostCompact session log; simplify checkpoint cleanup; stronger qmd-first search
 
-- fix(checkpoint): drop PostCompact hook entirely (Claude Code spec: stdout doesn't reach the agent). Stop hook is now the only checkpoint signal — its existing 15-msg / 30-min threshold drives emission across compacts without special handling
-- changed(checkpoint): state file is strictly 3 fields (`count:last_ts:last_stop_nn`). Legacy 4-field (`pending_checkpoint` / `pending_stub`) and v1 2-field files reset to `0:0:00` on first read — costs at most one checkpoint cycle
-- changed(register-hooks + doctor): generalized stale-hook sweep — allowed events are `Stop` + `PostToolUse` only. Any onebrain-* command under any other event (PreCompact, PostCompact, UserPromptSubmit, etc.) is auto-removed on `/update` and `/doctor --fix`. User-added non-onebrain entries preserved
-- removed(checkpoint): `handlePostcompact`, `postcompactFallback`, `'postcompact'` dispatch, `pending_checkpoint` field, `PRECOMPACT_RECENCY` + `PENDING_CHECKPOINT_TTL_SECONDS` constants, post-compact branch in `handleStop`
-- feat(checkpoint): atomic write-rename for state writes (pid-suffixed temp + POSIX rename) — prevents torn reads
-- perf(checkpoint): skip `findVaultRoot` for `reset` mode — touches $TMPDIR only
-
-## v2.1.5 — feat: cyberpunk banner v2 + checkpoint cleanup consistency
+- fix(INSTRUCTIONS PostCompact): inline writes replace background-agent dispatch — Path B silently failed because background agents don't see the main agent's compacted context. Path A still consolidates leftover checkpoints + deletes them, identical to /wrapup.
+- fix(wrapup + AUTO-SUMMARY): drop Step 5 (mark `merged: true`) and Step 6 safety-net scan. Checkpoints deleted directly after session log write verified — the log is the recovery proof.
+- fix(session-formats): remove `merged: false` from checkpoint frontmatter template.
+- fix(doctor): orphan-checkpoint check no longer reads `merged:` frontmatter — any leftover checkpoint is unmerged by definition.
+- feat(INSTRUCTIONS + QMD.md): stronger qmd-first guidance — qmd is the explicit default for vault content searches; Grep reserved for non-content lookups.
+- chore(memory-health-checks): drop the `merged: true` straggler row; ignore the field on legacy files.
 
-- feat(cli-banner): 3-phase banner intro — white CRT scan ↓ (hold 600ms), diagonal rainbow flow ↗, white shimmer ↗.
-- feat(cli-banner): rotating tagline via wipe-swap — `Remembers You` → `Catches Insights` → `Thinking Partner`. Prefix cyan, trailing magenta; final shimmer burns trailing to all-cyan settle.
-- feat(cli-banner): center alignment normalized at col 15.5 (border 26 dashes, art lead 5); static no-truecolor fallback uses signature line in cyan.
-- fix(doctor): qmd-embeddings auto-fix marked advisory — plain `doctor` no longer nudges toward `--fix`; `--fix` still embeds. New `advisory?: boolean` on internal Fix interface.
-- fix(orphan-scan + validator): drop `merged:` filter to match plugin v2.2.0 — any leftover checkpoint is unmerged by definition. `readMergedField` removed.
-- fix(doctor --fix): bar-pattern visual cleanup — "Nothing to fix" flush-left; multi-fix opens own `┌` group (new `barOpen` helper).
-- chore(tests): orphan-scan + validator tests reframed — legacy `merged: true` now counts as orphan.
+## v2.1.0
 
-## v2.1.4 — fix: drop bun-windows-arm64 (unsupported in bun v1.2)
+- docs(onboarding): update install.sh reference → onebrain init; remove method/runtime.harness from vault.yml template
+- docs(skills): remove method: onebrain from qmd and reorganize skill examples
+- fix(doctor): --fix removes deprecated vault.yml keys (method, runtime.harness) in addition to onebrain_version
 
-- fix(release): remove `bun-windows-arm64` build target — unsupported in bun v1.2.x (regression from v2.1.3)
-- fix(postinstall): remove `win32-arm64` from PLATFORM_MAP — falls back to JS bundle on Windows ARM64
+## v2.0.10 — fix: background agent checkpoint writes; updated hook reason format in INSTRUCTIONS
 
-## v2.1.3 — feat: postinstall binary download + full platform support
+- fix(instructions): Auto Checkpoint routing now parses NN from hook reason; filename built from context session_token
+- fix(instructions): stop hook and postcompact writes dispatched to background agent (mode: bypassPermissions) — main session no longer blocks on file writes
+- fix(instructions): postcompact uses bare `auto-wrapup` reason; session_token sourced from context with session-init fallback
+- fix(instructions): session-init failure explicitly aborts silently; routing table checks auto-wrapup reason first; Path A steps follow Path A dispatch (no longer split by Path B)
 
-- feat(postinstall): `npm install -g` / `bun install -g` now downloads the correct platform-specific compiled binary automatically — no Bun installation required
-- feat(release): add `bun-windows-arm64`, `bun-linux-x64-musl`, `bun-linux-arm64-musl` build targets — 8 platforms total
-- feat(release): `npm-publish` now runs after `create-release` — ensures compiled binaries exist on GitHub Releases before postinstall downloads them
-- fix(release): use `--target bun` in npm-publish step — JS bundle fallback for unsupported platforms
-- fix(update): remove unused `daysBehind` function
-- fix(biome): format validator.ts, cli-banner.ts, init.test.ts, cli-ui.ts
+## v2.0.9 — fix: startup grep locale, postcompact routing, wrapup score-0 fallback
 
-## v2.1.2 — fix: init fresh install layout + CI typecheck
+- fix(INSTRUCTIONS): startup task scan uses `LC_ALL=en_US.UTF-8` prefix on grep — prevents emoji pattern failures on macOS
+- fix(INSTRUCTIONS): postcompact auto-wrapup Path A (step 9, after verify) and Path B now route action items to project notes — matches /wrapup Step 4b parity
+- fix(wrapup): add session-context fallback in Step 4b-3b — score-0 tasks are routed to the project identified from `## What We Worked On` instead of being skipped; separate skipped_score0/skipped_ties lists
+- fix(auto-summary): add session-context fallback for score-0 tasks in step 3 with explicit tokenization delimiters — matches /wrapup Step 4b-3b parity
 
-- fix(init): peek plugin.json before step 4 — skip spinner on fresh install to prevent vault-sync clack output conflicting with setInterval \x1b[1A\x1b[2K
-- fix(init): add dotLine() helper for completed-step output without a preceding spinner
-- fix(vault-sync): add embedded mode — when called from init, uses makeStepFn (cyan bar, emoji steps) instead of clack intro/spinner/outro
-- fix(vault-sync): add emoji to all steps (📥 📂 🔧 📌 🧹) for embedded mode
-- fix(typecheck): spread pattern for optional hint/details in validator.ts (exactOptionalPropertyTypes)
-- fix(typecheck): remove vaultDir from UpdateOptions usage in tests — field removed in binary-only refactor
-- fix(typecheck): narrow patch-utf8.test.ts write signature to match implementation
+## v2.0.8 — refactor: extract shared session formats; remove backfill-recapped from /update
 
-## v2.1.1 — Post-merge fixes
+- refactor(startup): add `skills/startup/references/session-formats.md` — canonical checkpoint + session log templates shared across all writers
+- refactor(INSTRUCTIONS): replace inline checkpoint/session log format blocks with reference to session-formats.md
+- refactor(wrapup): replace inline session log templates (Step 1b orphan recovery, Step 4) with reference to session-formats.md
+- refactor(AUTO-SUMMARY): replace inline format description with reference to session-formats.md
+- fix(update): remove migration Step 6 (backfill-recapped) — session logs without recapped: are naturally candidates for /recap, no backfill needed
 
-- fix(encoding): change build target from `--target node` to `--target bun` — Node.js stream shim in bun bundles uses locale-dependent TTY write path that garbles UTF-8 multi-byte chars
-- fix(encoding): write all UI output as `Buffer.from(str, 'utf8')` in cli-ui.ts and cli-banner.ts as defense-in-depth
-- test(encoding): regression tests for patchUtf8 covering all write overloads and unicode chars
-- fix(update): remove vault.yml guard — command now runs from any directory
-- fix(init): add directory confirmation prompt in TTY mode before creating any files
-- fix(init): injectable confirmFn for test isolation
+## v2.0.7 — fix: postcompact Path B, remove PreCompact hook
 
-## v2.1.0 — Redesign Install Flow
+- fix(INSTRUCTIONS): postcompact auto-wrapup adds Path B — when no checkpoint files exist, synthesize session log from current context (was a no-op, causing auto-compact to write nothing)
+- fix(INSTRUCTIONS): checkpoint trigger now matches reason prefix — `since start` / `since checkpoint-NN` suffix no longer prevents file creation
+- fix(INSTRUCTIONS): PreCompact is now a no-op and no longer registered; PostCompact resets counter in all paths
+- fix(INSTRUCTIONS): remove merged:true write step from postcompact; simplify delete step
+- fix(INSTRUCTIONS): update session_token tooltip to include $TMUX_PANE and $TERM_SESSION_ID priority
+- fix(doctor): replace PreCompact required-check with stale-hook warning (🟡 suggest /update to remove)
+- fix(update): migration-steps.md and SKILL.md updated to reflect Stop/PostCompact-only hook registration
+- fix(wrapup): update session token mismatch gotcha note to reflect CLI v2.0.12 fix
 
-- **BREAKING** change(update): binary-only — run `/update` skill in Claude to sync vault files; install.sh / install.ps1 removed (replaced by `onebrain init`).
-- feat(init): community plugin installer (Tasks, Dataview, Terminal) + ASCII banner + picocolors UX; cancel() on fatal vault-sync failure.
-- feat(doctor): intro/outro + clack UX; new checks (plugin-files, vault.yml-keys, settings-hooks); `--fix` auto-repairs hooks and removes deprecated keys.
-- feat(harness): replace `CLAUDE_CODE_HARNESS` with `ONEBRAIN_HARNESS`; shared `detectHarness()` resolves runtime via env → `.gemini/` → `.claude/` → direct.
-- fix(register-hooks): PostToolUse auto-detected from `qmd_collection`; SessionStart removed.
-- remove(vault.yml): drop deprecated `method`, `runtime.harness`, `onebrain_version` — harness detected at runtime, version comes from package.json.
+## v2.0.6 — fix: replace bash scripts with CLI; fix SessionStart hook breaking vault after /update
 
-## v2.0.14 — fix: remove session token from hook emit format; deterministic resolveSessionToken
+- fix(register-hooks): remove SessionStart hook registration — session-init is called by agent startup, not via hook
+- fix(wrapup): reset-checkpoint-counter.sh → onebrain checkpoint reset
+- fix(update): vault-sync.sh → onebrain vault-sync; backfill-recapped.sh → onebrain migrate backfill-recapped
+- fix(update): pin-to-vault.sh + clean-plugin-cache.sh → onebrain vault-sync (doctor, onboarding)
+- feat(qmd): register-hooks.sh --qmd/--remove-qmd → onebrain register-hooks --qmd/--remove-qmd
+- chore: delete all replaced bash scripts (hooks/, update/scripts/, wrapup/scripts/)
+- fix(update): bootstrap step downloads only SKILL.md — no bash scripts needed
 
-- fix(checkpoint): stop hook now emits `NN since <context>` instead of full filename — removes token from hook output, eliminates session token mismatch
-- fix(session-init): day-scoped cache checked before process.ppid in resolveSessionToken — guarantees same token on re-run within the same day
+## v2.0.5 — fix: vault skill fixes (grep encoding, PostCompact auto-wrapup, /update CLI migration, auto-summary routing)
 
-## v2.0.13 — fix: remove backfill-recapped done flag
+- fix(startup): task scan grep pattern — replaced `\d` with `[0-9]` for POSIX grep compatibility on macOS
+- fix(checkpoint): replace fill-checkpoint PostCompact handler with auto-wrapup — when block reason matches `auto-wrapup: <token>`, recover orphan checkpoints for that token into a session log
+- fix(update): Step 7 standard hooks now use onebrain register-hooks CLI; qmd PostToolUse hook still via register-hooks.sh
+- feat(update): CLI version check — after vault update, compare installed onebrain CLI against npm latest; prompt to update if newer is available
+- feat(auto-summary): add action item routing (Step 4b parity with /wrapup) — after writing session log, route tasks to matching project notes via keyword scoring
 
-- fix(migrate): remove writeBackfillDoneFlag — session logs without recapped: are naturally candidates for /recap; no completion flag needed
+## v2.0.4 — feat: /wrapup auto-routes action items to project notes
 
-## v2.0.12 — fix: auto-compact session log, session token mismatch; remove PreCompact hook
+- feat(wrapup): Step 4b — after writing the session log, extract `- [ ]` action items and route each to the most relevant project note via keyword scoring
+- feat(wrapup): dedup guard — skips appending if identical task line already exists in the target file
+- feat(wrapup): routing report in Step 8 confirmation — lists each task and its destination note
+- feat(wrapup): non-blocking — routing errors are silently skipped per task; session log always written first
 
-- fix(checkpoint): remove PreCompact subcommand — PostCompact resets the counter in all paths so PreCompact has no work to do
-- fix(register-hooks): remove PreCompact from registered hooks; applyHooks deletes any stale PreCompact entry from settings.json on next /update
-- fix(checkpoint): postcompact emits auto-wrapup block so Claude synthesizes session log from current context when no checkpoint files exist (Path B)
-- fix(session-init): resolveSessionToken now checks $TMUX_PANE and $TERM_SESSION_ID before process.ppid — fixes token mismatch (#113) where session-init and stop hook spawn from different bash processes
+## v2.0.1 — fix: /wrapup session numbering
 
-## v2.0.11 — fix: remove unimplemented sandbox doctor check
+- fix(wrapup): Step 2 glob now requires today's date as a literal prefix — prevents counting all sessions in the month when determining session number for the current day
 
-- fix(doctor): remove `checkSandbox` — sandbox feature not yet implemented; the check produced a permanent warn for all vaults without benefit
-- fix(types): remove `VaultSandbox` interface and `sandbox?: VaultSandbox` from `VaultConfig`
-- test(doctor): replace sandbox-based warning fixtures with orphan-checkpoints warn in affected tests
+> **Note:** v2.0.2 and v2.0.3 were CLI-only releases (npm metadata, qmd hook wiring, README). No plugin files changed — see [CHANGELOG.md](CHANGELOG.md).
 
-## v2.0.10 — fix: doctor no longer warns on CLI-vs-plugin version difference
+## v1.10.18 — fix: session logs must not include recapped: in frontmatter
 
-- fix(doctor): `checkVersionDrift` now compares `vault.yml onebrain_version` vs `plugin.json version` only — CLI binary version is on an independent release track and must not be compared against plugin files
-- fix(doctor): remove `binaryVersion` param from `checkVersionDriftFn` signature — CLI version was never a valid input for plugin-track drift detection
-- test(doctor): remove `binaryVersion forwarding` test suite — parameter no longer exists
-- test(lib): remove `checkVersionDrift binary-vs-plugin warn` test case
+- fix(auto-summary): add explicit prohibition against writing `recapped:` or `topics:` in session log frontmatter
+- fix(auto-summary): add Known Gotchas section documenting that writing `recapped:` causes /recap to silently skip the log
+- fix(wrapup): strengthen `recapped:` prohibition from descriptive to directive with consequence clause
 
-## v2.0.9 — fix: register-hooks drops SessionStart and env, adds type/matcher to hook entries
+## v1.10.17 — revert onebrain@kengio → onebrain@onebrain
 
-- fix(register-hooks): remove SessionStart from registered hooks — session-init is run explicitly by agent startup, not via hook
-- fix(register-hooks): add `type: "command"` and `matcher: ""` to new hook entries — missing type caused Claude Code settings validation error on every /update
-- fix(register-hooks): remove applyPath / env.PATH writing — settings.json must not contain env block
-- fix(register-hooks): remove hooks.json declaring SessionStart — eliminates duplicate hook registration
-- test(register-hooks): update tests to assert SessionStart absent, type/matcher present, env absent
-- feat(register-hooks): add --qmd / --remove-qmd flags for PostToolUse qmd-reindex hook management
-- refactor(skills): replace all bash script calls with onebrain CLI (vault-sync, checkpoint reset, migrate, register-hooks --qmd)
+- fix: revert plugin identifier back to onebrain@onebrain (reverts v1.10.12/v1.10.15 rename that broke vault installs)
+- fix: rename extraKnownMarketplaces key back to "onebrain" — restores original dev marketplace for repo context
+- fix(update): skip extraKnownMarketplaces and onebrain@kengio during settings merge
+- fix(onboarding): update install command back to /plugin install onebrain@onebrain
 
-## v2.0.8 — refactor: collapse monorepo into single package
+## v1.10.16 — vault-level plugin loading enforcement
 
-- refactor: remove packages/ workspace structure — CLI and core are now one package at repo root
-- refactor(src): domain logic lives in src/lib/, commands in src/commands/, hidden internals in src/commands/internal/
-- refactor(build): single bun build entry point (src/index.ts → dist/onebrain); no workspace hoisting
-- refactor(config): merge root tsconfig, biome.json, and package.json — no per-package configs
-- fix(output): force UTF-8 encoding unconditionally — fixes emoji/arrow rendering on macOS terminals
-- feat(doctor): TTY mode now shows emoji status icons (✅ / ⚠️ / ❌) and a spinner during health checks
+- feat(update): add pin-to-vault.sh — pins installed_plugins.json installPath to vault directory
+- fix(update): pin-to-vault.sh — fix loop early exit, move plugin.json read outside loop, add empty installPath guard
+- fix(update): clean-plugin-cache.sh now deletes ALL onebrain cache versions on every /update
+- feat(doctor): Config check detects when plugin is loading from user cache and warns to run /doctor --fix
+- feat(doctor): /doctor --fix Pass A pins installPath to vault and clears cache
+- feat(onboarding): post-Step 0 calls pin-to-vault.sh then clean-plugin-cache.sh
 
-## v2.0.7 — fix: binary validation regex
+## v1.10.15 — fix plugin marketplace key mismatch
 
-- fix(update): binary validation regex `/^\d+\.\d+/` → `/v\d+\.\d+/` — matches actual `onebrain --version` output format (`OneBrain v2.0.x — released …`)
+- fix: extraKnownMarketplaces key renamed "onebrain" → "kengio" to match enabledPlugins identifier onebrain@kengio
 
-## v2.0.6 — fix: postcompact auto-wrapup + update improvements + vault root auto-detect
+## v1.10.14 — fix stale "source repo" refs, plugin load error, H1 heading consistency
 
-- fix(checkpoint): replace fill-checkpoint with auto-wrapup `<token>` in postcompact handler — orphan checkpoints are now recovered into a session log instead of re-filled
-- fix(checkpoint): precompact simplified — resets count only; no stub file writes; remove pending_stub from state
-- fix(update): vault.yml existence guard exits 1 with clear error message when run outside a vault
-- fix(update): skip binary install step when latestVersion === currentVersion (already up to date)
-- feat(update): add TTY spinners for vault-sync and binary install steps
-- feat(session-init, checkpoint): auto-detect vault root by walking up from cwd; add --vault-dir override option
+- fix(update): description and body heading now say "from GitHub" instead of "from the source repo"
+- fix(startup): remove YAML frontmatter from QMD.md — was incorrectly registered as a skill by the plugin loader
+- fix(skills): standardise H1 headings — update/daily/help/qmd were using /command format
 
-## v2.0.5 — fix: Windows compatibility
+## v1.10.13 — fix /update: CHANGELOG sync, stale file cleanup, predefined scripts, lazy loading
 
-- fix(windows): route qmd-reindex, session-init, validator, and update through `powershell.exe -NoProfile -Command` on win32 — Bun.spawn cannot invoke .cmd/.ps1 scripts via CreateProcess without a shell wrapper
-- fix(register-hooks): Bash permission format — colon separator (`Bash(git:*)`) was wrong syntax; correct form uses space (`Bash(git *)`)
-- fix(output): force UTF-8 encoding on stdout/stderr at CLI startup on win32 to prevent unicode garbling of `·` and `—` in piped output
-- refactor(qmd-reindex): export buildQmdSpawnArgs helper for testability; add tests for Windows path with single-quote escaping
+- fix(update): root file sync now explicitly copies README, CONTRIBUTING, CHANGELOG from repo root to vault root
+- fix(update): plugin folder sync now deletes stale vault files absent from source repo
+- feat(update): add 3 predefined scripts: vault-sync.sh, register-hooks.sh, backfill-recapped.sh
+- refactor(update): extract Vault Migration Steps 1–9 to references/migration-steps.md for lazy loading
+- feat(update): add clean-plugin-cache.sh — removes stale onebrain cache versions
 
-## v2.0.4 — fix: checkpoint postcompact advancement + backfill-recapped cutoff
+## v1.10.12 — skill quality: authoring patterns, progressive loading, predefined scripts
 
-- fix(checkpoint): handlePostcompact now sets last_stop_nn to stubNn after emitting fill-checkpoint block — prevents stop hooks from reusing the same NN and overwriting the stub file
-- fix(checkpoint): reset script writes 3-field state (`0:<epoch>:00`) — was writing 2-field format which bypassed the 60-second skip window after /wrapup
-- fix(update): backfill-recapped.sh accepts optional cutoff_date arg; migration Step 6 reads stats.last_recap from vault.yml and passes it as cutoff — prevents /update from re-marking recent sessions on every run
+- docs(skills): add Known Gotchas, Explain-the-Why, and In-Skill Examples to all 24 applicable skills
+- refactor(skills): split large skills into references/ subdirectories
+- refactor(scripts): add startup/scripts/ with 4 predefined shell scripts replacing inline bash
+- refactor(wrapup): extract 14-line session token reset to wrapup/scripts/reset-checkpoint-counter.sh
+- feat(import): add optional Step 6 — integrate imported notes into related vault notes after import
 
-## v2.0.3 — feat: qmd hook wiring + npm README
+## v1.10.11 — skill exclusion clauses + multi-harness entrypoints
 
-- fix(register-hooks): add --qmd flag to register PostToolUse hook in settings.json when qmd_collection is configured
-- fix(hooks): wire up PostToolUse qmd-reindex entry — was missing since v2.0.0
-- docs(npm): add README.md for npm package page
+- docs(skills): add "Do NOT use for:" exclusion clause to all 25 skill descriptions
+- feat(harness): add references/gemini-tools.md — Gemini CLI tool name mapping
+- feat(harness): add references/codex-tools.md — Codex CLI tool name mapping and sub-agent dispatch guide
+- fix(harness): update GEMINI.md and AGENTS.md to load harness reference before INSTRUCTIONS.md
 
-## v2.0.2 — chore: npm package metadata
+## v1.10.10 — MEMORY-INDEX rename + README memory layer
 
-- chore(package): add description, keywords, homepage, repository, bugs, license fields
-- chore(package): add files field to include dist/onebrain in npm publish (was missing — package published empty)
+- rename: INDEX.md → MEMORY-INDEX.md across all plugin files
+- README: four-tier table restructured; MEMORY-INDEX.md added as always-loaded enabler
+- fix: stale bare INDEX shorthand in memory-review, doctor, and clone skills
 
-## v2.0.1 — fix: npm release distribution
+## v1.10.9 — PowerShell install fixes
 
-- fix(package): rename npm package from `@onebrain/cli` to `@onebrain-ai/cli`
-- fix(package): move @onebrain/core to devDependencies — bundled into dist/onebrain at build time; consumers do not need it
-- fix(release): use `npm publish` instead of `bun publish` — bun publish ignores ~/.npmrc auth for scoped packages
-- fix(release): inject BUILD_VERSION at compile time via --define; update release.yml to pass version string
-- fix(release): drop bun-windows-arm64 binary target — unsupported in bun v1.2.x
-- fix(release): npm-publish job is optional — create-release runs even if publish fails
+- fix(ps1): write settings.json without UTF-8 BOM on PowerShell 5
+- fix(ps1): exit early in non-interactive sessions; validate ZIP before Expand-Archive
+- fix(ps1): Set-StrictMode -Version Latest; force [object[]] cast on hook array
+- fix(update): use WebFetch for version check instead of git commands (prevents hang on Windows)
 
-## v2.0.0 — CLI binary (initial release)
+## v1.10.8 — /memory-review redesign
 
-- feat: compiled TypeScript binary replaces all bash/Python scripts
-- feat(internal): session-init, orphan-scan, checkpoint, qmd-reindex
-- feat(ops): vault-sync, register-hooks, migrate
-- feat(init): onebrain init — covers fresh vault and existing vault scenarios
-- feat(update): atomic update with binary validation
-- feat(doctor): qmd-embeddings check, version drift, orphan checkpoints
-- feat(release): 6-platform binaries (darwin-arm64/x64, linux-arm64/x64, windows-x64), npm package (@onebrain-ai/cli)
+- /memory-review: entry display redesigned — description first, status emoji, verified date, topics
+- /memory-review: split into Primary and Manage menus to respect 4-option AskUserQuestion limit
+- /memory-review: safe-default principle — non-destructive option listed first in every menu
+- /memory-review: update uses staged model — conf in Call 1, edits in Call 2; nothing written until explicit confirm
+
+## v1.10.7 — documentation reorganization
+
+- INSTRUCTIONS.md restructured into 5 logical groups with comment headers
+- Added Working Principles section: think before acting, minimal footprint, surgical changes, define success first
+- Permissions rewritten: inside-vault allowlist vs. outside-vault rule
+- CONTRIBUTING.md: sections reordered for contributor flow; Recall Order and version bump requirement added
+
+## v1.10.6 — cross-platform session token + hook fixes
+
+- Cross-platform session token priority: $WT_SESSION → $PPID > 1 → PowerShell parent PID → day-scoped cache
+- Checkpoint filenames now use alphanumeric {session_token} instead of numeric {PPID}
+- PreCompact infinite-block fix: mtime check on latest checkpoint replaces state-file skip check
+- Hooks moved to vault-level .claude/settings.json with relative paths — fixes iCloud path spaces
+
+## v1.10.5 — terminal output formatting
+
+- All 24 skill outputs use terminal-safe formatting: `─` separators, emoji headers, `⬜` checkboxes, `→` hints
+- Replaces markdown syntax that rendered as literal text in CLI
+- /tasks and /moc open the file in Obsidian after writing
+
+## v1.10.4 — PPID session identity + PreCompact/PostCompact hooks + orphan recovery
+
+- **Breaking:** checkpoint filenames change to YYYY-MM-DD-{PPID}-checkpoint-NN.md
+- Session token is now $PPID — loaded once at startup, cached in context, survives compact
+- precompact / postcompact hook modes: checkpoint before compaction, reset counter after
+- /wrapup auto-detects and merges orphan checkpoints from previous sessions
+
+## v1.10.3 — auto session summary alignment
+
+- Delete merged checkpoint files after session log write (write-success guard)
+- Check yesterday's folder for cross-midnight sessions
+- Explicit frontmatter spec: session: NN field added; all merged: variants handled
+
+## v1.10.2 — instant startup + greeting redesign
+
+- Startup: Phase 2 background sub-agent removed; inline parallel tool calls replace it
+- Greeting: plain-text card format — Unicode line, time-based phrase, user name, date/time
+- /wrapup: ## Related Notes removed; all three session files share the same 6-section structure
+- PHASE2.md deleted; all references cleaned up
+
+## v1.10.1 — migration hardening + cross-skill consistency
+
+- /update Step 3: explicit memory file rename rules; INDEX.md wikilinks updated after rename
+- /update Step 4: compact MEMORY.md Identity format
+- /doctor: stale check reads memory/ frontmatter; new check detects old Identity format
+- INSTRUCTIONS.md: startup reads ## Identity & Personality
+
+## v1.10.0 — memory system redesign
+
+**New command: `/memory-review`** — interactive pruning of memory files (keep / update / deprecate / delete / archive)
+
+- memory/ folder replaces MEMORY.md Key Learnings; INDEX.md as lazy-load index with typed per-concept frontmatter
+- Session token isolation: concurrent sessions never mix checkpoints
+- /learn: contradiction detection, INDEX.md sync, type inference (5 categories)
+- /recap: promotes to memory/ only; frequency filter and run threshold
+- /doctor: 11 new memory health checks; --fix rebuilds INDEX.md
+- /update: --dry-run preview, 8-step vault migration, bootstrap; update_channel field added
+
+## v1.9.5 — update reliability fixes
+
+- /update reliability fixes for Windows and cross-platform environments
+
+## v1.9.3 — phase 2 background agents
+
+- Phase 2 startup extended with 5 background sub-agents: context pre-loading, stale note scanning, task horizon, MEMORY.md overflow guard, link suggestion
+
+## v1.9.0 — memory lifecycle system
+
+**New command: `/distill`** — crystallize a completed topic thread into a permanent knowledge note
+
+**New command: `/doctor`** — vault health check: broken links, orphan notes, stale memory, inbox backlog
+
+- Confidence metadata on MEMORY.md Key Learnings
+- /learn: contradiction detection with conflict menu
+- /recap: confidence scoring; auto-sort by confidence tier
+
+## v1.8.8 — skill routing + checkpoint hardening
+
+**New feature: skill routing** — agent auto-invokes skills based on user intent without a slash command
+
+- /wrapup: enforce full checkpoint incorporation before marking merged
+- Checkpoint hook: Windows bash compatibility; fixed NN counting
+
+## v1.8.5 — two-phase session startup
+
+- Greet immediately; background sub-agent handles inbox count and orphan checkpoint detection
+
+## v1.8.0 — checkpoint system
+
+- Stop hook: auto-checkpoint every 15 messages or 30 minutes
+- /wrapup: merge all unmerged checkpoints before writing session log
+
+## v1.7.0 — import office formats
+
+**New capability: `/import` Office formats** — Word (.docx), PowerPoint (.pptx), Excel (.xlsx) via markitdown
+
+## v1.6.0 — daily briefing + session enhancements
+
+**New command: `/daily`** — daily briefing: tasks due today, overdue tasks, open items from last session
+
+- Time-aware greeting with emoji
+- Command Response Profiles added to INSTRUCTIONS.md
+- /wrapup: "What Worked / What Didn't Work" retrospective section added
+
+## v1.5.7 — recap command
+
+**New command: `/recap`** — cross-session synthesis: reads session logs, deduplicates insights, promotes Key Learnings to MEMORY.md
+
+## v1.5.6 — map of content
+
+**New command: `/moc`** — vault portal: create or update MOC.md linking all major vault sections
+
+## v1.5.5 — QMD semantic search
+
+**New command: `/qmd`** — set up and manage qmd semantic search index over vault content
+
+## v1.5.0 — update import style
+
+- /update: migrate instruction files to @import style during update
+
+## v1.4.0 — task dashboard
+
+**New command: `/tasks`** — live Obsidian task dashboard (TASKS.md) with keyword filtering
+
+## v1.3.0 — dual install
+
+- Fresh vault and existing vault install via plugin marketplace
+
+## v1.2.x — update + input hardening
+
+- /update cache improvements; AskUserQuestion required for all user input prompts
+
+## v1.0.0 — initial release
+
+**Commands:** /onboarding, /braindump, /capture, /bookmark, /consolidate, /connect, /research, /summarize, /import, /reading-notes, /weekly, /wrapup, /learn, /update, /help
+
+- Auto-save session summary on Stop hook
+- /onboarding: note-taking method selection; vault folder creation; vault.yml generation
+- Install scripts for macOS/Linux and Windows
