@@ -11,9 +11,9 @@
   <a href="https://github.com/onebrain-ai/onebrain/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/onebrain-ai/onebrain?style=for-the-badge&color=00f3ff&logo=github"></a>
 </p>
 <p align="center">
-  <a href="https://www.npmjs.com/package/@onebrain-ai/cli"><img alt="npm" src="https://img.shields.io/npm/v/@onebrain-ai/cli?style=for-the-badge&logo=npm&color=cb3837&label=%40onebrain-ai%2Fcli"></a>
-  <a href="PLUGIN-CHANGELOG.md"><img alt="Plugin version" src="https://img.shields.io/github/package-json/v/onebrain-ai/onebrain?filename=.claude%2Fplugins%2Fonebrain%2F.claude-plugin%2Fplugin.json&style=for-the-badge&label=plugin&color=ff2d92"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-7c3aed?style=for-the-badge"></a>
+  <a href="https://github.com/onebrain-ai/onebrain-cli/releases/latest"><img alt="onebrain-cli release" src="https://img.shields.io/github/v/release/onebrain-ai/onebrain-cli?include_prereleases&style=for-the-badge&logo=rust&color=cb3837&label=onebrain-cli"></a>
+  <a href="CHANGELOG.md"><img alt="Plugin version" src="https://img.shields.io/github/package-json/v/onebrain-ai/onebrain?filename=.claude%2Fplugins%2Fonebrain%2F.claude-plugin%2Fplugin.json&style=for-the-badge&label=plugin&color=ff2d92"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-AGPL--3.0-7c3aed?style=for-the-badge"></a>
 </p>
 
 <p align="center">
@@ -200,7 +200,7 @@ OneBrain has automatic behaviors that run without you doing anything:
 
 **The practical result:** Just say "bye" and everything is saved. If the session ends unexpectedly, you lose at most 15 messages — the last checkpoint recovers the rest.
 
-> Auto Checkpoint runs on Claude Code (`Stop` hook) and Gemini CLI (`AfterAgent` hook), and uses the `onebrain` CLI binary. Install with `npm install -g @onebrain-ai/cli`. Auto Session Summary works with any agent that follows INSTRUCTIONS.md.
+> Auto Checkpoint runs on Claude Code (`Stop` hook) and Gemini CLI (`AfterAgent` hook), and uses the `onebrain` CLI binary. Install via Homebrew (`brew install onebrain-ai/onebrain/onebrain`) or npm (`npm install -g @onebrain-ai/cli`) — see the [Installation section](#installation). Auto Session Summary works with any agent that follows INSTRUCTIONS.md.
 
 ---
 
@@ -282,12 +282,26 @@ Each harness reads OneBrain's instruction file automatically. Install it, run it
 
 ### 1. Install the OneBrain CLI
 
+Pick the install path that fits your environment — all three converge on the same v3.x Rust binary.
+
 ```bash
+# macOS (Homebrew tap — recommended)
+brew tap onebrain-ai/onebrain
+brew install onebrain
+
+# Any platform via npm wrapper (postinstall downloads the platform binary)
 npm install -g @onebrain-ai/cli
-# or: bun install -g @onebrain-ai/cli
+
+# Direct download — pick the matching target triple for your platform
+# https://github.com/onebrain-ai/onebrain-cli/releases/latest
 ```
 
-The installer automatically downloads the correct compiled binary for your platform — no Bun installation required.
+The full CLI source + release pipeline lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli). After install, use the built-in self-installer to refresh in place:
+
+```bash
+onebrain update          # prompt-and-confirm
+onebrain update --check  # dry-run
+```
 
 ### 2. Create and initialize your vault
 
@@ -595,7 +609,7 @@ CLI flags:
 
 Verify with `git --version` before running the installer.
 
-**Optional:** [bun](https://bun.sh) — not required for most users. `npm install -g @onebrain-ai/cli` automatically downloads a compiled binary for your platform. Bun is only needed if you're on an unsupported platform or want to install from source.
+**Source builds (optional):** The published v3.x CLI is a self-contained Rust binary — `npm install`, `brew install`, and direct GH Release download all give you the same artifact, no build dependencies needed. Building from source requires a [Rust toolchain](https://rustup.rs) (`rustup default stable`); see [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli#build-from-source) for instructions.
 
 **Windows:** Git for Windows (above) includes Git Bash, which provides the `bash` environment required to run all hooks.
 
