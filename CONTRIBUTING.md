@@ -9,7 +9,7 @@ Good contributions include:
 - New slash commands (skills)
 - New background agents (focused autonomous tasks dispatched by skills)
 - Improvements to existing skills — clearer instructions, better prompts, edge case handling
-- Fixes to the `onebrain` CLI binary (TypeScript / Bun source under `src/`)
+- Fixes to the `onebrain` CLI binary (Rust source at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli))
 - New harness adapters (instruction file + tool-name reference for an additional AI harness)
 - README and documentation improvements
 
@@ -356,7 +356,7 @@ MEMORY-INDEX.md must be kept in sync at all times. Every skill that creates, upd
 
 ## Vault Bootstrap
 
-Vault setup is owned by the `onebrain` CLI binary (`src/`), **not** by shell scripts in this repo. The user flow is:
+Vault setup is owned by the `onebrain` CLI binary (Rust — lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli)), **not** by shell scripts in this repo. The user flow is:
 
 1. Install the CLI from any path — `brew install onebrain-ai/onebrain/onebrain` (macOS) or `npm install -g @onebrain-ai/cli` or direct download from [onebrain-ai/onebrain-cli/releases](https://github.com/onebrain-ai/onebrain-cli/releases/latest)
 2. `onebrain init` — in a new or existing folder, writes `vault.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, installs the recommended Obsidian community plugins, and registers the `Stop` hook (plus a `PostToolUse` qmd-reindex hook when `qmd_collection` is set). Aborts safely if a `vault.yml` already exists

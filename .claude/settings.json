@@ -7,7 +7,6 @@
       "Glob",
       "Grep",
       "Bash(git *)",
-      "Bash(bun *)",
       "Bash(gh *)",
       "Bash(node *)",
       "Bash(onebrain *)",
