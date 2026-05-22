@@ -1,6 +1,6 @@
 ---
-latest_version: 2.4.14
-released: 2026-05-20
+latest_version: 3.0.0
+released: 2026-05-22
 ---
 
 # Plugin Changelog
@@ -10,6 +10,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary (`@onebrain-ai/cli`) changes, see [CHANGELOG.md](CHANGELOG.md).
+
+## v3.0.0 — 2026-05-22
+
+- **feat(plugin.json): pin plugin to CLI v3.0+** — adds `requires.cli: ">=3.0.0"` field. Aligned with the OneBrain CLI v3.0.0 (Rust) GA shipped 2026-05-22. The pin in PR #180 was reverted in PR #181 because the CLI wasn't ready; this re-applies it now that v3.0.0 is live.
+- **feat(hooks): SessionStart enforcement hook** — new `hooks/hooks.json` + `hooks/check-cli-version.sh` blocks any Claude Code session that boots the plugin alongside a CLI older than v3.0.0 (or no CLI on PATH). Emits a `decision: block` JSON with platform-specific install/update instructions; passes silently when v3.x is present. Pairs with the `requires.cli` field — the field is metadata for tooling, the hook is the runtime enforcement.
+- **chore(plugin.json): bump 2.4.14 → 3.0.0** — major-version break: this plugin release refuses to load against v2.x Bun-era CLIs. Existing v2.x users will see the SessionStart `decision: block` until they `onebrain update` (or reinstall via the new Homebrew tap / forthcoming npm wrapper).
+- **Version comparison strategy**: hook extracts bare `MAJOR.MINOR.PATCH` via `grep -oE` (strips prerelease suffixes), then `sort -V`'s the result against the floor. Practical effect: any v3.0.0-alpha.x user passes (they're already on the Rust binary), only v2.x is blocked.
+- **Distribution channels live at this release**: GitHub Releases (canonical, since v3.0.0 GA), Homebrew tap (`onebrain-ai/homebrew-onebrain` → `brew install onebrain-ai/onebrain/onebrain`), `onebrain update` self-installer.
+- **What is NOT in this PR** (bundled into the Saturday 2026-05-23 plugin trim PR per `[[onebrain-skill-design]]`): plugin repo README rewrite, trim to plugin-only (move CLI legacy `CHANGELOG.md` out of this repo), rename `PLUGIN-CHANGELOG.md` → `CHANGELOG.md`. Today's PR is scoped strictly to the pin + the runtime enforcement.
 
 ## v2.4.14 — 2026-05-20
 
