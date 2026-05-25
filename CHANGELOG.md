@@ -18,6 +18,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Marketplace + plugin descriptions updated to the new tagline "Your AI Thinking Partner".
 - `onebrain vault-sync` references in `/onboarding`, `/doctor --fix`, README, and CONTRIBUTING renamed to `onebrain plugin update` to match the v3.1 CLI surface.
 - `requires.cli` floor bumped to `>=3.1.0` (assumes `onebrain plugin update`, `onebrain update --check`, and `onebrain.yml` dual-read support).
+- SessionStart hook parser updated to recognize `onebrain-vault-not-found` block reason (renamed from `onebrain-init-required` in CLI v3.1 for clarity). Old reason still accepted for back-compat with CLI v3.0.x.
 
 ## v3.0.3 — 2026-05-22
 
