@@ -62,7 +62,7 @@ trigger: stop
 ---
 ```
 
-`session_token` is the same token embedded in the filename — duplicating it in frontmatter lets `/wrapup`, `/doctor`, and orphan-scan filter checkpoints by token without parsing filenames. The agent (per `INSTRUCTIONS.md` Auto Checkpoint section) sets this from the `session_token` already in context (recovered via `onebrain session init` if missing).
+`session_token` is the same token embedded in the filename — duplicating it in frontmatter lets `/wrapup`, `/doctor`, and `checkpoint orphans` filter checkpoints by token without parsing filenames. The agent (per `INSTRUCTIONS.md` Auto Checkpoint section) sets this from the `session_token` already in context (recovered via `onebrain session init` if missing).
 
 **Body:** use Shared Body Sections above. `## What We Worked On`: 2-3 sentences describing the session focus.
 

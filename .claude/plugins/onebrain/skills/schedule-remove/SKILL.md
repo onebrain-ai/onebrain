@@ -85,4 +85,4 @@ Say:
 - **No entries** — handled in Step 1; early exit with helpful message.
 - **Single entry remaining** — removing it leaves an empty `schedule:` block in onebrain.yml; this is valid and the block is preserved (not deleted) so future `/schedule-add` runs can append to it.
 - **onebrain.yml write failure** — rollback in Step 4; no partial state left on disk.
-- **`register-schedule --refresh` failure** — launchd plist may still exist; surface it and suggest manual retry.
+- **`schedule register --refresh` failure** — launchd plist may still exist; surface it and suggest manual retry.

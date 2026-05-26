@@ -113,7 +113,7 @@ The CLI doctor does NOT cover the following — they remain in the skill:
 - Check `.claude/plugins/onebrain/skills/startup/AUTO-SUMMARY.md` exists. If missing: 🔴 `AUTO-SUMMARY.md not found — auto session summary disabled; run /update to restore`. (The CLI `plugin-files` check counts skills + agents + INSTRUCTIONS.md but does NOT validate every individual skill reference file.)
 
 **Stale `PLUGIN-CHANGELOG.md` at vault root** (post-v3.0.2 migration cleanup)
-- Check if `PLUGIN-CHANGELOG.md` exists at vault root. If yes: 🟡 `Stale PLUGIN-CHANGELOG.md at vault root — renamed to CHANGELOG.md in plugin v3.0.2. Run \`rm PLUGIN-CHANGELOG.md\` to clean up`. (vault-sync currently doesn't delete files renamed-away from upstream — tracked for a future CLI fix.)
+- Check if `PLUGIN-CHANGELOG.md` exists at vault root. If yes: 🟡 `Stale PLUGIN-CHANGELOG.md at vault root — renamed to CHANGELOG.md in plugin v3.0.2. Run \`rm PLUGIN-CHANGELOG.md\` to clean up`. (vault sync currently doesn't delete files renamed-away from upstream — tracked for a future CLI fix.)
 
 **Scheduler health** — only when `onebrain.yml` has a `schedule:` block.
 - **Errors**: glob `[logs_folder]/scheduler/**/*.err.md` from the last 7 days. If any → 🟡 report count + most recent 3 as wikilinks.

@@ -51,7 +51,7 @@ No preset entries. Drop the user into the regular `/schedule-add` wizard for man
 
 | Hour | Used by | Why |
 |---|---|---|
-| 03:00 | command qmd-reindex (Sunday) | Quiet pre-dawn maintenance — no editing conflicts |
+| 03:00 | command qmd reindex (Sunday) | Quiet pre-dawn maintenance — no editing conflicts |
 | 06:00 | /tasks (daily) | Pre-work dashboard refresh — ready before 09:00 |
 | 09:00 | /daily (daily), /doctor (monthly) | Start-of-day briefing window |
 | 12:00 | /recap (Sunday) | Weekend mid-day quiet reflection |
