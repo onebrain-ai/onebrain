@@ -7,9 +7,11 @@
 
 ## Configuration
 
-These variables are used throughout this file. Start with the defaults below, then read `vault.yml` and override with the actual values. If `vault.yml` is missing, use the defaults as-is.
+These variables are used throughout this file. Start with the defaults below, then read `onebrain.yml` and override with the actual values. If `onebrain.yml` is missing, use the defaults as-is.
 
-| Variable | vault.yml key | Default |
+> **Config file rename (v3.1.0):** Canonical name is `onebrain.yml` (renamed from `vault.yml`). CLI v3.1+ also reads legacy `vault.yml` as a fallback with a deprecation warning. Run `onebrain doctor --fix` to migrate an existing vault.
+
+| Variable | onebrain.yml key | Default |
 |---|---|---|
 | `[inbox_folder]` | `folders.inbox` | `00-inbox` |
 | `[projects_folder]` | `folders.projects` | `01-projects` |
@@ -211,9 +213,9 @@ Session startup greets the user immediately, then runs a quick inline status che
 Run before responding to any user message.
 
 **Step 1 — Critical path (greeting blocks on these):** Run in parallel:
-- Read `vault.yml` → load Configuration variables; override defaults once resolved
+- Read `onebrain.yml` → load Configuration variables; override defaults once resolved. If `onebrain.yml` is missing, fall back to legacy `vault.yml` (v3.0 name) — same schema; surface a one-line deprecation note in the startup status so the user knows to run `onebrain doctor --fix` to migrate.
 - Read `[agent_folder]/MEMORY.md` → load identity, personality, active projects
-- Run `onebrain session-init` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), and `qmd_unembedded` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N}`. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, and `qmd_unembedded` as `0`. If JSON output contains `{"decision":"block","reason":"onebrain-init-required"}`, skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
+- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), and `qmd_unembedded` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N}`. **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, and `qmd_unembedded` as `0`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
 
 **Step 2 — Send greeting immediately:**
 
@@ -235,18 +237,18 @@ Ddd · DD Mon YYYY · HH:MM
 | 17:00–21:00 | good evening + ready | 🌆 |
 | after 21:00 | late night acknowledgement | 🌙 |
 
-- `Ddd · DD Mon YYYY · HH:MM` comes from the `DATETIME` variable set in Step 1 (`onebrain session-init` JSON output)
+- `Ddd · DD Mon YYYY · HH:MM` comes from the `DATETIME` variable set in Step 1 (`onebrain session init --json` JSON output)
 - Always include a greeting phrase — never omit it. Example for daytime: "Hey [user], ready to go!"
 
 On weekends: lighter, less task-focused tone. **No-repeat rule:** don't ask about facts already in context.
 
 **Step 3 — After greeting (run all in parallel):**
-- `session_token` is already in context from Step 1 (`onebrain session-init`) — do not re-run detection
+- `session_token` is already in context from Step 1 (`onebrain session init --json`) — do not re-run detection
 - Read `[agent_folder]/MEMORY-INDEX.md` → load memory file index for lazy-loading
 - Load `memory/` files matching active project keywords from MEMORY-INDEX.md Topics column (`status: active` or `needs-review` only). Also match user's first message once it arrives.
 - Glob `[inbox_folder]/*.md` → count files as `inbox_count`
 - Run the Grep tool **twice** — once with `path: "[projects_folder]"` and once with `path: "[inbox_folder]"`, both with the pattern `- \[ \] .*📅 [0-9]{4}-[0-9]{2}-[0-9]{2}` and `output_mode: "content"`. Combine the two result sets. (Grep handles UTF-8 correctly on every platform; the previous Bash shell-out relied on `LC_ALL=en_US.UTF-8` and GNU grep BRE semantics, both Bash-only.) Keep only tasks where date ≤ today; group overdue first, then due today
-- Run `onebrain orphan-scan "[logs_folder]" "[session_token]"` (from vault root) → parse JSON output; read `orphan_count` field. JSON shape: `{"orphan_count":N}`. If the command fails or is unavailable, fall back to a structure-aware glob: if `[logs_folder]/checkpoint/` exists, glob `[logs_folder]/checkpoint/*-checkpoint-*.md` (post-v2.4.0 flat layout); else glob `[logs_folder]/**/*-checkpoint-*.md` (pre-v2.4.0 nested layout — multi-vault user on an unmigrated vault). Then discard files whose date has a non-auto-saved session log (look in `[logs_folder]/session/YYYY/MM/` for post-v2.4.0, or `[logs_folder]/YYYY/MM/` for pre-v2.4.0), and count distinct session tokens among remaining files.
+- Run `onebrain checkpoint orphans "[logs_folder]" "[session_token]" --json` (from vault root) → parse JSON output; read `orphan_count` field. JSON shape: `{"orphan_count":N}`. **CLI v3.1+ requires `--json`** (default is now text). The v3.0 alias `onebrain orphan-scan` still works and is auto-rewritten by `onebrain plugin update`. If the command fails or is unavailable, fall back to a structure-aware glob: if `[logs_folder]/checkpoint/` exists, glob `[logs_folder]/checkpoint/*-checkpoint-*.md` (post-v2.4.0 flat layout); else glob `[logs_folder]/**/*-checkpoint-*.md` (pre-v2.4.0 nested layout — multi-vault user on an unmigrated vault). Then discard files whose date has a non-auto-saved session log (look in `[logs_folder]/session/YYYY/MM/` for post-v2.4.0, or `[logs_folder]/YYYY/MM/` for pre-v2.4.0), and count distinct session tokens among remaining files.
 - Read `[logs_folder]/pause/_active.md` if present → parse single-line content as `active_pause_slug`. If absent, set `active_pause_slug = null`. Then if non-null: glob `[logs_folder]/pause/*-{active_pause_slug}-pause-*.md` and count them as `active_pause_count`; read the latest file's `date` frontmatter as `active_pause_last_date`.
 - **Legacy structure detection (post-v2.4.0):** Check whether `[logs_folder]/session/` exists (any of the new top-level subfolders works as a sentinel; `session/` is the most representative). If it does NOT exist AND `[logs_folder]/YYYY/` does exist (legacy structure pre-v2.4.0), set `vault_structure_legacy = true`. If both `session/` and a legacy `YYYY/` exist (partial migration), still treat `vault_structure_legacy = false` — `/update` will resume cleanup on next run. If neither exists (fresh vault), `vault_structure_legacy = false`.
 
@@ -313,19 +315,19 @@ If the user closes the session without any end-of-session signal, AUTO-SUMMARY d
 
 ### Auto Checkpoint (Hook-Triggered)
 
-> **What is session_token?** A session-unique identifier resolved by `onebrain session-init` at startup and kept in context. Priority: `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → day-scoped cache → `process.ppid` → PowerShell parent PID → day-scoped random cache. The token contains only `[a-zA-Z0-9]` characters. If session_token is not in context (e.g. after compact), re-run `onebrain session-init` to recover it — it returns the same token within the same day. If `onebrain session-init` fails, abort checkpoint silently — do not guess the token.
+> **What is session_token?** A session-unique identifier resolved by `onebrain session init` at startup and kept in context. Priority: `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → day-scoped cache → `process.ppid` → PowerShell parent PID → day-scoped random cache. The token contains only `[a-zA-Z0-9]` characters. If session_token is not in context (e.g. after compact), re-run `onebrain session init` to recover it — it returns the same token within the same day. If `onebrain session init` fails, abort checkpoint silently — do not guess the token.
 
-When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session-init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
+When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
 
 The agent writes to `[logs_folder]/checkpoint/YYYY-MM-DD-{session_token}-checkpoint-NN.md` (post-v2.4.0: flat directory). **Always run `mkdir -p [logs_folder]/checkpoint/` before writing** — fresh post-onboarding vaults that haven't run `/update` yet won't have the directory; without the mkdir the Write tool fails silently and the checkpoint is lost. No output to user.
 
 The Stop hook is the only checkpoint signal source. It emits `decision:"block",reason:"NN since <context>"` whenever the message-count threshold (default 15) or time threshold (default 30 min) is met. The agent dispatches a background sub-agent to write a checkpoint file, then continues.
 
 Determine action from the reason:
-- `Stop hook blocking error` with reason matching `NN since <context>` (zero-padded NN + ` since start` or ` since checkpoint-NN`) → spawn background agent (mode: bypassPermissions) to write the checkpoint; if session_token is not in context, re-run `onebrain session-init` first — if that fails, abort silently; agent receives session_token, NN and since-context from the reason, today's date, and `[logs_folder]`; main session continues immediately after dispatching
+- `Stop hook blocking error` with reason matching `NN since <context>` (zero-padded NN + ` since start` or ` since checkpoint-NN`) → spawn background agent (mode: bypassPermissions) to write the checkpoint; if session_token is not in context, re-run `onebrain session init` first — if that fails, abort silently; agent receives session_token, NN and since-context from the reason, today's date, and `[logs_folder]`; main session continues immediately after dispatching
 - Ambiguous or unknown → default to stop checkpoint
 
-OneBrain registers only the Stop hook (plus a PostToolUse hook for qmd indexing if `qmd_collection` is set in vault.yml). PreCompact and PostCompact are not registered: PreCompact's `decision:"block"` aborts the compact entirely (bad UX), and Claude Code's PostCompact is observational-only — its stdout cannot reach the agent. Compact events (auto or manual) are observed indirectly via the Stop hook's accumulated message count, which carries across compacts and drives the next checkpoint emission via the normal threshold logic.
+OneBrain registers only the Stop hook (plus a PostToolUse hook for qmd indexing if `qmd_collection` is set in onebrain.yml). PreCompact and PostCompact are not registered: PreCompact's `decision:"block"` aborts the compact entirely (bad UX), and Claude Code's PostCompact is observational-only — its stdout cannot reach the agent. Compact events (auto or manual) are observed indirectly via the Stop hook's accumulated message count, which carries across compacts and drives the next checkpoint emission via the normal threshold logic.
 
 **Stop checkpoint format:** Read `skills/startup/references/session-formats.md` → Checkpoint Format. Keep under 250 words.
 
@@ -379,7 +381,7 @@ These principles are the foundation of how OneBrain assists across every session
 
 ## Scheduling — which tool to use
 
-OneBrain provides scheduling via OS-level cron (launchd on macOS). It is configured in `vault.yml` `schedule:` block, not invoked via slash. This is distinct from Claude Code's built-in `/loop` and `/schedule` commands.
+OneBrain provides scheduling via OS-level cron (launchd on macOS). It is configured in `onebrain.yml` `schedule:` block, not invoked via slash. This is distinct from Claude Code's built-in `/loop` and `/schedule` commands.
 
 | Tool | Use case | Runtime |
 |------|---------|---------|
@@ -395,11 +397,11 @@ For interactive setup:
 - `/schedule-list` — show all scheduled entries
 - `/schedule-remove` — remove an entry
 
-For manual config: edit `vault.yml` `schedule:` block + run `onebrain register-schedule`.
+For manual config: edit `onebrain.yml` `schedule:` block + run `onebrain schedule register`.
 
 ### Skill mode vs command mode
 
-`vault.yml` `schedule:` entries support two coexisting modes:
+`onebrain.yml` `schedule:` entries support two coexisting modes:
 
 - **Skill mode** (`skill: /daily`) — invokes a OneBrain skill via headless Claude Code. Args use map form: `args: { key: value }` (emitted as `--key=value` flags). Requires the skill's frontmatter to declare `schedulable: true` (or `schedulable_with_args: true` with `required_args`).
 - **Command mode** (`command: onebrain`) — invokes any CLI binary directly using the same `command + args[]` shape as Claude Code hooks (`settings.json`). Args use string array: `args: [arg1, arg2]` (positional argv). No frontmatter validation; trust model matches hooks.
@@ -416,7 +418,7 @@ schedule:
       topic: this-week
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd-reindex]
+    args: [qmd, reindex]
   - cron: "0 5 * * *"
     command: rsync
     args: [-av, /vault, /backup]
@@ -424,7 +426,7 @@ schedule:
 
 Use skill mode for OneBrain workflows. Use command mode for CLI maintenance and generic binaries that don't have (or don't need) a skill wrapper.
 
-**Adding entries:** the `/schedule-add` wizard targets skill mode only. To add a command-mode entry, edit `vault.yml` directly and re-run `onebrain register-schedule`. The `/schedule-list` and `/schedule-remove` skills handle both modes transparently.
+**Adding entries:** the `/schedule-add` wizard targets skill mode only. To add a command-mode entry, edit `onebrain.yml` directly and re-run `onebrain schedule register`. The `/schedule-list` and `/schedule-remove` skills handle both modes transparently.
 
 ### Presets
 
@@ -432,28 +434,28 @@ New users and fresh vaults can install a maintenance preset in one decision. Thr
 
 - **Minimal** — `/daily` 09:00 (1 entry)
 - **Essentials (Recommended)** — `/daily` 09:00 + `/weekly` Friday 17:00 + `/recap` Sunday 12:00 (3 entries)
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain qmd-reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
+- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain qmd reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
 - **Custom** — drops into the `/schedule-add` wizard
 
 Presets surface automatically:
 - In `/onboarding` after agent identity setup (default = Essentials)
-- In `/schedule-add` Step 0 when `vault.yml` has no existing `schedule:` entries
+- In `/schedule-add` Step 0 when `onebrain.yml` has no existing `schedule:` entries
 
 Users with a populated `schedule:` block never see the preset prompt — preset selection is strictly first-run.
 
 ## Headless invocation
 
-Scheduled skills run via `onebrain run-skill --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
 
-The plist emitted by `onebrain register-schedule` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
+The plist emitted by `onebrain schedule register` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
 
 Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
 
-Skill arguments declared in `vault.yml` (`args: { topic: this-week }`) are appended to the slash-command prompt as `key=value` tokens — the skill receives them via Claude Code's standard ARGUMENTS slot.
+Skill arguments declared in `onebrain.yml` (`args: { topic: this-week }`) are appended to the slash-command prompt as `key=value` tokens — the skill receives them via Claude Code's standard ARGUMENTS slot.
 
 Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
 
-Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain register-schedule --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
+Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain schedule register --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
 
 One-shot entries (those with `at:` instead of `cron:`) fire once, then the launchd plist self-deletes via an embedded shell wrapper. If the plist remains on disk after its timestamp passed, `/doctor` flags it as an expired one-shot to clean up.
 

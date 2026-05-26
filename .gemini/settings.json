@@ -9,7 +9,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain checkpoint stop > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain checkpoint stop --json > /dev/null 2>&1; echo '{}'"
           }
         ]
       }
@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain qmd-reindex > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain qmd reindex --json > /dev/null 2>&1; echo '{}'"
           }
         ]
       }

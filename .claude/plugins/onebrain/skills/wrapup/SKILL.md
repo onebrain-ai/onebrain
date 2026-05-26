@@ -60,7 +60,7 @@ After Step 0b, continue to Step 1.
 ## Step 1: Gather Checkpoint Context
 
 1. Get today's date as `YYYY-MM-DD`. Extract `YYYY` and `MM`.
-2. Use `session_token` from context if already loaded (set by `onebrain session-init` at startup); if absent, run `onebrain session-init` and use the `SESSION_TOKEN` value.
+2. Use `session_token` from context if already loaded (set by `onebrain session init` at startup); if absent, run `onebrain session init --json` and use the `SESSION_TOKEN` value.
 3. Glob checkpoint files (post-v2.4.0: checkpoints live in flat `[logs_folder]/checkpoint/` regardless of date):
    - Glob today's: `[logs_folder]/checkpoint/YYYY-MM-DD-{session_token}-checkpoint-*.md`
    - Also yesterday's (handles cross-midnight sessions): compute yesterday's date (decrement by 1 day, accounting for month/year rollover); glob `[logs_folder]/checkpoint/YYYY-MM-DD_PREV-{session_token}-checkpoint-*.md`
@@ -102,7 +102,7 @@ If no orphan groups found: skip to Step 2.
 
 For each orphan group from the *Identify Orphans* step above, decide between **recover** and **skip-active** by file age (the `skipped_active` list was initialized at the top of Step 1b):
 
-1. **Resolve the threshold once** (before scanning groups): read `vault.yml`'s `checkpoint.minutes` (defaults to 30 when the key is absent) and compute `threshold_minutes = max(60, 2 * checkpoint.minutes)`. Examples: default 30 → 60, raised 60 → 120, raised 90 → 180. If `vault.yml` is missing, malformed, or `checkpoint.minutes` is non-positive/non-numeric, fall back to `threshold_minutes = 60` — the recovery flow is critical-path; never block on a config issue.
+1. **Resolve the threshold once** (before scanning groups): read `onebrain.yml`'s `checkpoint.minutes` (defaults to 30 when the key is absent) and compute `threshold_minutes = max(60, 2 * checkpoint.minutes)`. Examples: default 30 → 60, raised 60 → 120, raised 90 → 180. If `onebrain.yml` is missing, malformed, or `checkpoint.minutes` is non-positive/non-numeric, fall back to `threshold_minutes = 60` — the recovery flow is critical-path; never block on a config issue.
 2. Compute `now_epoch` once: `now_epoch=$(date +%s)`.
 3. For every checkpoint file in the group, get its mtime as **epoch seconds**:
    - macOS / BSD: `stat -f '%m' <file>`
@@ -122,7 +122,7 @@ For each orphan group from the *Identify Orphans* step above, decide between **r
 
 The threshold gives the owning session a buffer of two full checkpoint windows (the auto-checkpoint hook fires every `checkpoint.messages` messages or `checkpoint.minutes` minutes). A group whose newest checkpoint is older than that has missed at least two windows — a strong "session dead" signal. The `max(60, 2 * checkpoint.minutes)` policy preserves the PR #156 baseline (60 min) for default-config users while scaling proportionally for users who raised `checkpoint.minutes`. False-positives (idle but live sessions older than the threshold) are non-destructive: nothing was read, written, or deleted; the owning user's next /wrapup writes its own session log normally and consumes the still-on-disk checkpoints.
 
-> **Symmetry with `onebrain orphan-scan`:** the CLI applies the identical `max(60, 2 * checkpoint.minutes)` rule (in `onebrain-ai/onebrain-cli` → `crates/onebrain-fs/src/orphan/`, `is_group_active_or_ambiguous`) so the startup banner and the recovery skill agree on what is and isn't an orphan. If you change this policy in one place, change it in the other.
+> **Symmetry with `onebrain checkpoint orphans`:** the CLI applies the identical `max(60, 2 * checkpoint.minutes)` rule (in `onebrain-ai/onebrain-cli` → `crates/onebrain-fs/src/orphan/`, `is_group_active_or_ambiguous`) so the startup banner and the recovery skill agree on what is and isn't an orphan. If you change this policy in one place, change it in the other.
 
 ### Auto-Recover Each Orphan Group
 
@@ -322,7 +322,7 @@ Guard: only delete AFTER confirming the session log write succeeded. If an indiv
 
 At the end of every /wrapup, compute `unrecapped_count` and `last_recapped`:
 
-**Fast path:** read `stats.last_recap` from `vault.yml` if available.
+**Fast path:** read `stats.last_recap` from `onebrain.yml` if available.
 **Glob session logs only:** match the `*-session-*.md` file pattern under
 `[logs_folder]/session/` (post-v2.4.0: session logs live in their own
 subfolder). Use `[logs_folder]/session/YYYY/MM/*-session-*.md` over the

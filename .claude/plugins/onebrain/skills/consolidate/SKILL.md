@@ -150,7 +150,7 @@ Empty state:
 ✅ Inbox is empty — nothing to process.
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 ---

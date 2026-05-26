@@ -18,7 +18,7 @@ If no subcommand is given, show this help and list available subcommands.
 
 ## /qmd setup
 
-Set up qmd for this vault. Creates a collection, stores it in vault.yml, and runs an initial index.
+Set up qmd for this vault. Creates a collection, stores it in onebrain.yml, and runs an initial index.
 
 ### Step 1: Confirm intent
 
@@ -34,7 +34,7 @@ If user selects Cancel, stop.
 
 ### Step 2: Check for existing setup
 
-Read `vault.yml`. If `qmd_collection` key is already present:
+Read `onebrain.yml`. If `qmd_collection` key is already present:
 > qmd is already configured for this vault (collection: `<value>`). To reconfigure, run `/qmd uninstall` first, then `/qmd setup` again.
 
 Stop.
@@ -96,11 +96,11 @@ qmd context add "qmd://<collection-name>" "Personal Obsidian knowledge vault : n
 
 If this command fails, report the error but continue (context is optional metadata).
 
-### Step 7: Store collection name in vault.yml
+### Step 7: Store collection name in onebrain.yml
 
-Read vault.yml. Add `qmd_collection: <collection-name>` as a top-level key before the `folders:` block. Write the full updated vault.yml back.
+Read onebrain.yml. Add `qmd_collection: <collection-name>` as a top-level key before the `folders:` block. Write the full updated onebrain.yml back.
 
-Example of updated vault.yml:
+Example of updated onebrain.yml:
 ```yaml
 qmd_collection: onebrain-a3f2c1
 folders:
@@ -108,21 +108,21 @@ folders:
   ...
 ```
 
-If the write fails, show the error. Tell the user to manually add `qmd_collection: <collection-name>` to vault.yml. Stop.
+If the write fails, show the error. Tell the user to manually add `qmd_collection: <collection-name>` to onebrain.yml. Stop.
 
 ### Step 8: Run initial index and register hook
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 Then register the PostToolUse hook so the index stays in sync automatically (run from vault root):
 
 ```bash
-onebrain register-hooks
+onebrain plugin update
 ```
 
-`register-hooks` reads `qmd_collection` from `vault.yml` (written in the previous step) and registers the PostToolUse hook automatically. No flag needed.
+`onebrain plugin update` reads `qmd_collection` from `onebrain.yml` (written in the previous step) and registers the PostToolUse hook automatically. No flag needed.
 
 If the reindex fails, show the error : the collection is created but not indexed. User can run `/qmd reindex` to retry.
 
@@ -169,7 +169,7 @@ Generate vector embeddings for semantic search.
 
 ### Step 1: Check prerequisites
 
-Read vault.yml. If `qmd_collection` key is missing:
+Read onebrain.yml. If `qmd_collection` key is missing:
 🔴 qmd not configured — run /qmd setup to enable vault search.
 
 Stop.
@@ -198,7 +198,7 @@ Run:
 qmd embed -c <collection-name>
 ```
 
-Where `<collection-name>` is read from vault.yml `qmd_collection`.
+Where `<collection-name>` is read from onebrain.yml `qmd_collection`.
 
 Report completion or any errors.
 
@@ -235,7 +235,7 @@ Show collection info and index health.
 
 ### Step 1: Check prerequisites
 
-Read vault.yml for `qmd_collection`. If missing:
+Read onebrain.yml for `qmd_collection`. If missing:
 🔴 qmd not configured — run /qmd setup to enable vault search.
 
 Stop.
@@ -262,7 +262,7 @@ Force a full BM25 reindex of the vault collection.
 
 ### Step 1: Check prerequisites
 
-Read vault.yml for `qmd_collection`. If missing:
+Read onebrain.yml for `qmd_collection`. If missing:
 🔴 qmd not configured — run /qmd setup to enable vault search.
 
 Stop.
@@ -275,7 +275,7 @@ Stop.
 ### Step 2: Run update
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 Report progress and any errors.
@@ -313,7 +313,7 @@ Remove qmd integration from this vault. Does not uninstall the qmd binary.
 
 ### Step 1: Check prerequisites
 
-Read vault.yml. If `qmd_collection` key is missing:
+Read onebrain.yml. If `qmd_collection` key is missing:
 > qmd is not configured for this vault. Nothing to uninstall.
 
 Stop.
@@ -332,26 +332,26 @@ If Cancel, stop.
 
 ### Step 3: Remove collection from qmd
 
-Read `qmd_collection` from vault.yml. Run:
+Read `qmd_collection` from onebrain.yml. Run:
 ```
 qmd collection remove <collection-name>
 ```
 
-If qmd is not installed or the command fails, report the error but continue to Step 4 (still need to clean vault.yml).
+If qmd is not installed or the command fails, report the error but continue to Step 4 (still need to clean onebrain.yml).
 
-### Step 4: Remove qmd_collection from vault.yml
+### Step 4: Remove qmd_collection from onebrain.yml
 
-Read vault.yml. Remove the `qmd_collection: ...` line. Write the full updated vault.yml back.
+Read onebrain.yml. Remove the `qmd_collection: ...` line. Write the full updated onebrain.yml back.
 
-If the write fails, show the error. Tell the user to manually remove the `qmd_collection` line from vault.yml.
+If the write fails, show the error. Tell the user to manually remove the `qmd_collection` line from onebrain.yml.
 
 ### Step 4b: Remove PostToolUse hook from settings.json
 
 ```bash
-onebrain register-hooks
+onebrain plugin update
 ```
 
-Run from vault root. After Step 4 removed `qmd_collection` from `vault.yml`, `register-hooks` strips the `onebrain qmd-reindex` PostToolUse hook automatically. If the hook is not present, the command exits cleanly.
+Run from vault root. After Step 4 removed `qmd_collection` from `onebrain.yml`, `onebrain plugin update` strips the `onebrain qmd reindex` PostToolUse hook automatically. If the hook is not present, the command exits cleanly.
 
 ### Step 5: Confirm
 
@@ -374,7 +374,7 @@ Per-skill body template (canonical `## Run HH:MM` heading; metadata in first bul
 ```markdown
 ## Run HH:MM
 - Collection removed: {collection-name}
-- vault.yml: qmd_collection key removed
+- onebrain.yml: qmd_collection key removed
 - PostToolUse hook: removed
 ```
 
@@ -386,4 +386,4 @@ Per-skill body template (canonical `## Run HH:MM` heading; metadata in first bul
 
 - **`qmd embed` must be run after setup before searches return semantic results.** `qmd setup` registers the collection but does not create embeddings. The first search after setup returns lexical-only results until `qmd embed` completes.
 
-- **`qmd_collection` value in vault.yml must exactly match the collection name used during setup.** A mismatch causes all qmd tool calls to silently fail (wrong collection). Verify with `qmd status` after changing the value.
+- **`qmd_collection` value in onebrain.yml must exactly match the collection name used during setup.** A mismatch causes all qmd tool calls to silently fail (wrong collection). Verify with `qmd status` after changing the value.
