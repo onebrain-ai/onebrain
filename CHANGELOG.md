@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
-## v3.1.0 — 2026-05-25
+## v3.1.0 — 2026-05-26
 
 - **Breaking:** config renamed `vault.yml` → `onebrain.yml` (README · CLAUDE.md · INSTRUCTIONS.md · all skills · marketplace.json). CLI v3.1+ dual-reads for back-compat; run `onebrain doctor --fix` to migrate.
 - **Breaking:** `/update` skill body now calls `onebrain plugin update` for plugin pull (semantic swap in CLI v3.1: `onebrain update` self-updates the CLI binary instead). `onebrain update --check` added as the pre-flight CLI version probe.
@@ -20,6 +20,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `requires.cli` floor bumped to `>=3.1.0` (assumes `onebrain plugin update`, `onebrain update --check`, and `onebrain.yml` dual-read support).
 - SessionStart hook parser updated to recognize `onebrain-vault-not-found` block reason (renamed from `onebrain-init-required` in CLI v3.1 for clarity). Old reason still accepted for back-compat with CLI v3.0.x.
 - INSTRUCTIONS.md updated: `onebrain session-init` / `orphan-scan` example invocations now include `--json` (CLI v3.1+ defaults to text for human use; machine consumers must opt into JSON). `onebrain plugin update` auto-rewrites existing `.claude/settings.json` hook entries to add the flag, so vaults running v3.1 don't need manual edits.
+- v3.1 nested-command modernization across skills/README/CONTRIBUTING: `qmd-reindex`→`qmd reindex`, `register-schedule`→`schedule register`, `run-skill`→`skill run`, `orphan-scan`→`checkpoint orphans`, `register-hooks`→`plugin update` (v3.0 aliases still work but emit a one-time migration notice). `check-cli-version.sh` runtime floor synced to v3.1.0 (matches `requires.cli` — blocks v3.0.x, which can't parse the nested commands + `--json` hook contract). `.gemini/settings.json` hooks now use `checkpoint stop --json` + `qmd reindex --json`.
 
 ## v3.0.3 — 2026-05-22
 

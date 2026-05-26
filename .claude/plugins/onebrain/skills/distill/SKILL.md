@@ -150,7 +150,7 @@ Say:
 ## Step 6: Update qmd Index
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 ---

@@ -16,7 +16,7 @@ Safely unschedule a skill: presents the current schedule, confirms intent, remov
 
 ### Step 1: Show current schedule
 
-Run the `/schedule-list` logic (read onebrain.yml `schedule:` block + call `onebrain register-schedule --status`) to display the current entries.
+Run the `/schedule-list` logic (read onebrain.yml `schedule:` block + call `onebrain schedule register --status`) to display the current entries.
 
 If no entries are found:
 ```
@@ -64,12 +64,12 @@ If the write fails, delete `onebrain.yml.tmp` if it exists and report the error.
 
 Run from the vault root:
 ```
-onebrain register-schedule --refresh
+onebrain schedule register --refresh
 ```
 
 This re-reads onebrain.yml (now without the removed entry) and deletes the corresponding launchd plist.
 
-If the command fails, report the error. onebrain.yml has already been updated — the user can retry `onebrain register-schedule --refresh` manually.
+If the command fails, report the error. onebrain.yml has already been updated — the user can retry `onebrain schedule register --refresh` manually.
 
 ### Step 6: Confirm
 

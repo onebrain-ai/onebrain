@@ -40,7 +40,7 @@ schedule:
     skill: /tasks
   - cron: "0 3 * * 0"      # Sunday 03:00 — qmd embed safety-net sweep (CLI command, hook-style)
     command: onebrain
-    args: [qmd-reindex]
+    args: [qmd, reindex]
 ```
 
 ## Tier 4 — Custom

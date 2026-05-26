@@ -60,7 +60,7 @@ After Step 0b, continue to Step 1.
 ## Step 1: Gather Checkpoint Context
 
 1. Get today's date as `YYYY-MM-DD`. Extract `YYYY` and `MM`.
-2. Use `session_token` from context if already loaded (set by `onebrain session-init` at startup); if absent, run `onebrain session-init` and use the `SESSION_TOKEN` value.
+2. Use `session_token` from context if already loaded (set by `onebrain session init` at startup); if absent, run `onebrain session init --json` and use the `SESSION_TOKEN` value.
 3. Glob checkpoint files (post-v2.4.0: checkpoints live in flat `[logs_folder]/checkpoint/` regardless of date):
    - Glob today's: `[logs_folder]/checkpoint/YYYY-MM-DD-{session_token}-checkpoint-*.md`
    - Also yesterday's (handles cross-midnight sessions): compute yesterday's date (decrement by 1 day, accounting for month/year rollover); glob `[logs_folder]/checkpoint/YYYY-MM-DD_PREV-{session_token}-checkpoint-*.md`
@@ -122,7 +122,7 @@ For each orphan group from the *Identify Orphans* step above, decide between **r
 
 The threshold gives the owning session a buffer of two full checkpoint windows (the auto-checkpoint hook fires every `checkpoint.messages` messages or `checkpoint.minutes` minutes). A group whose newest checkpoint is older than that has missed at least two windows — a strong "session dead" signal. The `max(60, 2 * checkpoint.minutes)` policy preserves the PR #156 baseline (60 min) for default-config users while scaling proportionally for users who raised `checkpoint.minutes`. False-positives (idle but live sessions older than the threshold) are non-destructive: nothing was read, written, or deleted; the owning user's next /wrapup writes its own session log normally and consumes the still-on-disk checkpoints.
 
-> **Symmetry with `onebrain orphan-scan`:** the CLI applies the identical `max(60, 2 * checkpoint.minutes)` rule (in `onebrain-ai/onebrain-cli` → `crates/onebrain-fs/src/orphan/`, `is_group_active_or_ambiguous`) so the startup banner and the recovery skill agree on what is and isn't an orphan. If you change this policy in one place, change it in the other.
+> **Symmetry with `onebrain checkpoint orphans`:** the CLI applies the identical `max(60, 2 * checkpoint.minutes)` rule (in `onebrain-ai/onebrain-cli` → `crates/onebrain-fs/src/orphan/`, `is_group_active_or_ambiguous`) so the startup banner and the recovery skill agree on what is and isn't an orphan. If you change this policy in one place, change it in the other.
 
 ### Auto-Recover Each Orphan Group
 

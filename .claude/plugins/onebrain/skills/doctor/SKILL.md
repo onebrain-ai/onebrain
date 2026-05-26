@@ -117,8 +117,8 @@ The CLI doctor does NOT cover the following — they remain in the skill:
 
 **Scheduler health** — only when `onebrain.yml` has a `schedule:` block.
 - **Errors**: glob `[logs_folder]/scheduler/**/*.err.md` from the last 7 days. If any → 🟡 report count + most recent 3 as wikilinks.
-- **Consecutive failures**: for each `schedule:` entry, count consecutive `.err.md` files from newest with no intervening success `.md`. If ≥ 3 → 🔴 CRITICAL — suggest `onebrain register-schedule --resume <skill>`.
-- **Schedule drift**: for each entry, check `~/Library/LaunchAgents/com.onebrain.<labelSafe>.plist` exists where `labelSafe` strips leading `/` from `entry.skill` and replaces non-`[a-zA-Z0-9-]` chars with `-`. If missing → 🟡 `onebrain register-schedule` to repair. If installed plist no longer matches a onebrain.yml entry → 🟡 stale plist — `onebrain register-schedule --remove` then re-register.
+- **Consecutive failures**: for each `schedule:` entry, count consecutive `.err.md` files from newest with no intervening success `.md`. If ≥ 3 → 🔴 CRITICAL — suggest `onebrain schedule register --resume <skill>`.
+- **Schedule drift**: for each entry, check `~/Library/LaunchAgents/com.onebrain.<labelSafe>.plist` exists where `labelSafe` strips leading `/` from `entry.skill` and replaces non-`[a-zA-Z0-9-]` chars with `-`. If missing → 🟡 `onebrain schedule register` to repair. If installed plist no longer matches a onebrain.yml entry → 🟡 stale plist — `onebrain schedule register --remove` then re-register.
 - **One-shot reachability**: for each `at:` entry, verify timestamp hasn't already passed. If passed and plist still exists → 🟡 expired one-shot not cleaned up.
 
 **Pause: orphan pointer**
@@ -175,7 +175,7 @@ Two-stream fix:
 
 1. **CLI fixes** — already executed by `onebrain doctor --fix --json` in Step 2a. The JSON `fix[]` array reports outcomes (`fixed`, `failed`, `skip`). Render under each affected check.
 
-2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D in order. Each pass confirms with the user before writing. After all passes, run `onebrain qmd-reindex` as the Final step.
+2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D in order. Each pass confirms with the user before writing. After all passes, run `onebrain qmd reindex` as the Final step.
 
 The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, claude-settings, qmd. The skill fix passes cover: stale confidence-score updates, broken-wikilink fuzzy-match repair, MEMORY.md structure migration. Together: CLI handles config, skill handles content.
 

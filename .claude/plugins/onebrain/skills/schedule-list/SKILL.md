@@ -34,14 +34,14 @@ Read the `schedule:` block from onebrain.yml directly to get the cron/at express
 
 Optionally run from the vault root:
 ```
-onebrain register-schedule --status
+onebrain schedule register --status
 ```
 
 This emits plain text (not JSON). Each line is one entry with the `[cron]` or `[once]` tag, the cron/at value, and either `skill: /name (k=v, k2=v2)` (skill mode with optional args) or `cmd: binary arg1 arg2` (command mode with positional argv). The `✓` / `✗` prefix indicates whether the plist file exists on disk.
 
 The CLI does not track last-run, next-run, or last-status — that detail is in `[logs_folder]/scheduler/YYYY/MM/`.
 
-If `onebrain register-schedule --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. Compute the plist filename as `com.onebrain.<labelSafe>.plist` where `labelSafe` is the binary name (for command mode) or the skill name with leading slash stripped (for skill mode), with non-alphanumeric, non-hyphen characters replaced by `-`.
+If `onebrain schedule register --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. Compute the plist filename as `com.onebrain.<labelSafe>.plist` where `labelSafe` is the binary name (for command mode) or the skill name with leading slash stripped (for skill mode), with non-alphanumeric, non-hyphen characters replaced by `-`.
 
 ### Step 3: Format output
 
@@ -54,7 +54,7 @@ Print the schedule table:
   ✓ [cron] 0 17 * * 5     skill: /weekly
   ✓ [cron] 0 12 * * 0     skill: /recap
   ✓ [cron] 0 9 * * *      skill: /distill (topic=this-week)
-  ✓ [cron] 0 3 * * 0      cmd: onebrain qmd-reindex
+  ✓ [cron] 0 3 * * 0      cmd: onebrain qmd reindex
   ✓ [cron] 0 5 * * *      cmd: rsync -av /vault /backup
   ✓ [once] 2026-05-13 14:30  skill: /reminder
   ✗ [cron] 0 18 * * 5     skill: /weekly (plist missing — re-run /schedule-add)
@@ -74,7 +74,7 @@ Detailed run history (stdout, stderr, error files) lives in `[logs_folder]/sched
 ### Step 4: Surface errors
 
 If `✗` entries are found:
-- Append a hint line below the table: `→ Run /schedule-add to re-register missing entries` (or for command-mode entries, `→ Re-run onebrain register-schedule to re-emit plists`)
+- Append a hint line below the table: `→ Run /schedule-add to re-register missing entries` (or for command-mode entries, `→ Re-run onebrain schedule register to re-emit plists`)
 
 For error log detail:
 - Append: `→ See [logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{label}.err.md for failure details` where `{label}` is the skill name or command binary name.
@@ -90,7 +90,7 @@ After the table, append:
 → /schedule-remove  remove an entry
 ```
 
-For command-mode entries: note that the `/schedule-add` wizard targets skill mode only — command entries are added by editing `onebrain.yml` directly and running `onebrain register-schedule`.
+For command-mode entries: note that the `/schedule-add` wizard targets skill mode only — command entries are added by editing `onebrain.yml` directly and running `onebrain schedule register`.
 
 ---
 

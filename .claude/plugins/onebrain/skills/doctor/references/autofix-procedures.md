@@ -107,7 +107,7 @@ If `timezone` was not found: skip this pass, note "No deprecated keys to clean u
 
 After all fix passes complete, if any files were written to disk (Pass B or Pass C made confirmed changes — Pass A writes to `installed_plugins.json` outside vault, not indexed by qmd; Pass D edits onebrain.yml which is not indexed by qmd):
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 Do NOT delete any content, modify files outside `[agent_folder]/MEMORY.md` and the files containing broken wikilinks, or restructure vault folders automatically.

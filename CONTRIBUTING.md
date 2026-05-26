@@ -123,7 +123,7 @@ See `/research`, `/consolidate`, `/distill`, `/reorganize`, `/connect`, `/import
 
 ## Adding a Scheduled Skill
 
-If your skill should be runnable via the OneBrain scheduler (`onebrain register-schedule` / `/schedule-add` / `/schedule-once`), declare its schedulability in the skill's YAML frontmatter.
+If your skill should be runnable via the OneBrain scheduler (`onebrain schedule register` / `/schedule-add` / `/schedule-once`), declare its schedulability in the skill's YAML frontmatter.
 
 ### Schedulable values
 
@@ -147,7 +147,7 @@ schedulable: false
 
 ### Validation
 
-`onebrain register-schedule` reads the target skill's frontmatter at register time and rejects entries that don't meet the schedulable contract:
+`onebrain schedule register` reads the target skill's frontmatter at register time and rejects entries that don't meet the schedulable contract:
 
 - `schedulable: false` → hard error
 - `schedulable_with_args: true` + missing required args in onebrain.yml → hard error
@@ -168,7 +168,7 @@ Design scheduled skills to be self-contained: read state, produce output, write 
 
 Scheduled output writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.md`. Multi-run/day: append a `## HH:MM (scheduled|manual)` section to the same file.
 
-Errors write to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md` (only created on failure). 3 consecutive `.err.md` without a success in between → schedule auto-paused; resume via `onebrain register-schedule --resume <skill>`.
+Errors write to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md` (only created on failure). 3 consecutive `.err.md` without a success in between → schedule auto-paused; resume via `onebrain schedule register --resume <skill>`.
 
 ### One-shot vs recurring
 
@@ -176,13 +176,13 @@ Use `cron:` for recurring schedules and `at:` for one-shot fire-once-then-uninst
 
 ### Don't wrap CLI tasks in skills
 
-If you have a CLI maintenance task (e.g., `onebrain qmd-reindex`), do NOT create a thin wrapper skill just to make it schedulable. Use command mode in `onebrain.yml` instead:
+If you have a CLI maintenance task (e.g., `onebrain qmd reindex`), do NOT create a thin wrapper skill just to make it schedulable. Use command mode in `onebrain.yml` instead:
 
 ```yaml
 schedule:
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd-reindex]
+    args: [qmd, reindex]
 ```
 
 Command mode matches the Claude Code hook shape — single source of pattern across event-driven (hooks) and time-driven (schedules) automation.
@@ -302,7 +302,7 @@ Tool-name matchers in Gemini accept regex (e.g. `write_file|replace`) — they m
 
 4. **Stop hooks must NOT use `"async": true`** — they inject prompts via `decision:block` written to stdout, which requires synchronous completion before Claude's next response. Async execution fires too late for prompt injection.
 
-5. Use `/update` (or `onebrain register-hooks`) to register or repair the `Stop` hook (and the optional `PostToolUse` qmd-reindex hook when `qmd_collection` is set in `onebrain.yml`) automatically.
+5. Use `/update` (or `onebrain plugin update`) to register or repair the `Stop` hook (and the optional `PostToolUse` qmd-reindex hook when `qmd_collection` is set in `onebrain.yml`) automatically.
 
 ## Memory System
 

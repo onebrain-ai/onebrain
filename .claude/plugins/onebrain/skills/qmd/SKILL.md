@@ -113,16 +113,16 @@ If the write fails, show the error. Tell the user to manually add `qmd_collectio
 ### Step 8: Run initial index and register hook
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 Then register the PostToolUse hook so the index stays in sync automatically (run from vault root):
 
 ```bash
-onebrain register-hooks
+onebrain plugin update
 ```
 
-`register-hooks` reads `qmd_collection` from `onebrain.yml` (written in the previous step) and registers the PostToolUse hook automatically. No flag needed.
+`onebrain plugin update` reads `qmd_collection` from `onebrain.yml` (written in the previous step) and registers the PostToolUse hook automatically. No flag needed.
 
 If the reindex fails, show the error : the collection is created but not indexed. User can run `/qmd reindex` to retry.
 
@@ -275,7 +275,7 @@ Stop.
 ### Step 2: Run update
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 Report progress and any errors.
@@ -348,10 +348,10 @@ If the write fails, show the error. Tell the user to manually remove the `qmd_co
 ### Step 4b: Remove PostToolUse hook from settings.json
 
 ```bash
-onebrain register-hooks
+onebrain plugin update
 ```
 
-Run from vault root. After Step 4 removed `qmd_collection` from `onebrain.yml`, `register-hooks` strips the `onebrain qmd-reindex` PostToolUse hook automatically. If the hook is not present, the command exits cleanly.
+Run from vault root. After Step 4 removed `qmd_collection` from `onebrain.yml`, `onebrain plugin update` strips the `onebrain qmd reindex` PostToolUse hook automatically. If the hook is not present, the command exits cleanly.
 
 ### Step 5: Confirm
 

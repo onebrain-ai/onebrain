@@ -258,14 +258,14 @@ If user selects "Skip for now": continue to Step 12.
    - **Tier 3 — Maintenance Plus** (6 entries; includes a CLI command-mode entry)
    - **Skip** (no presets — user can run `/schedule-add` later)
 
-4. On Tier 1/2/3 selection: atomically write entries to `onebrain.yml` `schedule:` block (load → mutate → write entire file). Then run `onebrain register-schedule`. Confirm: `✓ Installed Tier N preset.`
+4. On Tier 1/2/3 selection: atomically write entries to `onebrain.yml` `schedule:` block (load → mutate → write entire file). Then run `onebrain schedule register`. Confirm: `✓ Installed Tier N preset.`
 
 5. On Skip: take no action; continue.
 
 #### Edge cases
 
 - `onebrain.yml` not yet created at this point → ensure this step runs AFTER onebrain.yml creation; reorder if needed.
-- `onebrain register-schedule` fails (e.g. CLI not on PATH yet) → log the failure but don't block onboarding completion. The entries are still in onebrain.yml; user can register manually later.
+- `onebrain schedule register` fails (e.g. CLI not on PATH yet) → log the failure but don't block onboarding completion. The entries are still in onebrain.yml; user can register manually later.
 
 ---
 
@@ -513,7 +513,7 @@ Identical to Step 11b in Path A. Ask the user whether to set up qmd, and if yes,
 
 ## Path B : Step 12b2: Schedule Presets (optional)
 
-Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-presets.md`, skip if `onebrain.yml` already has a non-empty `schedule:` block, show `AskUserQuestion` with default = Tier 2, apply selected tier atomically. On `onebrain register-schedule` failure, log and continue — non-blocking.
+Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-presets.md`, skip if `onebrain.yml` already has a non-empty `schedule:` block, show `AskUserQuestion` with default = Tier 2, apply selected tier atomically. On `onebrain schedule register` failure, log and continue — non-blocking.
 
 ---
 

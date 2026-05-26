@@ -1,6 +1,6 @@
 ---
 name: schedule-add
-description: Interactive wizard to add a scheduled OneBrain skill. Walks user through skill selection, frequency, time, and writes to onebrain.yml + invokes onebrain register-schedule.
+description: Interactive wizard to add a scheduled OneBrain skill. Walks user through skill selection, frequency, time, and writes to onebrain.yml + invokes onebrain schedule register.
 schedulable: false
 ---
 
@@ -13,7 +13,7 @@ For users who don't want to hand-edit onebrain.yml or learn cron syntax. Walks t
 2. How often (Daily/Weekly/Monthly/Custom)
 3. What time
 4. Confirms cron preview
-5. Writes to onebrain.yml + runs `onebrain register-schedule`
+5. Writes to onebrain.yml + runs `onebrain schedule register`
 
 ---
 
@@ -30,11 +30,11 @@ For users who don't want to hand-edit onebrain.yml or learn cron syntax. Walks t
 3. Show preset selection via `AskUserQuestion`:
    - **Tier 1 — Minimal** (1 entry: `/daily` 09:00 every day)
    - **Tier 2 — Essentials (Recommended)** (3 entries: `/daily`, `/weekly` Friday, `/recap` Sunday)
-   - **Tier 3 — Maintenance Plus** (6 entries: Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd-reindex` Sunday command-mode entry)
+   - **Tier 3 — Maintenance Plus** (6 entries: Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd reindex` Sunday command-mode entry)
    - **Tier 4 — Custom** (skip presets, go to manual wizard)
 
 4. Apply the chosen tier:
-   - **Tier 1, 2, or 3:** atomically write the preset entries (verbatim from `_shared/schedule-presets.md`) to `onebrain.yml` `schedule:` block (load → mutate → write entire file; use a tmp file + rename). Then run `onebrain register-schedule`. Confirm: `✓ Installed Tier N preset (M entries).`
+   - **Tier 1, 2, or 3:** atomically write the preset entries (verbatim from `_shared/schedule-presets.md`) to `onebrain.yml` `schedule:` block (load → mutate → write entire file; use a tmp file + rename). Then run `onebrain schedule register`. Confirm: `✓ Installed Tier N preset (M entries).`
    - **Tier 4 (Custom):** fall through to Step 1 (the existing skill picker wizard).
 
 5. On Tier 1/2/3 success → the skill exits here. The user has scheduled entries. Subsequent invocations of `/schedule-add` will see `schedule:` is non-empty and skip Step 0, falling straight into the manual wizard for adding additional entries.
@@ -167,10 +167,10 @@ If the write fails at any point, do not leave a partial file: delete `onebrain.y
 
 Run from the vault root:
 ```
-onebrain register-schedule
+onebrain schedule register
 ```
 
-If the command fails, report the error. onebrain.yml has already been updated — the user can retry `onebrain register-schedule` manually.
+If the command fails, report the error. onebrain.yml has already been updated — the user can retry `onebrain schedule register` manually.
 
 ### Step 10: Confirm
 

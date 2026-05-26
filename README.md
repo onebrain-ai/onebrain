@@ -534,7 +534,7 @@ After firing, the launchd plist auto-uninstalls itself.
 Register schedules:
 
 ```bash
-onebrain register-schedule
+onebrain schedule register
 ```
 
 Or use the interactive wizards from inside your vault:
@@ -556,7 +556,7 @@ For CLI maintenance tasks that aren't OneBrain skills, use the `command + args[]
 schedule:
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd-reindex]
+    args: [qmd, reindex]
   - cron: "0 5 * * *"
     command: rsync
     args: [-av, /vault, /backup]
@@ -570,7 +570,7 @@ Don't want to hand-craft cron entries? OneBrain ships three preset tiers. New va
 
 - **Minimal** — `/daily` briefing only
 - **Essentials (default)** — `/daily` + `/weekly` Friday + `/recap` Sunday
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd-reindex` Sunday (mixes skill + command modes)
+- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd reindex` Sunday (mixes skill + command modes)
 
 Canonical tier definitions live at `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`.
 

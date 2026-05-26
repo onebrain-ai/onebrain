@@ -164,7 +164,7 @@ Ask using AskUserQuestion:
 4. After processing all suggestions for this note: confirm what was linked or appended.
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 ### Supported File Types

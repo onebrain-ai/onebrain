@@ -161,7 +161,7 @@ All existing wikilinks (`[[Note Name]]`) still work : Obsidian resolves links by
 Want to run `/connect` to find new connections between your organized notes?
 
 ```
-onebrain qmd-reindex
+onebrain qmd reindex
 ```
 
 ---

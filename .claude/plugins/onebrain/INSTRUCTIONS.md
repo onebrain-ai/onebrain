@@ -315,16 +315,16 @@ If the user closes the session without any end-of-session signal, AUTO-SUMMARY d
 
 ### Auto Checkpoint (Hook-Triggered)
 
-> **What is session_token?** A session-unique identifier resolved by `onebrain session-init` at startup and kept in context. Priority: `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → day-scoped cache → `process.ppid` → PowerShell parent PID → day-scoped random cache. The token contains only `[a-zA-Z0-9]` characters. If session_token is not in context (e.g. after compact), re-run `onebrain session-init` to recover it — it returns the same token within the same day. If `onebrain session-init` fails, abort checkpoint silently — do not guess the token.
+> **What is session_token?** A session-unique identifier resolved by `onebrain session init` at startup and kept in context. Priority: `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → day-scoped cache → `process.ppid` → PowerShell parent PID → day-scoped random cache. The token contains only `[a-zA-Z0-9]` characters. If session_token is not in context (e.g. after compact), re-run `onebrain session init` to recover it — it returns the same token within the same day. If `onebrain session init` fails, abort checkpoint silently — do not guess the token.
 
-When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session-init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
+When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
 
 The agent writes to `[logs_folder]/checkpoint/YYYY-MM-DD-{session_token}-checkpoint-NN.md` (post-v2.4.0: flat directory). **Always run `mkdir -p [logs_folder]/checkpoint/` before writing** — fresh post-onboarding vaults that haven't run `/update` yet won't have the directory; without the mkdir the Write tool fails silently and the checkpoint is lost. No output to user.
 
 The Stop hook is the only checkpoint signal source. It emits `decision:"block",reason:"NN since <context>"` whenever the message-count threshold (default 15) or time threshold (default 30 min) is met. The agent dispatches a background sub-agent to write a checkpoint file, then continues.
 
 Determine action from the reason:
-- `Stop hook blocking error` with reason matching `NN since <context>` (zero-padded NN + ` since start` or ` since checkpoint-NN`) → spawn background agent (mode: bypassPermissions) to write the checkpoint; if session_token is not in context, re-run `onebrain session-init` first — if that fails, abort silently; agent receives session_token, NN and since-context from the reason, today's date, and `[logs_folder]`; main session continues immediately after dispatching
+- `Stop hook blocking error` with reason matching `NN since <context>` (zero-padded NN + ` since start` or ` since checkpoint-NN`) → spawn background agent (mode: bypassPermissions) to write the checkpoint; if session_token is not in context, re-run `onebrain session init` first — if that fails, abort silently; agent receives session_token, NN and since-context from the reason, today's date, and `[logs_folder]`; main session continues immediately after dispatching
 - Ambiguous or unknown → default to stop checkpoint
 
 OneBrain registers only the Stop hook (plus a PostToolUse hook for qmd indexing if `qmd_collection` is set in onebrain.yml). PreCompact and PostCompact are not registered: PreCompact's `decision:"block"` aborts the compact entirely (bad UX), and Claude Code's PostCompact is observational-only — its stdout cannot reach the agent. Compact events (auto or manual) are observed indirectly via the Stop hook's accumulated message count, which carries across compacts and drives the next checkpoint emission via the normal threshold logic.
@@ -397,7 +397,7 @@ For interactive setup:
 - `/schedule-list` — show all scheduled entries
 - `/schedule-remove` — remove an entry
 
-For manual config: edit `onebrain.yml` `schedule:` block + run `onebrain register-schedule`.
+For manual config: edit `onebrain.yml` `schedule:` block + run `onebrain schedule register`.
 
 ### Skill mode vs command mode
 
@@ -418,7 +418,7 @@ schedule:
       topic: this-week
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd-reindex]
+    args: [qmd, reindex]
   - cron: "0 5 * * *"
     command: rsync
     args: [-av, /vault, /backup]
@@ -426,7 +426,7 @@ schedule:
 
 Use skill mode for OneBrain workflows. Use command mode for CLI maintenance and generic binaries that don't have (or don't need) a skill wrapper.
 
-**Adding entries:** the `/schedule-add` wizard targets skill mode only. To add a command-mode entry, edit `onebrain.yml` directly and re-run `onebrain register-schedule`. The `/schedule-list` and `/schedule-remove` skills handle both modes transparently.
+**Adding entries:** the `/schedule-add` wizard targets skill mode only. To add a command-mode entry, edit `onebrain.yml` directly and re-run `onebrain schedule register`. The `/schedule-list` and `/schedule-remove` skills handle both modes transparently.
 
 ### Presets
 
@@ -434,7 +434,7 @@ New users and fresh vaults can install a maintenance preset in one decision. Thr
 
 - **Minimal** — `/daily` 09:00 (1 entry)
 - **Essentials (Recommended)** — `/daily` 09:00 + `/weekly` Friday 17:00 + `/recap` Sunday 12:00 (3 entries)
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain qmd-reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
+- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain qmd reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
 - **Custom** — drops into the `/schedule-add` wizard
 
 Presets surface automatically:
@@ -445,9 +445,9 @@ Users with a populated `schedule:` block never see the preset prompt — preset 
 
 ## Headless invocation
 
-Scheduled skills run via `onebrain run-skill --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
 
-The plist emitted by `onebrain register-schedule` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
+The plist emitted by `onebrain schedule register` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
 
 Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
 
@@ -455,7 +455,7 @@ Skill arguments declared in `onebrain.yml` (`args: { topic: this-week }`) are ap
 
 Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
 
-Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain register-schedule --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
+Error recovery: skill failure writes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.err.md`. 3 consecutive failures → `/doctor` flags it as CRITICAL. Manual recovery (planned): create a `.paused` marker file; resume via `onebrain schedule register --resume <skill>`. (Note: auto-pause-on-failure is not yet implemented; the CLI only honors the marker if a future hook or manual action creates it.)
 
 One-shot entries (those with `at:` instead of `cron:`) fire once, then the launchd plist self-deletes via an embedded shell wrapper. If the plist remains on disk after its timestamp passed, `/doctor` flags it as an expired one-shot to clean up.
 
