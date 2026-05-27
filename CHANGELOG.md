@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.1
-released: 2026-05-27
+latest_version: 3.1.2
+released: 2026-05-28
 ---
 
 # Changelog
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.2 — 2026-05-28
+
+- INSTRUCTIONS.md (Session Startup): skip the interactive startup ceremony when running headless. Step 1 now parses a `headless` field from `onebrain session init --json` (CLI v3.2.6+, set by `onebrain skill run` via `ONEBRAIN_HEADLESS=1`); when `true`, Steps 2–4 (greeting + status + memory/inbox/task/orphan/pause scans) are skipped and the agent runs only the invoked skill — faster, cleaner headless runs. The field is absent on older CLIs and treated as `false` (normal interactive startup), so no `requires.cli` bump is needed.
 
 ## v3.1.1 — 2026-05-27
 
