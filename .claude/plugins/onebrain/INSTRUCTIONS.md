@@ -208,6 +208,8 @@ If qmd tools are NOT available: use Glob/Grep/Read for all vault searches. No sp
 
 Session startup greets the user immediately, then runs a quick inline status check.
 
+> **Headless exception:** when `onebrain session init` reports `headless: true` (set by `onebrain skill run` for an unattended one-shot run), skip the entire startup ceremony — Steps 2–4 below — and go straight to the requested skill. No greeting, no startup status, no memory/inbox/task/orphan scans. See Step 1.
+
 ### Startup : Immediate
 
 Run before responding to any user message.
@@ -215,7 +217,8 @@ Run before responding to any user message.
 **Step 1 — Critical path (greeting blocks on these):** Run in parallel:
 - Read `onebrain.yml` → load Configuration variables; override defaults once resolved. If `onebrain.yml` is missing, fall back to legacy `vault.yml` (v3.0 name) — same schema; surface a one-line deprecation note in the startup status so the user knows to run `onebrain doctor --fix` to migrate.
 - Read `[agent_folder]/MEMORY.md` → load identity, personality, active projects
-- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), and `qmd_unembedded` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N}`. **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, and `qmd_unembedded` as `0`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
+- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), `qmd_unembedded`, and `headless` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N,"headless":true|false}`. **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, `qmd_unembedded` as `0`, and `headless` as `false`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
+  - **If `headless` is `true`** (CLI v3.2.6+, set by `onebrain skill run`): this is an unattended one-shot run, so **skip Steps 2–4 entirely** — no greeting, no startup status, and none of Step 3's memory/inbox/task/orphan/pause scans — and proceed directly to the invoked skill. The `headless` field is absent on older CLIs; treat absent as `false` (normal interactive startup).
 
 **Step 2 — Send greeting immediately:**
 
