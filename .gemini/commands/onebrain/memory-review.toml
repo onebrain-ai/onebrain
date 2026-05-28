@@ -1,2 +1,2 @@
-description = "Activate OneBrain memory-review skill"
-prompt = "Please activate the 'memory-review' skill and follow its procedural workflow."
+description = "Run the OneBrain memory-review skill"
+prompt = "Run the OneBrain 'memory-review' skill by reading .claude/plugins/onebrain/skills/memory-review/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."
