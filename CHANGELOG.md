@@ -1,5 +1,5 @@
 ---
-latest_version: 3.1.2
+latest_version: 3.1.3
 released: 2026-05-28
 ---
 
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.3 — 2026-05-28
+
+- **Fix: kill the gemini `activate_skill` error + double-output on `onebrain skill run --harness gemini`.** All 25 `.gemini/commands/onebrain/*.toml` templates used "Please activate the '<skill>' skill" — the word "activate" made gemini call its native `activate_skill` tool with `name="<skill>"`, which failed ("params/name must be equal to one of the allowed values") because OneBrain skills aren't Gemini agent-skills. The agent retried via the SKILL.md fallback, which produced the briefing twice. Reworded all 25 templates to "Run the OneBrain '<name>' skill by reading `skills/<name>/SKILL.md` and following its workflow. Do not call activate_skill" — gemini now goes straight to the SKILL.md, no retry, no double output.
+- **`references/gemini-tools.md` gains a "Tool behaviour differences" section** so skills tolerate gemini's quirks: (1) `glob` / `grep_search` errors on a non-existent path → treat as zero matches and continue (Claude's `Glob`/`Grep` return empty silently); (2) never call `activate_skill` for OneBrain skills; (3) "Ripgrep is not available. Falling back to GrepTool." is harmless — ignore.
+- No `requires.cli` bump.
 
 ## v3.1.2 — 2026-05-28
 

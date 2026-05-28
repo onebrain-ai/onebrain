@@ -1,2 +1,2 @@
-description = "Activate OneBrain braindump skill"
-prompt = "Please activate the 'braindump' skill and follow its procedural workflow."
+description = "Run the OneBrain braindump skill"
+prompt = "Run the OneBrain 'braindump' skill by reading .claude/plugins/onebrain/skills/braindump/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."

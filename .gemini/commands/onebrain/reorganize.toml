@@ -1,2 +1,2 @@
-description = "Activate OneBrain reorganize skill"
-prompt = "Please activate the 'reorganize' skill and follow its procedural workflow."
+description = "Run the OneBrain reorganize skill"
+prompt = "Run the OneBrain 'reorganize' skill by reading .claude/plugins/onebrain/skills/reorganize/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."

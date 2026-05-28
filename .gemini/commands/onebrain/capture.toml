@@ -1,2 +1,2 @@
-description = "Activate OneBrain capture skill"
-prompt = "Please activate the 'capture' skill and follow its procedural workflow."
+description = "Run the OneBrain capture skill"
+prompt = "Run the OneBrain 'capture' skill by reading .claude/plugins/onebrain/skills/capture/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."

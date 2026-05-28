@@ -1,2 +1,2 @@
-description = "Activate OneBrain connect skill"
-prompt = "Please activate the 'connect' skill and follow its procedural workflow."
+description = "Run the OneBrain connect skill"
+prompt = "Run the OneBrain 'connect' skill by reading .claude/plugins/onebrain/skills/connect/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."

@@ -21,6 +21,14 @@ Skills and INSTRUCTIONS.md use Claude Code tool names. When you encounter these,
 
 Gemini CLI has no equivalent to Claude Code's `Agent` tool. Skills that dispatch sub-agents (inbox-classifier, tag-suggester, link-suggester, task-extractor) run their logic inline instead. Results may be slightly slower but functionally equivalent.
 
+## Tool behaviour differences (handle gracefully)
+
+Gemini's tools differ from Claude Code's in ways that can interrupt a skill if handled naively. Apply these rules so a workflow never aborts on a tool quirk:
+
+- **`glob` / `grep_search` on a non-existent path**: Gemini errors with "Search path does not exist", where Claude's `Glob` / `Grep` quietly return zero matches. Treat the error as **zero matches and continue** — never abort the skill. When a path may not exist (e.g. a `YYYY/MM` session-log folder for a month with no sessions yet), check with `list_directory` first or tolerate the error and proceed.
+- **Never call `activate_skill` for OneBrain skills**: OneBrain skills are NOT registered Gemini agent-skills, so `activate_skill` fails with "params/name must be equal to one of the allowed values". Skills are followed by reading their `SKILL.md` (see the Skills row in the mapping above) — that is the only correct activation path.
+- **"Ripgrep is not available. Falling back to GrepTool."**: harmless — the fallback works. Ignore it.
+
 ## Additional Gemini CLI tools
 
 | Tool | Purpose |
