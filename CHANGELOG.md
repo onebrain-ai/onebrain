@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.3
-released: 2026-05-28
+latest_version: 3.1.4
+released: 2026-05-29
 ---
 
 # Changelog
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.4 — 2026-05-29
+
+- **feat(doctor): detect & de-link auto-memory wikilinks.** Step 2b classifies each unresolved `[[...]]` into 🔴 auto-memory mislink (slug, or its `_`→`-` form, exists in the current vault's `~/.claude/.../memory/`) vs 🟡 missing note / typo (report only). Vault-note-wins is invariant — a link is flagged only when neither its raw nor `_`→`-` normalized slug resolves to a vault `.md`, so a fixable typo is never destroyed. Slug set scoped to the current vault (no cross-vault pollution); skipped if the dir is absent.
+- **feat(doctor --fix): Pass E de-links the auto-memory bucket** — `[[slug]]` → `` `slug` `` (normalizing `_`→`-`), `[[slug|display]]` → plain `display`, `[[slug#anchor]]` → `` `slug` ``, `[[memory/slug]]` → `` `slug` ``. Skips the same contexts as Step 2b detection. Confirms before writing; the 🟡 missing-note bucket is never auto-fixed.
+- Doctor-skill-only change (no CLI dependency); patch bump.
 
 ## v3.1.3 — 2026-05-28
 

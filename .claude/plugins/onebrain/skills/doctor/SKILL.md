@@ -70,7 +70,15 @@ The CLI doctor does NOT cover the following — they remain in the skill:
 - Grep `[projects_folder]`, `[areas_folder]`, `[knowledge_folder]`, `[resources_folder]`, `[agent_folder]` for `\[\[.*?\]\]` in `.md` files.
 - **Skip** wikilinks inside fenced code blocks (between ` ``` ` fences), blockquote lines (lines beginning with `>`), inline code spans (the entire `[[...]]` enclosed in backticks on that line), or YAML frontmatter (between the leading `---` and the closing `---`).
 - For each wikilink, extract note name: strip `|display text` suffix AND `#anchor` fragment. Preserve original text for accurate replacement.
-- Check if a `.md` file with that exact name exists anywhere in the vault (case-insensitive). Flag unresolved as `{broken_link, display_text, anchor, source_file, source_line}`.
+- Check if a `.md` file matching the note name exists anywhere in the vault (case-insensitive), testing BOTH the raw slug AND its `_`→`-` normalized form. Flag as unresolved only when neither form matches a vault `.md`. Record as `{broken_link, display_text, anchor, source_file, source_line}`.
+- **Classify each unresolved wikilink** into one of two buckets (auto-memory slugs live in Claude's auto-memory store OUTSIDE the vault, so they never resolve in Obsidian — these are structurally distinct from typos and missing notes):
+  1. **Build the auto-memory slug set, scoped to the CURRENT vault:** derive this vault's project-dir name from the vault root absolute path using Claude Code's encoding — replace every `/` and `.` with `-` (e.g. vault `/Users/keng/Library/Mobile Documents/iCloud~md~obsidian/Documents/ob-1` → project dir `-Users-keng-Library-Mobile-Documents-iCloud~md~obsidian-Documents-ob-1`). Glob `~/.claude/projects/<derived-dir>/memory/*.md` (on Unix expand `$HOME`, don't pass a literal `~` to file tools). Take basenames without the `.md` extension. Scoping to the current vault avoids cross-vault false positives — globbing all projects would pull in unrelated vaults' auto-memory slugs and misclassify links. **If the derived project dir is absent, skip classification entirely** — leave the unresolved links as a single undifferentiated broken-link list and emit nothing for the buckets below. Do NOT fall back to globbing all projects (that reintroduces cross-vault pollution).
+  2. For each unresolved wikilink, take its slug (strip any `memory/` prefix, `|display` suffix, and `#anchor` fragment). Also compute a hyphen-normalized form (`_` → `-`).
+  3. Bucket (VAULT-NOTE-WINS is invariant — a wikilink only reaches this step when NO vault `.md` matches its raw slug OR its `_`→`-` normalized form, per the resolution check above):
+     - (raw slug OR normalized slug) ∈ auto-memory slug set → **🔴 auto-memory mislink** — points outside the vault; fixable via the de-link pass in Step 4.
+     - else → **🟡 missing note / typo** — report only; needs human judgment (existing behavior).
+  4. **The 🔴 bucket must never claim a link that a vault note could satisfy (raw or `_`→`-` normalized).** Any link whose raw or normalized slug resolves to a vault `.md` is NOT 🔴 — it is already resolved (not flagged at all), or, if only a fuzzy near-match exists, it belongs in the 🟡 missing-note / fuzzy-fix bucket (Pass C territory), never in 🔴 auto-de-link.
+- Report the two buckets separately under 📁 Vault, each with a count. The 🔴 auto-memory bucket lists `file:line — [[slug]]`; the 🟡 missing-note bucket keeps the existing broken-link reporting.
 
 **Orphan notes**
 - Find notes in `[knowledge_folder]/` and `[resources_folder]/` with zero inbound wikilinks from any other note. Report only — no auto-fix (linking requires semantic judgment; use `/connect`).
@@ -175,9 +183,9 @@ Two-stream fix:
 
 1. **CLI fixes** — already executed by `onebrain doctor --fix --json` in Step 2a. The JSON `fix[]` array reports outcomes (`fixed`, `failed`, `skip`). Render under each affected check.
 
-2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D in order. Each pass confirms with the user before writing. After all passes, run `onebrain qmd reindex` as the Final step.
+2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D, E in order. Each pass confirms with the user before writing. After all passes, run `onebrain qmd reindex` as the Final step. Pass E de-links the 🔴 auto-memory mislinks detected in Step 2b (the 🟡 missing-note bucket is never auto-fixed).
 
-The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, claude-settings, qmd. The skill fix passes cover: stale confidence-score updates, broken-wikilink fuzzy-match repair, MEMORY.md structure migration. Together: CLI handles config, skill handles content.
+The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, claude-settings, qmd. The skill fix passes cover: stale confidence-score updates, broken-wikilink fuzzy-match repair, auto-memory wikilink de-linking, MEMORY.md structure migration. Together: CLI handles config, skill handles content.
 
 ---
 
