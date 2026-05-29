@@ -103,14 +103,39 @@ If `timezone` was not found: skip this pass, note "No deprecated keys to clean u
 
 ---
 
+## Pass E: De-link auto-memory wikilinks
+
+Fixes: wikilinks that point at Claude auto-memory slugs (`[[feedback-code-review]]`, `[[user-rust-learning]]`, `[[memory/...]]`) which live in `~/.claude/projects/<vault>/memory/` — OUTSIDE the vault — so they never resolve in Obsidian.
+Applies when: /doctor Step 2b flagged 🔴 auto-memory mislinks.
+
+If 0 auto-memory mislinks were found in Step 2b: skip this pass, note "No auto-memory wikilinks to de-link."
+
+**Group by source file** so one confirmation can cover all occurrences in that file (the same slug may appear in several files; the same file may contain several slugs).
+
+Confirm with AskUserQuestion before writing (if user declines, skip this pass — no changes written):
+> Found N auto-memory wikilink(s) across M files. These point at Claude's auto-memory store outside the vault, so they never resolve in Obsidian. De-link them to backticked plain text?
+
+On confirmation, for each auto-memory mislink, replace the `[[...]]` token in place with backticked plain text:
+
+- `[[slug]]` → `` `slug` `` (normalize `_`→`-` to the real auto-memory key, e.g. `[[user_rust_learning]]` → `` `user-rust-learning` ``).
+- `[[slug|display]]` → keep `display` as plain text, drop the `[[ ]]`.
+- `[[slug#anchor]]` → `` `slug` `` (drop the anchor — de-linked plain text has no navigable target; detection already strips `#anchor`, so this keeps detection and transform symmetric).
+- `[[memory/slug]]` → `` `slug` `` (strip the `memory/` prefix, then normalize `_`→`-`).
+
+**Skip** (leave untouched) the same contexts the Step 2b broken-wikilink check skips (fenced code blocks, inline-code spans, YAML frontmatter, blockquote lines, and the `[archive_folder]`).
+
+Report each file changed (one line per file). Do NOT touch the 🟡 missing-note / typo bucket — that is reported only, never auto-fixed.
+
+---
+
 ## Final step
 
-After all fix passes complete, if any files were written to disk (Pass B or Pass C made confirmed changes — Pass A writes to `installed_plugins.json` outside vault, not indexed by qmd; Pass D edits onebrain.yml which is not indexed by qmd):
+After all fix passes complete, if any files were written to disk (Pass B, Pass C, or Pass E made confirmed changes — Pass A writes to `installed_plugins.json` outside vault, not indexed by qmd; Pass D edits onebrain.yml which is not indexed by qmd):
 ```
 onebrain qmd reindex
 ```
 
-Do NOT delete any content, modify files outside `[agent_folder]/MEMORY.md` and the files containing broken wikilinks, or restructure vault folders automatically.
+Do NOT delete any content, modify files outside `[agent_folder]/MEMORY.md` and the files containing broken or auto-memory wikilinks, or restructure vault folders automatically.
 
 ---
 
