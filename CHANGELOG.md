@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.4
-released: 2026-05-29
+latest_version: 3.1.5
+released: 2026-05-30
 ---
 
 # Changelog
@@ -10,6 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.5 — 2026-05-30
+
+- **feat(doctor): scheduler-health now content-shape-checks installed plists.** Adds a check that reads each `~/Library/LaunchAgents/com.onebrain.*.plist` `ProgramArguments` array and flags 🟡 (naming the plist) if it carries a pre-v2.3.3 shape — `--headless`, or a `--skill` element with no `run-skill` element anywhere in the array — which silently fails on every fire because `onebrain update` doesn't regenerate already-installed plists.
+- Also flags 🟡 when `ProgramArguments[0]` ends in `.ts`/`.js` (registered from source via `bun run …` instead of the compiled binary). Repair points at `onebrain schedule register` (or `--remove` for an orphan with no matching entry).
+- Unlike the per-entry scheduler checks, this one runs whenever an installed plist exists — even with no `schedule:` block — so orphans left after a schedule clear are caught; covers recurring argv plists (one-shot `/bin/sh -c` plists noted as low-priority scope).
+- Doctor-skill-only change (no CLI dependency); patch bump.
 
 ## v3.1.4 — 2026-05-29
 
