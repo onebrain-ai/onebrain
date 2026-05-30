@@ -1,5 +1,5 @@
 ---
-latest_version: 3.1.5
+latest_version: 3.1.6
 released: 2026-05-30
 ---
 
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.6 — 2026-05-30
+
+- **fix(doctor): ungate scheduler "Schedule drift" orphan-plist detection.** Split the drift check into two directions — *Missing plist* (entry→plist) stays gated behind the `schedule:` block; *Orphan plist* (plist→entry) now globs installed `com.onebrain.*.plist` directly and runs regardless of the block, mirroring v3.1.5's content-shape check.
+- Closes the gap where a valid-shaped plist left behind after the user **clears their `schedule:` block** was invisible: an orphan can't be found by iterating entries (it has none), and an empty-block expected-label set makes every installed plist an orphan — exactly the case to catch.
+- Also ungated the Step 3 `📅 Scheduler` report section (previously rendered only with a `schedule:` block), so orphan / stale-shape findings actually surface after a schedule clear — closes a latent v3.1.5 gap where the content-shape check fired but its section was suppressed.
+- False-positive guard: inlined the exact `labelSafe` rule (binary name for command mode; slash-stripped skill name for skill mode) so command-mode plists aren't mis-flagged; when unsure, don't flag; deduped with the content-shape check (orphan `--remove` line wins for unmatched plists).
+- Doctor-skill-only change (no CLI dependency); patch bump.
 
 ## v3.1.5 — 2026-05-30
 
