@@ -11,6 +11,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
+## Unreleased
+
+- **Relicensed from `AGPL-3.0-only` to `MIT OR Apache-2.0`** — permissive dual license, applied org-wide. Sole-author relicense; effective from here on. (The v3.0.1 MIT→AGPL entries below are kept as historical record.)
+
 ## v3.1.6 — 2026-05-30
 
 - **fix(doctor): ungate scheduler "Schedule drift" orphan-plist detection.** Split the drift check into two directions — *Missing plist* (entry→plist) stays gated behind the `schedule:` block; *Orphan plist* (plist→entry) now globs installed `com.onebrain.*.plist` directly and runs regardless of the block, mirroring v3.1.5's content-shape check.

@@ -5,7 +5,7 @@
   "author": {
     "name": "OneBrain Contributors"
   },
-  "license": "AGPL-3.0-only",
+  "license": "MIT OR Apache-2.0",
   "requires": {
     "cli": ">=3.1.0"
   }
