@@ -217,7 +217,7 @@ Run before responding to any user message.
 **Step 1 — Critical path (greeting blocks on these):** Run in parallel:
 - Read `onebrain.yml` → load Configuration variables; override defaults once resolved. If `onebrain.yml` is missing, fall back to legacy `vault.yml` (v3.0 name) — same schema; surface a one-line deprecation note in the startup status so the user knows to run `onebrain doctor --fix` to migrate.
 - Read `[agent_folder]/MEMORY.md` → load identity, personality, active projects
-- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), `qmd_unembedded`, and `headless` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N,"headless":true|false}`. **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, `qmd_unembedded` as `0`, and `headless` as `false`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
+- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), `qmd_unembedded`, and `headless` in context. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","qmd_unembedded":N|null,"headless":true|false}`. `qmd_unembedded` is a count `N`, or **`null`** (CLI v3.3.3+) when the qmd probe couldn't determine it (qmd missing / timed out / unparseable) — treat `null` as **unknown**, distinct from a genuine `0` (a real index with nothing pending). **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, `qmd_unembedded` as `0`, and `headless` as `false`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
   - **If `headless` is `true`** (CLI v3.2.6+, set by `onebrain skill run`): this is an unattended one-shot run, so **skip Steps 2–4 entirely** — no greeting, no startup status, and none of Step 3's memory/inbox/task/orphan/pause scans — and proceed directly to the invoked skill. The `headless` field is absent on older CLIs; treat absent as `false` (normal interactive startup).
 
 **Step 2 — Send greeting immediately:**
@@ -257,14 +257,15 @@ On weekends: lighter, less task-focused tone. **No-repeat rule:** don't ask abou
 
 **Step 4 — Send startup status (after Step 3 completes):**
 
-If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting.
+If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 (a definite zero — **not** `null`) and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting. (When `qmd_unembedded` is `null` the qmd status line below is shown, so the status block is not silent.)
 
 Otherwise, append after the greeting:
 
 ```
 📥 inbox [N]                               ← omit if inbox_count = 0
 📋 [N] orphan session(s) — /wrapup?        ← omit if orphan_count = 0
-⚠️ qmd: [N] doc(s) need embedding — /qmd embed   ← omit if qmd_unembedded = 0
+⚠️ qmd: [N] doc(s) need embedding — /qmd embed   ← when qmd_unembedded = N > 0; omit entirely when = 0
+⚠️ qmd: index status unknown (qmd unavailable) — /qmd status   ← when qmd_unembedded is null (probe couldn't check)
 📂 active pause: {active_pause_slug} ({active_pause_count} snapshots, last {active_pause_last_date}) — /resume?   ← omit if active_pause_slug is null
 ⚠️ vault structure outdated — run /update to migrate   ← omit if vault_structure_legacy = false
 
