@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.6
-released: 2026-05-30
+latest_version: 3.1.7
+released: 2026-06-26
 ---
 
 # Changelog
@@ -11,8 +11,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
-## Unreleased
+## v3.1.7 — 2026-06-26 — startup: qmd_unembedded null support
 
+- **fix(startup): support `qmd_unembedded: null` in the session-init status.** onebrain-cli v3.3.3+ returns `qmd_unembedded: null` (instead of a false `0`) when the qmd probe can't determine the count — qmd missing, timed out, or unparseable. Startup (Step 1 / Step 4) now treats `null` as **unknown**, distinct from a genuine `0`, and surfaces `⚠️ qmd: index status unknown (qmd unavailable) — /qmd status` rather than silently hiding it. Companion to the CLI change; backward-compatible (older CLIs never emit `null`, so the new branch simply never fires — `requires.cli` stays `>=3.1.0`).
 - **Relicensed from `AGPL-3.0-only` to `MIT OR Apache-2.0`** — permissive dual license, applied org-wide. Sole-author relicense; effective from here on. (The v3.0.1 MIT→AGPL entries below are kept as historical record.)
 
 ## v3.1.6 — 2026-05-30
