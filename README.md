@@ -320,6 +320,17 @@ In your harness: `/onboarding`
 
 > **Adding OneBrain to an existing vault?** `cd` into it and run `onebrain init`
 
+### Browse in a browser — `onebrain serve`
+
+Prefer the browser, or on a machine without Obsidian? The CLI ships a local **web UI** — nothing extra to install (it's embedded in the binary):
+
+```bash
+cd my-vault
+onebrain serve --open      # → http://127.0.0.1:6789/?token=<TOKEN>
+```
+
+A file explorer, a reading view (markdown, code, PDF, Office docs, images, audio/video, Jupyter notebooks), a qmd-backed search panel, and agent chat — over a token-gated, loopback-only vault API. See the [onebrain-cli README](https://github.com/onebrain-ai/onebrain-cli#local-web-ui) for flags + self-host (TLS) notes.
+
 ### Bring Your Own LLM (via Claude Code)
 
 Already love Claude Code? Use it as a universal frontend. Point `ANTHROPIC_BASE_URL` at any OpenAI-compatible endpoint — Claude Code stays the harness, the LLM behind it changes per task.
