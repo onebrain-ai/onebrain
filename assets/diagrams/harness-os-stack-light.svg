@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 100 880 600" width="880" height="600" role="img" aria-labelledby="title desc" font-family="'Chakra Petch', 'Inter', ui-sans-serif, system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="55 105 790 585" width="790" height="585" role="img" aria-labelledby="title desc" font-family="'Chakra Petch', 'Inter', ui-sans-serif, system-ui, sans-serif">
   <title id="title">OneBrain Harness OS — 4-Layer Architecture</title>
-  <desc id="desc">Four stacked layers from top to bottom: OneBrain (plugin and CLI — skills, hooks, vault sync, indexing, checkpoints), Harness (Claude Code, Gemini CLI, Codex, Qwen), LLM (local, cloud, or API), and Obsidian Vault as the source of truth (plain Markdown notes, memory, decisions, knowledge graph).</desc>
+  <desc id="desc">Four stacked layers from top to bottom: OneBrain (plugin and CLI — skills, hooks, memory, indexing, checkpoints), Harness (Claude Code, Gemini CLI, Codex, Qwen), LLM (local, cloud, or API), and your Markdown vault as the source of truth (plain Markdown notes, memory, decisions, knowledge graph).</desc>
 
   <style>
-    .flow { stroke: #0a0a14; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 3 5; fill: none; }
+    .flow { stroke: #ffffff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 3 5; fill: none; }
     .flow-down { animation: flow-down 0.9s linear infinite; }
     .flow-up   { animation: flow-up   0.9s linear infinite; }
     @keyframes flow-down { to { stroke-dashoffset: -8; } }
@@ -25,45 +25,36 @@
   </style>
 
   <defs>
-    <linearGradient id="g-onebrain" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#e62a93" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#c91075" stop-opacity="1"/>
+    <linearGradient id="g-layer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#00cce0" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#00646e" stop-opacity="1"/>
     </linearGradient>
-    <linearGradient id="g-harness" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#a855f7" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#7c1ade" stop-opacity="1"/>
-    </linearGradient>
-    <linearGradient id="g-llm" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#7a9d10" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#4d6d00" stop-opacity="1"/>
-    </linearGradient>
-    <linearGradient id="g-vault" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%"   stop-color="#00a3bc" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#00788c" stop-opacity="1"/>
-    </linearGradient>
-
-    <linearGradient id="spine-grad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%"   stop-color="#c91075" stop-opacity="0.75"/>
-      <stop offset="33%"  stop-color="#7c1ade" stop-opacity="0.75"/>
-      <stop offset="66%"  stop-color="#4d6d00" stop-opacity="0.75"/>
-      <stop offset="100%" stop-color="#00788c" stop-opacity="0.75"/>
+    <linearGradient id="ob-brain-grad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#ff2d92"/>
+      <stop offset="55%"  stop-color="#ff5aa3"/>
+      <stop offset="100%" stop-color="#00f3ff"/>
     </linearGradient>
   </defs>
 
-  <line x1="48" y1="110" x2="48" y2="690" stroke="url(#spine-grad)" stroke-width="2" stroke-dasharray="2 4" opacity="0.6"/>
+  <line x1="48" y1="110" x2="48" y2="690" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-dasharray="2 4"/>
 
   <!-- ════════ LAYER 01 — ONEBRAIN ════════ -->
   <g transform="translate(60, 110)">
-    <rect width="780" height="130" fill="url(#g-onebrain)"/>
-    <text class="icon-pulse" x="38" y="78" font-size="32" text-anchor="middle" dominant-baseline="central" aria-hidden="true">🧠</text>
+    <rect width="780" height="130" fill="url(#g-layer)"/>
+    <circle cx="38" cy="77" r="25" fill="#04060a" opacity="0.5"/>
+    <svg x="20" y="62" width="36" height="30" viewBox="0 0 433 359" aria-hidden="true" overflow="visible">
+      <g transform="translate(433,466) scale(-0.1,-0.1)" fill="url(#ob-brain-grad)" stroke="none">
+          <path d="M1774 4637 c-19 -17 -29 -37 -33 -67 -6 -43 -7 -45 -149 -141 l-143 -97 -54 5 c-50 5 -56 4 -84 -25 -21 -20 -31 -40 -31 -60 l0 -29 -247 -78 c-238 -75 -247 -77 -274 -61 -56 33 -114 -4 -112 -71 2 -36 -9 -53 -123 -201 -103 -133 -130 -162 -150 -162 -58 0 -103 -45 -104 -105 -1 -37 -6 -45 -79 -107 -65 -56 -85 -68 -114 -68 -73 0 -105 -97 -47 -142 28 -22 31 -32 47 -139 l17 -117 -28 -33 c-39 -46 -33 -111 13 -150 l31 -25 0 -237 c0 -224 -1 -238 -20 -257 -64 -64 15 -176 88 -124 22 15 125 -6 515 -107 21 -6 37 -16 37 -25 0 -16 56 -54 82 -54 9 0 50 -41 92 -91 66 -78 76 -96 76 -129 0 -73 68 -102 120 -51 28 27 37 29 146 35 64 4 120 4 125 -1 5 -5 -32 -144 -86 -320 -52 -172 -95 -317 -95 -322 0 -29 42 7 266 229 215 213 246 240 274 240 19 0 43 10 60 24 42 35 151 45 187 16 52 -41 105 -11 109 62 3 58 99 241 129 246 11 2 31 14 45 27 l25 23 160 -14 c88 -7 177 -13 197 -14 24 0 47 -9 66 -25 50 -42 105 -29 120 30 12 43 255 219 291 210 32 -8 76 11 89 39 8 18 25 26 89 39 43 9 182 39 308 67 172 38 241 49 273 44 60 -9 92 13 92 65 0 56 196 301 250 312 18 4 40 15 47 25 20 28 16 88 -7 109 -31 28 -31 432 0 460 43 39 21 119 -39 139 -22 8 -79 64 -186 185 -145 164 -153 175 -148 207 16 99 -91 160 -163 93 l-23 -21 -103 21 c-200 42 -197 41 -213 72 -10 18 -27 32 -48 37 -28 7 -35 16 -53 68 -15 39 -19 65 -13 76 14 26 11 71 -7 96 -16 24 -81 31 -100 12 -15 -15 -288 139 -292 165 -10 66 -42 95 -103 95 -40 0 -89 -48 -89 -87 0 -27 -7 -32 -91 -68 -88 -38 -91 -38 -119 -22 -35 21 -74 22 -103 2 -33 -21 -426 157 -427 193 -1 87 -101 135 -166 79z m26 -184 c28 -14 38 -14 64 -4 59 24 71 21 260 -68 187 -88 190 -89 201 -128 l11 -38 -181 -229 -181 -229 -48 -1 -48 -1 -199 210 -198 210 -1 50 0 51 142 97 c78 53 143 97 144 97 0 0 16 -7 34 -17z m929 -107 c9 -10 2 -63 -29 -222 -23 -115 -49 -249 -57 -299 -9 -49 -19 -93 -23 -98 -4 -4 -37 98 -74 226 -59 204 -67 237 -56 257 7 13 16 35 19 48 5 18 27 33 91 62 94 43 112 46 129 26z m266 -63 c91 -52 140 -86 146 -101 5 -12 24 -31 42 -42 25 -15 37 -32 50 -73 35 -112 53 -95 -255 -255 -150 -77 -280 -142 -288 -144 -24 -5 -18 44 45 366 56 281 60 298 84 311 36 19 24 23 176 -62z m-567 -118 c4 -4 132 -453 132 -465 0 -5 -9 -19 -20 -30 -24 -24 -28 -114 -6 -145 12 -18 3 -40 -88 -215 -140 -268 -120 -271 -299 35 -125 212 -138 238 -131 268 4 17 6 49 6 70 -2 34 13 56 180 267 181 228 195 241 226 215z m-1118 -272 l-26 -238 -46 -8 -47 -9 -198 173 c-109 95 -199 176 -201 180 -2 4 21 14 50 23 29 9 143 44 253 79 175 56 203 62 220 51 l21 -13 -26 -238z m328 27 c198 -209 199 -210 198 -253 -1 -24 5 -55 12 -69 13 -23 9 -34 -47 -145 -80 -160 -78 -159 -256 -55 -71 41 -142 83 -157 91 -22 12 -28 24 -28 49 0 18 -6 45 -13 60 -14 27 28 490 47 520 19 31 53 3 244 -198z m-684 -160 c113 -99 206 -187 206 -195 0 -30 -675 -9 -697 21 -18 25 -20 21 117 198 94 122 126 156 144 156 16 0 89 -58 230 -180z m2576 104 c153 -32 170 -38 170 -63 0 -17 -431 -538 -458 -555 -35 -21 -30 15 58 504 29 156 29 156 230 114z m-266 -1 c-6 -24 -104 -588 -104 -597 0 -3 -9 -6 -20 -6 -12 0 -34 -7 -50 -15 l-29 -15 -181 166 c-100 93 -180 173 -178 181 3 15 56 44 368 207 202 105 200 104 194 79z m726 -287 c146 -165 168 -199 133 -210 -47 -13 -810 -196 -821 -196 -34 0 7 56 214 300 217 255 228 265 268 271 22 3 44 5 49 5 4 -1 75 -77 157 -170z m-1890 -266 l138 -235 -11 -45 -11 -46 -195 -103 c-148 -79 -198 -101 -210 -94 -22 14 -49 361 -32 408 6 17 11 47 11 67 0 22 22 81 61 162 85 178 75 183 249 -114z m-1200 174 c260 -6 266 -7 293 -30 16 -13 38 -24 49 -24 17 0 19 -5 15 -32 -4 -18 -12 -95 -18 -170 -12 -136 -13 -138 -37 -138 -13 0 -41 -9 -61 -21 l-37 -21 -305 213 c-377 263 -355 243 -249 235 47 -3 204 -8 350 -12z m1879 -81 c214 -195 241 -224 234 -252 -3 -14 -6 -27 -7 -28 -2 -3 -572 -73 -592 -73 -34 0 -20 39 81 234 107 205 110 209 164 215 7 0 61 -43 120 -96z m-2399 32 l56 0 294 -206 c358 -251 344 -240 336 -265 -6 -20 -22 -21 -417 -39 l-411 -19 -25 32 c-13 18 -31 32 -38 32 -22 0 -28 17 -46 135 -15 94 -15 112 -3 126 8 8 14 29 14 45 0 36 145 178 170 166 8 -3 40 -7 70 -7z m1148 -108 c67 -39 122 -77 122 -83 0 -6 -69 -57 -154 -113 l-154 -103 -31 23 c-36 27 -36 18 -15 219 20 198 15 187 66 155 24 -14 98 -58 166 -98z m2477 -129 c-85 -80 -90 -83 -136 -83 -38 0 -53 -5 -76 -27 l-28 -27 -180 21 c-99 11 -187 23 -195 25 -8 3 48 20 125 39 77 19 230 56 340 83 110 27 209 50 219 50 13 1 -11 -27 -69 -81z m155 -358 c-13 -13 -20 -33 -20 -60 0 -36 -11 -54 -102 -170 -57 -71 -109 -129 -115 -129 -9 -1 -13 15 -14 47 0 26 -4 121 -8 212 l-8 164 28 27 c31 29 44 68 35 102 -5 18 11 39 106 129 l113 106 3 -204 c2 -193 1 -205 -18 -224z m-2453 318 c15 -18 38 -368 26 -377 -17 -11 -33 -48 -33 -78 0 -22 -21 -49 -102 -130 l-102 -102 -42 6 c-52 7 -104 -35 -104 -84 0 -27 -13 -34 -240 -151 l-239 -122 47 97 c26 54 100 203 165 331 l117 232 34 0 c62 0 126 73 126 145 0 35 3 37 158 140 164 108 173 113 189 93z m1313 -117 c0 -5 12 -23 26 -40 l26 -31 -128 -300 c-93 -220 -131 -300 -143 -300 -10 0 -43 37 -77 88 -337 489 -346 504 -311 517 14 6 538 72 580 74 15 0 27 -3 27 -8z m743 -50 c4 -1 7 -7 7 -15 0 -8 15 -27 34 -43 l34 -28 11 -215 c6 -118 8 -216 6 -218 -5 -5 -282 258 -454 431 -70 71 -112 121 -109 129 5 12 43 9 234 -14 126 -15 232 -27 237 -27z m-233 -303 c159 -155 287 -284 284 -288 -3 -3 -141 -35 -307 -71 -275 -61 -304 -66 -319 -51 -20 17 -23 207 -9 522 6 141 7 145 31 157 14 7 26 13 28 13 2 0 134 -127 292 -282z m-410 -77 c-6 -304 -7 -324 -26 -338 -10 -8 -28 -12 -39 -9 -11 3 -50 10 -86 17 -56 10 -68 16 -82 41 -17 29 -16 30 109 324 70 162 127 294 129 292 1 -2 -1 -149 -5 -327z m-873 297 c-112 -264 -330 -765 -336 -771 -6 -6 -36 146 -83 428 -20 123 -14 130 215 252 196 105 213 112 204 91z m290 -283 c213 -312 199 -286 182 -327 -19 -46 -433 -251 -490 -242 -25 4 -46 1 -66 -10 -45 -27 -159 -11 -186 26 l-20 27 146 338 c80 186 158 366 173 401 45 103 46 101 261 -213z m-1457 238 c0 -5 -105 -76 -233 -159 -294 -191 -258 -191 -467 -9 -82 72 -146 133 -142 136 16 15 842 46 842 32z m50 -75 c0 -24 -325 -658 -335 -655 -5 2 -45 71 -87 153 -66 128 -76 154 -69 179 6 25 46 55 242 182 241 157 249 162 249 141z m-780 -153 c103 -92 135 -125 135 -144 0 -20 -23 -39 -150 -118 -82 -51 -154 -92 -160 -90 -15 5 -19 465 -4 483 14 17 2 26 179 -131z m1457 -250 c45 -259 48 -278 34 -273 -5 2 -75 56 -155 122 -188 152 -186 144 -49 292 55 59 104 103 112 102 12 -2 26 -61 58 -243z m-1244 16 c23 -9 176 -285 164 -297 -3 -3 -116 23 -251 58 -135 34 -242 66 -238 70 18 18 277 178 288 178 7 0 24 -4 37 -9z m836 -120 l23 -18 -7 -196 c-7 -189 -9 -197 -31 -218 -13 -12 -24 -28 -24 -36 0 -7 -8 -13 -17 -13 -10 -1 -63 -5 -118 -9 -90 -7 -102 -6 -124 10 -13 11 -33 19 -45 19 -29 0 -32 3 -115 102 -43 52 -71 94 -69 105 2 15 474 273 498 273 3 0 16 -9 29 -19z m259 -107 c132 -109 142 -119 142 -151 0 -19 6 -46 14 -61 13 -25 11 -35 -32 -140 -25 -61 -51 -112 -58 -112 -29 0 -64 -42 -64 -78 -1 -35 -12 -48 -180 -210 -99 -96 -180 -171 -180 -168 0 25 134 442 143 445 54 20 75 103 36 142 -21 21 -21 24 -11 224 10 205 13 225 35 225 7 0 77 -52 155 -116z m1335 35 c31 -7 57 -15 57 -18 -1 -3 -53 -43 -117 -88 -109 -78 -118 -82 -155 -77 -33 6 -43 3 -66 -19 l-27 -25 -160 14 c-88 8 -164 15 -168 17 -5 1 75 44 178 95 l186 92 29 -20 c42 -30 90 -26 125 10 32 34 39 35 118 19z m-886 -245 c48 -7 47 -27 -10 -132 -47 -87 -55 -97 -82 -99 -17 -1 -39 -13 -52 -27 -16 -19 -36 -27 -90 -34 -101 -14 -101 -13 -40 131 40 94 44 100 82 113 22 7 48 25 58 39 20 26 20 26 134 9z"/>
+        </g>
+    </svg>
     <text x="74" y="42" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="0.08em">LAYER_01</text>
     <text x="74" y="82" font-family="'Chakra Petch', sans-serif" font-style="italic" font-weight="700" font-size="24" fill="#ffffff" letter-spacing="0.04em">ONEBRAIN</text>
     <text x="74" y="112" font-family="'JetBrains Mono', monospace" font-size="11" fill="rgba(255,255,255,0.85)" letter-spacing="0.30em">PLUGIN · CLI · ORCHESTRATOR</text>
-    <text x="320" y="68" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">The OS layer driving every harness consistently.</text>
-    <text x="320" y="98" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">skills · hooks · sync · indexing · checkpoints</text>
+    <text x="320" y="55" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">The OS layer driving every harness consistently.</text>
+    <text x="320" y="85" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">skills · hooks · memory · indexing · checkpoints</text>
     <g transform="translate(668, 14)">
       <rect width="100" height="24" fill="#ffffff"/>
-      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#c91075" font-weight="700" letter-spacing="0.14em" text-anchor="middle">OS_LAYER</text>
+      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00646e" font-weight="700" letter-spacing="0.14em" text-anchor="middle">OS_LAYER</text>
     </g>
   </g>
 
@@ -75,16 +66,16 @@
 
   <!-- ════════ LAYER 02 — HARNESS ════════ -->
   <g transform="translate(60, 260)">
-    <rect width="780" height="130" fill="url(#g-harness)"/>
+    <rect width="780" height="130" fill="url(#g-layer)"/>
     <text class="icon-pulse" x="38" y="78" font-size="32" text-anchor="middle" dominant-baseline="central" aria-hidden="true" style="animation-delay: 0.65s;">🤖</text>
     <text x="74" y="42" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="0.08em">LAYER_02</text>
     <text x="74" y="82" font-family="'Chakra Petch', sans-serif" font-style="italic" font-weight="700" font-size="24" fill="#ffffff" letter-spacing="0.04em">HARNESS</text>
     <text x="74" y="112" font-family="'JetBrains Mono', monospace" font-size="11" fill="rgba(255,255,255,0.85)" letter-spacing="0.30em">AGENTIC_RUNTIME</text>
-    <text x="320" y="68" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Bring your own. Switch any time.</text>
-    <text x="320" y="98" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">claude code · gemini cli · codex · qwen</text>
+    <text x="320" y="55" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Bring your own. Switch any time.</text>
+    <text x="320" y="85" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">claude code · gemini cli · codex · qwen</text>
     <g transform="translate(668, 14)">
       <rect width="100" height="24" fill="#ffffff"/>
-      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#7c1ade" font-weight="700" letter-spacing="0.14em" text-anchor="middle">BYO_HARNESS</text>
+      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00646e" font-weight="700" letter-spacing="0.14em" text-anchor="middle">BYO_HARNESS</text>
     </g>
   </g>
 
@@ -96,16 +87,16 @@
 
   <!-- ════════ LAYER 03 — LLM ════════ -->
   <g transform="translate(60, 410)">
-    <rect width="780" height="130" fill="url(#g-llm)"/>
+    <rect width="780" height="130" fill="url(#g-layer)"/>
     <text class="icon-pulse" x="38" y="78" font-size="32" text-anchor="middle" dominant-baseline="central" aria-hidden="true" style="animation-delay: 1.3s;">✨</text>
     <text x="74" y="42" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="0.08em">LAYER_03</text>
     <text x="74" y="82" font-family="'Chakra Petch', sans-serif" font-style="italic" font-weight="700" font-size="24" fill="#ffffff" letter-spacing="0.04em">LLM</text>
     <text x="74" y="112" font-family="'JetBrains Mono', monospace" font-size="11" fill="rgba(255,255,255,0.85)" letter-spacing="0.30em">INTELLIGENCE_SOURCE</text>
-    <text x="320" y="68" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Powered by anything. OneBrain stays the same.</text>
-    <text x="320" y="98" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">local: mlx, ollama · cloud: claude, gemini, gpt</text>
+    <text x="320" y="55" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Powered by anything. OneBrain stays the same.</text>
+    <text x="320" y="85" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">local: mlx, ollama · cloud: claude, gemini, gpt</text>
     <g transform="translate(668, 14)">
       <rect width="100" height="24" fill="#ffffff"/>
-      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#4d6d00" font-weight="700" letter-spacing="0.14em" text-anchor="middle">RAW_TOKENS</text>
+      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00646e" font-weight="700" letter-spacing="0.14em" text-anchor="middle">RAW_TOKENS</text>
     </g>
   </g>
 
@@ -115,18 +106,18 @@
     <line class="flow flow-up"   x1="9"  y1="0" x2="9"  y2="20" style="animation-delay: 0.6s;"/>
   </g>
 
-  <!-- ════════ LAYER 04 — OBSIDIAN VAULT ════════ -->
+  <!-- ════════ LAYER 04 — VAULT ════════ -->
   <g transform="translate(60, 560)">
-    <rect width="780" height="130" fill="url(#g-vault)"/>
+    <rect width="780" height="130" fill="url(#g-layer)"/>
     <text class="icon-pulse" x="38" y="78" font-size="32" text-anchor="middle" dominant-baseline="central" aria-hidden="true" style="animation-delay: 1.95s;">💎</text>
     <text x="74" y="42" font-family="'JetBrains Mono', monospace" font-size="13" font-weight="700" fill="rgba(255,255,255,0.85)" letter-spacing="0.08em">LAYER_04</text>
-    <text x="74" y="82" font-family="'Chakra Petch', sans-serif" font-style="italic" font-weight="700" font-size="24" fill="#ffffff" letter-spacing="0.04em">OBSIDIAN VAULT</text>
+    <text x="74" y="82" font-family="'Chakra Petch', sans-serif" font-style="italic" font-weight="700" font-size="24" fill="#ffffff" letter-spacing="0.04em">YOUR VAULT</text>
     <text x="74" y="112" font-family="'JetBrains Mono', monospace" font-size="11" fill="rgba(255,255,255,0.85)" letter-spacing="0.30em">SOURCE_OF_TRUTH</text>
-    <text x="320" y="68" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Plain Markdown · durable state for every layer.</text>
-    <text x="320" y="98" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">notes · memory · decisions · knowledge graph</text>
+    <text x="320" y="55" font-family="'JetBrains Mono', monospace" font-size="13" fill="#ffffff">Plain Markdown · durable state for every layer.</text>
+    <text x="320" y="85" font-family="'JetBrains Mono', monospace" font-size="13" fill="rgba(255,255,255,0.78)">notes · memory · decisions · knowledge graph</text>
     <g transform="translate(668, 14)">
       <rect width="100" height="24" fill="#ffffff"/>
-      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00788c" font-weight="700" letter-spacing="0.14em" text-anchor="middle">BASE_LAYER</text>
+      <text x="50" y="16" font-family="'JetBrains Mono', monospace" font-size="10" fill="#00646e" font-weight="700" letter-spacing="0.14em" text-anchor="middle">BASE_LAYER</text>
     </g>
   </g>
 

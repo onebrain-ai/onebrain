@@ -59,12 +59,12 @@ Unlike chat-based AI tools, OneBrain lives in plain Markdown files you own forev
 
 ## The Harness OS Architecture
 
-OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness — **it extends them**. Whichever harness you drive, OneBrain adds the persistent memory, skill surface, and personal calibration that harnesses don't ship with. Same harness; suddenly it remembers who you are, what you're working on, and how you like to work — all while your Obsidian vault stays the durable source of truth underneath.
+OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness — **it extends them**. Whichever harness you drive, OneBrain adds the persistent memory, skill surface, and personal calibration that harnesses don't ship with. Same harness; suddenly it remembers who you are, what you're working on, and how you like to work — all while your Markdown vault stays the durable source of truth underneath.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/harness-os-stack-dark.svg">
-    <img alt="OneBrain Harness OS — 4-layer architecture: OneBrain (plugin + CLI) on top, Harness, LLM, Obsidian Vault as the source of truth at the base" src="assets/diagrams/harness-os-stack-light.svg" width="780">
+    <img alt="OneBrain Harness OS — 4-layer architecture: OneBrain (plugin + CLI) on top, Harness, LLM, and your Markdown vault as the source of truth at the base" src="assets/diagrams/harness-os-stack-light.svg" width="780">
   </picture>
 </p>
 
@@ -103,7 +103,7 @@ Obsidian becomes your dispatch hub for everything you do:
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/vault-hub-dark.svg">
-    <img alt="Obsidian as command center — eight spokes radiate from the vault to CLI/repo, website, cloud infra, social media, office docs, project notes, research, and MCP server" src="assets/diagrams/vault-hub-light.svg" width="460">
+    <img alt="OneBrain as command center — eight spokes radiate from the vault to CLI/repo, website, web UI, social media, office docs, project notes, research, and MCP server" src="assets/diagrams/vault-hub-light.svg" width="460">
   </picture>
 </p>
 

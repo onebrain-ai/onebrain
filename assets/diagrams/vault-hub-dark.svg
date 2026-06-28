@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-280 -210 560 420" width="640" role="img" aria-labelledby="title desc" font-family="'JetBrains Mono', ui-monospace, monospace">
-  <title id="title">Obsidian as Command Center</title>
-  <desc id="desc">Hub-and-spoke diagram. Obsidian vault sits at the center, with eight spokes radiating outward to CLI/repo, website, cloud infra, social media, office docs, project notes, research, and MCP server.</desc>
+  <title id="title">OneBrain as Command Center</title>
+  <desc id="desc">Hub-and-spoke diagram. Your OneBrain vault sits at the center, with eight spokes radiating outward to CLI/repo, website, web UI, social media, office docs, project notes, research, and MCP server.</desc>
 
   <style>
-    .spoke       { stroke: #9234e8; stroke-opacity: 0.45; stroke-width: 1.3; }
-    .node        { fill: #9234e8; }
-    .node-label  { fill: #a855f7; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; }
-    .particle    { fill: #9234e8; }
-    .ping        { fill: none; stroke: #9234e8; stroke-width: 2; }
+    .spoke       { stroke: #7c3aed; stroke-opacity: 0.45; stroke-width: 1.3; }
+    .node        { fill: #7c3aed; }
+    .node-label  { fill: #a78bfa; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; }
+    .particle    { fill: #7c3aed; }
+    .ping        { fill: none; stroke: #7c3aed; stroke-width: 2; }
     .core        { transform-origin: center; transform-box: fill-box; }
     .core-label  { fill: #ffffff; font-size: 11.5px; font-weight: 700; letter-spacing: 0.16em; }
     .core-sub    { fill: rgba(255,255,255,0.85); font-size: 9px; letter-spacing: 0.32em; }
@@ -28,8 +28,8 @@
 
   <defs>
     <radialGradient id="g-core-fill" cx="0.32" cy="0.32" r="0.85">
-      <stop offset="0%"   stop-color="#a855f7" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#9234e8" stop-opacity="1"/>
+      <stop offset="0%"   stop-color="#a78bfa" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="1"/>
     </radialGradient>
   </defs>
 
@@ -43,7 +43,7 @@
   <!-- N — CLI / REPO (begin 0s) -->
   <line class="spoke" x1="0" y1="0" x2="0" y2="-150"/>
   <circle class="node" cx="0" cy="-150" r="5"/>
-  <text class="node-label" x="0" y="-183" text-anchor="middle">CLI / REPO<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7" keyTimes="0;0.92;0.95;1" dur="6s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="0" y="-183" text-anchor="middle">CLI / REPO<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa" keyTimes="0;0.92;0.95;1" dur="6s" repeatCount="indefinite"/></text>
   <circle class="particle" cx="0" cy="0" r="3" opacity="0">
     <animateMotion path="M 0,0 L 0,-150" dur="6s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.9;0.95;1" dur="6s" repeatCount="indefinite"/>
@@ -56,7 +56,7 @@
   <!-- NE — WEBSITE (inbound, begin 0.75s) — outer pings first, then particle leaves -->
   <line class="spoke" x1="0" y1="0" x2="106.07" y2="-106.07"/>
   <circle class="node" cx="106.07" cy="-106.07" r="5"/>
-  <text class="node-label" x="123.74" y="-119.74" text-anchor="start">WEBSITE<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7;#a855f7" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="0.75s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="123.74" y="-119.74" text-anchor="start">WEBSITE<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa;#a78bfa" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="0.75s" repeatCount="indefinite"/></text>
   <circle class="ping" cx="106.07" cy="-106.07" r="5" opacity="0">
     <animate attributeName="r" values="5;5;14;14" keyTimes="0;0.02;0.07;1" dur="6s" begin="0.75s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="0.75s" repeatCount="indefinite"/>
@@ -66,10 +66,10 @@
     <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.07;0.09;0.9;0.92;1" dur="6s" begin="0.75s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- E — CLOUD INFRA (begin 1.5s) -->
+  <!-- E — WEB UI (begin 1.5s) -->
   <line class="spoke" x1="0" y1="0" x2="150" y2="0"/>
   <circle class="node" cx="150" cy="0" r="5"/>
-  <text class="node-label" x="175" y="4" text-anchor="start">CLOUD INFRA<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7" keyTimes="0;0.92;0.95;1" dur="6s" begin="1.5s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="175" y="4" text-anchor="start">WEB UI<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa" keyTimes="0;0.92;0.95;1" dur="6s" begin="1.5s" repeatCount="indefinite"/></text>
   <circle class="particle" cx="0" cy="0" r="3" opacity="0">
     <animateMotion path="M 0,0 L 150,0" dur="6s" begin="1.5s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.9;0.95;1" dur="6s" begin="1.5s" repeatCount="indefinite"/>
@@ -82,7 +82,7 @@
   <!-- SE — SOCIAL MEDIA (inbound, begin 2.25s) -->
   <line class="spoke" x1="0" y1="0" x2="106.07" y2="106.07"/>
   <circle class="node" cx="106.07" cy="106.07" r="5"/>
-  <text class="node-label" x="123.74" y="127.74" text-anchor="start">SOCIAL MEDIA<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7;#a855f7" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="2.25s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="123.74" y="127.74" text-anchor="start">SOCIAL MEDIA<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa;#a78bfa" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="2.25s" repeatCount="indefinite"/></text>
   <circle class="ping" cx="106.07" cy="106.07" r="5" opacity="0">
     <animate attributeName="r" values="5;5;14;14" keyTimes="0;0.02;0.07;1" dur="6s" begin="2.25s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="2.25s" repeatCount="indefinite"/>
@@ -95,7 +95,7 @@
   <!-- S — OFFICE DOCS (begin 3s) -->
   <line class="spoke" x1="0" y1="0" x2="0" y2="150"/>
   <circle class="node" cx="0" cy="150" r="5"/>
-  <text class="node-label" x="0" y="189" text-anchor="middle">OFFICE DOCS<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7" keyTimes="0;0.92;0.95;1" dur="6s" begin="3s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="0" y="189" text-anchor="middle">OFFICE DOCS<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa" keyTimes="0;0.92;0.95;1" dur="6s" begin="3s" repeatCount="indefinite"/></text>
   <circle class="particle" cx="0" cy="0" r="3" opacity="0">
     <animateMotion path="M 0,0 L 0,150" dur="6s" begin="3s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.9;0.95;1" dur="6s" begin="3s" repeatCount="indefinite"/>
@@ -108,7 +108,7 @@
   <!-- SW — PROJECT NOTES (inbound, begin 3.75s) -->
   <line class="spoke" x1="0" y1="0" x2="-106.07" y2="106.07"/>
   <circle class="node" cx="-106.07" cy="106.07" r="5"/>
-  <text class="node-label" x="-123.74" y="127.74" text-anchor="end">PROJECT NOTES<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7;#a855f7" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="3.75s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="-123.74" y="127.74" text-anchor="end">PROJECT NOTES<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa;#a78bfa" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="3.75s" repeatCount="indefinite"/></text>
   <circle class="ping" cx="-106.07" cy="106.07" r="5" opacity="0">
     <animate attributeName="r" values="5;5;14;14" keyTimes="0;0.02;0.07;1" dur="6s" begin="3.75s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="3.75s" repeatCount="indefinite"/>
@@ -121,7 +121,7 @@
   <!-- W — RESEARCH (begin 4.5s) -->
   <line class="spoke" x1="0" y1="0" x2="-150" y2="0"/>
   <circle class="node" cx="-150" cy="0" r="5"/>
-  <text class="node-label" x="-175" y="4" text-anchor="end">RESEARCH<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7" keyTimes="0;0.92;0.95;1" dur="6s" begin="4.5s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="-175" y="4" text-anchor="end">RESEARCH<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa" keyTimes="0;0.92;0.95;1" dur="6s" begin="4.5s" repeatCount="indefinite"/></text>
   <circle class="particle" cx="0" cy="0" r="3" opacity="0">
     <animateMotion path="M 0,0 L -150,0" dur="6s" begin="4.5s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;0.05;0.9;0.95;1" dur="6s" begin="4.5s" repeatCount="indefinite"/>
@@ -134,7 +134,7 @@
   <!-- NW — MCP SERVER (inbound, begin 5.25s) -->
   <line class="spoke" x1="0" y1="0" x2="-106.07" y2="-106.07"/>
   <circle class="node" cx="-106.07" cy="-106.07" r="5"/>
-  <text class="node-label" x="-123.74" y="-119.74" text-anchor="end">MCP SERVER<animate attributeName="fill" values="#a855f7;#a855f7;#f5e9ff;#a855f7;#a855f7" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="5.25s" repeatCount="indefinite"/></text>
+  <text class="node-label" x="-123.74" y="-119.74" text-anchor="end">MCP SERVER<animate attributeName="fill" values="#a78bfa;#a78bfa;#ede9fe;#a78bfa;#a78bfa" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="5.25s" repeatCount="indefinite"/></text>
   <circle class="ping" cx="-106.07" cy="-106.07" r="5" opacity="0">
     <animate attributeName="r" values="5;5;14;14" keyTimes="0;0.02;0.07;1" dur="6s" begin="5.25s" repeatCount="indefinite"/>
     <animate attributeName="opacity" values="0;0;0.9;0;0" keyTimes="0;0.02;0.05;0.07;1" dur="6s" begin="5.25s" repeatCount="indefinite"/>
@@ -144,12 +144,12 @@
     <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.07;0.09;0.9;0.92;1" dur="6s" begin="5.25s" repeatCount="indefinite"/>
   </circle>
 
-  <!-- Center: Obsidian vault as command center -->
+  <!-- Center: OneBrain vault as command center -->
   <circle class="core" cx="0" cy="0" r="52" fill="url(#g-core-fill)"/>
   <g transform="translate(0,-23)">
     <path class="core-logo-shell" d="M 0 -9 L 7.79 -4.5 L 7.79 4.5 L 0 9 L -7.79 4.5 L -7.79 -4.5 Z"/>
     <path class="core-logo-cut"   d="M 0 -9 L 0 0 M 0 0 L 7.79 4.5 M 0 0 L -7.79 4.5"/>
   </g>
-  <text class="core-label" x="0" y="3"  text-anchor="middle">OBSIDIAN</text>
+  <text class="core-label" x="0" y="3"  text-anchor="middle">ONEBRAIN</text>
   <text class="core-sub"   x="0" y="19" text-anchor="middle">vault</text>
 </svg>
