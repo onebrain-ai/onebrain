@@ -8,6 +8,10 @@ schedulable: false
 
 Update OneBrain system files from GitHub to the latest version.
 
+> **Fetching raw GitHub content (cross-shell).** Every raw fetch in this skill — `plugin.json`, `CHANGELOG.md`, `SKILL.md`, `settings.json` — uses `curl -fsSL <url>` via the Bash tool, **not** `WebFetch`. WebFetch can summarize or paraphrase content even on `raw.githubusercontent.com` URLs, silently corrupting JSON parsing and verbatim file writes (see Known Gotchas). Never use `git` either (it hangs on Windows waiting for credentials).
+> - **Bash / zsh / Git Bash / cmd:** `curl -fsSL <url>` (Windows 10+ ships real `curl.exe`).
+> - **PowerShell:** `curl` is an alias for `Invoke-WebRequest` with incompatible flags — use `Invoke-WebRequest -UseBasicParsing <url> | Select-Object -ExpandProperty Content` instead.
+
 ## Version Check
 
 1. Read current version from vault's `plugin.json` (`[agent_folder]/../../.claude-plugin/plugin.json` or `.claude/plugins/onebrain/.claude-plugin/plugin.json`)
@@ -16,12 +20,12 @@ Update OneBrain system files from GitHub to the latest version.
    - `stable` → `main`
    - `next` → `next`
    - `N.x` (e.g. `1.x`, `2.x`) → `N.x`
-3. Read new version from repo's `plugin.json` on the mapped branch using `WebFetch` — never use `git` commands (they hang on Windows waiting for credentials):
-   `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/plugins/onebrain/.claude-plugin/plugin.json`
+3. Read new version from repo's `plugin.json` on the mapped branch with `curl -fsSL` (see **Fetching raw GitHub content** above for the cross-shell form) — never `WebFetch` (it can summarize JSON and corrupt the version compare) and never `git` (it hangs on Windows):
+   `curl -fsSL https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/plugins/onebrain/.claude-plugin/plugin.json`
    where `{branch}` is the mapped branch from step 2.
-   Parse the `version` field from the JSON response. (⚠️ JSON parsing — see Known Gotchas: WebFetch may summarize; use `curl -fsSL` if a version mismatch is suspected.)
+   Parse the `version` field from the JSON response.
 4. If equal → say: ✅ Already up to date — v{X.X.X}. and stop
-5. If newer → WebFetch `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/CHANGELOG.md`; display before proceeding (do not skip or summarize — and if the fetched content already looks paraphrased, re-fetch via `curl -fsSL`; see Known Gotchas):
+5. If newer → `curl -fsSL https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/CHANGELOG.md` (see **Fetching raw GitHub content** above); display before proceeding (do not skip or summarize):
 
    ```
    ──────────────────────────────────────────────────────────────
@@ -75,7 +79,7 @@ where `{branch}` is the branch mapped from `update_channel` in step 2 of Version
 
 Steps:
 1. **Early bootstrap — download the latest SKILL.md:**
-   Use WebFetch + Write to download this file from GitHub and write to vault. `{vault_root}` = the vault's absolute path (the current working directory — the directory containing `.claude/`). (⚠️ If the written SKILL.md looks paraphrased or shorter than the source, refetch via `curl -fsSL` — see Known Gotchas. A summarized self-update bootstrap corrupts the instructions the agent is about to follow.)
+   Use `curl -fsSL <raw-url> -o <dest>` (or `curl -fsSL` + Write) to download this file from GitHub and write to vault — **not** `WebFetch`, which can paraphrase the file and corrupt the instructions the agent is about to follow. See **Fetching raw GitHub content** above for the cross-shell form. `{vault_root}` = the vault's absolute path (the current working directory — the directory containing `.claude/`).
 
    Raw URL: `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/plugins/onebrain/{path}`
 
@@ -107,7 +111,7 @@ Steps:
       and `[agent_folder]/context/` → `[archive_folder]/[agent_folder]/context.YYYY-MM-DD/` (if context/ exists). The `[agent_folder]` literal under `[archive_folder]/` mirrors the source's relative path so users who remapped `folders.agent` in onebrain.yml see backups land in the matching subfolder.
    b. Sync remaining files — run these two sub-steps in parallel, then clean cache after both complete:
       - **Full vault sync:** run `onebrain plugin update --branch {branch}` (the CLI defaults the vault root to the current working directory; explicit `"$PWD"` was Bash-only and broke on PowerShell/cmd). Downloads the full GitHub tarball, syncs plugin folder (with stale file cleanup), copies README.md/CONTRIBUTING.md/CHANGELOG.md to vault root (overwrite), merges CLAUDE.md/GEMINI.md/AGENTS.md (vault is primary; injects new repo `@` imports only), pins plugin to vault, and clears plugin cache. (Pre-v3.0.2 vaults receive a one-time cleanup of the now-removed `PLUGIN-CHANGELOG.md` root file as part of the plugin folder sync.)
-      - **Settings merge:** WebFetch `https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/settings.json`, then merge into `[vault]/.claude/settings.json` (⚠️ JSON parsing — refetch via `curl -fsSL` if the response is not valid JSON; see Known Gotchas). Merge strategy (never overwrite, always additive): `permissions.allow` → union; `enabledPlugins` → merge keys (skip any `onebrain@*` key whose marketplace points to a `directory` source — repo-dev-only, not valid in vault context); `extraKnownMarketplaces` → skip (repo-dev-only config, not valid in vault context); `hooks` → skip (handled by migration Step 6).
+      - **Settings merge:** `curl -fsSL https://raw.githubusercontent.com/onebrain-ai/onebrain/{branch}/.claude/settings.json` (see **Fetching raw GitHub content** above — not `WebFetch`, which can return a non-JSON paraphrase), then merge into `[vault]/.claude/settings.json`. Merge strategy (never overwrite, always additive): `permissions.allow` → union; `enabledPlugins` → merge keys (skip any `onebrain@*` key whose marketplace points to a `directory` source — repo-dev-only, not valid in vault context); `extraKnownMarketplaces` → skip (repo-dev-only config, not valid in vault context); `hooks` → skip (handled by migration Step 6).
    c. Once all step 3b sub-steps are complete, load `[vault]/.claude/plugins/onebrain/skills/update/references/migration-steps.md` and run all 8 migration steps
    d. Bump `plugin.json` version to `{new}` (last — completion signal; do not bump early)
 4. Write migration log. Follow `../_shared/audit-log-format.md` (canonical frontmatter umbrella tag, failure mode) with these specifics for `/update`:
@@ -187,7 +191,7 @@ Dry run complete — {N} files would be created, {M} modified, {P} deleted.
 
 ## Known Gotchas
 
-- **Do not use git commands for the version check.** `git fetch` and `git pull` hang on Windows while waiting for credentials. Always use `WebFetch` on the raw GitHub URL to compare versions and fetch files.
+- **Do not use git commands for the version check.** `git fetch` and `git pull` hang on Windows while waiting for credentials. Always use `curl -fsSL` on the raw GitHub URL to compare versions and fetch files (see **Fetching raw GitHub content** for the cross-shell form).
 
 - **plugin.json bump is the last step.** If /update is interrupted before step 3d, the version stays at the old number — re-running /update will retry the full migration. Do not bump plugin.json early as a progress marker.
 
@@ -203,4 +207,4 @@ Dry run complete — {N} files would be created, {M} modified, {P} deleted.
 
 - **CLI update delegates to `onebrain update`; plugin pull delegates to `onebrain plugin update`.** Do not call `npm install -g @onebrain-ai/cli` or `bun install -g @onebrain-ai/cli` from this skill — `onebrain update` is the single source of truth for the CLI bump (version check, package-manager choice, validation). Raw npm/bun is reserved for first-time CLI bootstrap, which is a README/install-script concern, not a `/update` concern. **v3.0 → v3.1 semantic swap:** in v3.0, `onebrain update` pulled the plugin; in v3.1 it self-updates the CLI binary, and the old plugin-pull behavior moved to `onebrain plugin update`. Don't reach for the legacy v3.0 names.
 
-- **WebFetch may return summarized markdown — use `curl -fsSL` when raw content is required.** WebFetch can post-process content even with `raw.githubusercontent.com` URLs and explicit "return verbatim" prompts. Anywhere `/update` parses JSON (`plugin.json`, `settings.json`) or downloads/displays files verbatim (`CHANGELOG.md`, `SKILL.md`), prefer `curl -fsSL <raw-url>` via the Bash tool instead. Symptoms of a summarized fetch: version mismatch on `plugin.json`, truncated/paraphrased changelog display, corrupted SKILL.md after self-update bootstrap.
+- **Always fetch raw content with `curl -fsSL`, never `WebFetch`.** WebFetch can post-process/summarize content even with `raw.githubusercontent.com` URLs and explicit "return verbatim" prompts. All four raw fetches in this skill — `plugin.json`, `CHANGELOG.md`, `SKILL.md`, `settings.json` — use `curl -fsSL <raw-url>` via the Bash tool (see **Fetching raw GitHub content** at the top). **PowerShell caveat:** `curl` there is an alias for `Invoke-WebRequest` with incompatible flags — use `Invoke-WebRequest -UseBasicParsing <url> | Select-Object -ExpandProperty Content`. Symptoms of a stray WebFetch slipping back in: version mismatch on `plugin.json`, truncated/paraphrased changelog display, corrupted SKILL.md after self-update bootstrap.

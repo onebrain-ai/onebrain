@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.7
-released: 2026-06-26
+latest_version: 3.1.8
+released: 2026-06-29
 ---
 
 # Changelog
@@ -10,6 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.8 — 2026-06-29 — /update: curl-first raw fetches
+
+- **fix(update): swap `WebFetch` → `curl -fsSL` at all four raw-content call sites** in `skills/update/SKILL.md` — `plugin.json` version check, `CHANGELOG.md` display, self-update `SKILL.md` bootstrap, and `settings.json` merge. WebFetch can summarize/paraphrase even verbatim `raw.githubusercontent.com` requests, silently corrupting JSON parsing and file writes; `curl -fsSL` returns bytes unchanged.
+- Added a single **Fetching raw GitHub content (cross-shell)** helper block; each call site references it instead of repeating the guidance.
+- Cross-shell handling: Bash/zsh/Git Bash/cmd use `curl -fsSL`; PowerShell uses `Invoke-WebRequest -UseBasicParsing` (its `curl` alias rejects `-fsSL`).
+- Reframed the two Known Gotchas so `curl` is the documented primary and `WebFetch` the thing to avoid.
 
 ## v3.1.7 — 2026-06-26 — startup: qmd_unembedded null support
 
