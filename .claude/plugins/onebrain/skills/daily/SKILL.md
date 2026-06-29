@@ -33,7 +33,14 @@ Read that session log. Extract main topics and any unchecked action items.
 Pull from two sources:
 
 **Source 1 : Tasks due today or overdue:**
-Grep `[projects_folder]/**/*.md` and `[inbox_folder]/*.md` for task lines matching `- [ ] .*📅 \d{4}-\d{2}-\d{2}`. Filter to dates ≤ today. Group: overdue first, then due today. Include the source note name.
+Run `onebrain task list --due-by today --json` from the vault root and read `data.tasks`
+(each row: `{file, line, text, due, done}`, already fence-aware and open-only). Group:
+overdue first, then due today. Include the source note name (`file`).
+
+> **Fallback (older CLI):** if the command errors or returns non-zero, fall back to the
+> legacy scan — Grep `[projects_folder]/**/*.md` and `[inbox_folder]/*.md` for
+> `- [ ] .*📅 \d{4}-\d{2}-\d{2}`, filter to dates ≤ today. (This path still includes fenced
+> demo lines; upgrade the CLI to remove them.)
 
 **Source 2 : Open action items from last session:**
 If morning mode: already loaded from recap step above; extract unchecked `- [ ]` items from the `## Action Items` section.
@@ -75,4 +82,4 @@ If both task sources are empty:
 
 - **Monday morning: "last session" is typically Friday.** When globbing for the most recent session log on a Monday morning, don't assume it's from today or yesterday — it may be 2-3 days ago. Always sort by filename (which contains the date) rather than file modification time.
 
-- **Tasks grep includes tasks in TASKS.md.** `TASKS.md` contains Dataview query blocks, not real tasks — its content changes dynamically and may include false matches. Exclude `TASKS.md` from the task grep.
+- **Tasks grep includes tasks in TASKS.md.** On the verb path (`onebrain task list`), `TASKS.md` is excluded automatically. On the Grep fallback path only: `TASKS.md` contains Dataview query blocks, not real tasks — its content changes dynamically and may include false matches. Exclude `TASKS.md` from the task grep when using the fallback.
