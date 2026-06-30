@@ -39,8 +39,9 @@ overdue first, then due today. Include the source note name (`file`).
 
 > **Fallback (older CLI):** if the command errors or returns non-zero, fall back to the
 > legacy scan — Grep `[projects_folder]/**/*.md` and `[inbox_folder]/*.md` for
-> `- [ ] .*📅 \d{4}-\d{2}-\d{2}`, filter to dates ≤ today. (This path still includes fenced
-> demo lines; upgrade the CLI to remove them.)
+> `- [ ] .*📅 \d{4}-\d{2}-\d{2}`, filter to dates ≤ today, then group overdue first, then due
+> today (same ordering as the verb path). (This path still includes fenced demo lines; upgrade
+> the CLI to remove them.)
 
 **Source 2 : Open action items from last session:**
 If morning mode: already loaded from recap step above; extract unchecked `- [ ]` items from the `## Action Items` section.

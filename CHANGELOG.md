@@ -17,7 +17,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Grep fallback retained** at both call sites: if the verb errors / returns non-zero (older CLI), fall back to the previous twice-run Grep scan — mirrors the existing session-init / orphan-scan fallback pattern.
 - Reworded the `/daily` `TASKS.md` gotcha: the verb path excludes `TASKS.md` automatically; the gotcha now applies only to the Grep fallback path.
 
-
+## v3.1.8 — 2026-06-29 — /update: curl-first raw fetches
 
 - **fix(update): swap `WebFetch` → `curl -fsSL` at all four raw-content call sites** in `skills/update/SKILL.md` — `plugin.json` version check, `CHANGELOG.md` display, self-update `SKILL.md` bootstrap, and `settings.json` merge. WebFetch can summarize/paraphrase even verbatim `raw.githubusercontent.com` requests, silently corrupting JSON parsing and file writes; `curl -fsSL` returns bytes unchanged.
 - Added a single **Fetching raw GitHub content (cross-shell)** helper block; each call site references it instead of repeating the guidance.
