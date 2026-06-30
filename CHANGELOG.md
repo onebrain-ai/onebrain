@@ -1,5 +1,5 @@
 ---
-latest_version: 3.1.8
+latest_version: 3.1.9
 released: 2026-06-29
 ---
 
@@ -11,7 +11,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
-## v3.1.8 — 2026-06-29 — /update: curl-first raw fetches
+## v3.1.9 — 2026-06-29 — fence-aware task scan via `onebrain task list`
+
+- **feat(startup + /daily): source due/overdue tasks from `onebrain task list --due-by today --json`** instead of the line-based Grep scan. The new fence-aware CLI verb (onebrain-cli v3.3.13) skips checkbox lines inside ``` / ~~~ fenced code blocks, so demo/fixture task lines in plan & spec docs no longer pollute the startup status and `/daily` briefing.
+- **Grep fallback retained** at both call sites: if the verb errors / returns non-zero (older CLI), fall back to the previous twice-run Grep scan — mirrors the existing session-init / orphan-scan fallback pattern.
+- Reworded the `/daily` `TASKS.md` gotcha: the verb path excludes `TASKS.md` automatically; the gotcha now applies only to the Grep fallback path.
+
+
 
 - **fix(update): swap `WebFetch` → `curl -fsSL` at all four raw-content call sites** in `skills/update/SKILL.md` — `plugin.json` version check, `CHANGELOG.md` display, self-update `SKILL.md` bootstrap, and `settings.json` merge. WebFetch can summarize/paraphrase even verbatim `raw.githubusercontent.com` requests, silently corrupting JSON parsing and file writes; `curl -fsSL` returns bytes unchanged.
 - Added a single **Fetching raw GitHub content (cross-shell)** helper block; each call site references it instead of repeating the guidance.
