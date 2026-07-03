@@ -1,7 +1,7 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.png">
-    <img alt="OneBrain — Your AI Thinking Partner" src="assets/header-light.png" width="640">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/header-dark.svg">
+    <img alt="OneBrain — Your AI Thinking Partner" src="assets/header-light.svg" width="640">
   </picture>
 </p>
 
