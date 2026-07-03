@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """CI: verify relative file links in Markdown resolve to a real file.
 
-Conservative by design — only inline `[text](target)` links are checked:
+Checks two link forms and verifies each relative target resolves to a real file:
+  * inline Markdown `[text](target)` links, and
+  * HTML `src="…"` / `srcset="…"` attributes (so `<picture>`/`<img>` banners are
+    guarded — the only relative link many READMEs actually carry).
+Conservative by design:
   * `[[wikilinks]]` (Obsidian) have no parens, so they are never matched.
-  * external targets (http, https, mailto, tel, //) are skipped.
+  * external targets (http, https, mailto, tel, data:, //) are skipped.
   * pure `#anchor` targets are skipped; a trailing `#anchor` / `?query` is stripped.
   * fenced ``` code blocks are ignored so documented examples don't false-positive.
 Pure stdlib — no third-party deps.
@@ -14,7 +18,8 @@ import subprocess
 import sys
 
 LINK = re.compile(r"(?<!\!)\[[^\]]*\]\(([^)]+)\)")
-SKIP_SCHEMES = ("http://", "https://", "mailto:", "tel:", "//", "#")
+ATTR = re.compile(r'(?:src|srcset)\s*=\s*"([^"]+)"')
+SKIP_SCHEMES = ("http://", "https://", "mailto:", "tel:", "data:", "//", "#")
 
 
 def tracked_md():
@@ -42,7 +47,12 @@ def main():
         base = os.path.dirname(md)
         with open(md, encoding="utf-8") as fh:
             body = strip_code(fh.read())
-        for target in LINK.findall(body):
+        # Markdown `[text](target)` targets, plus every candidate URL inside an
+        # HTML src / srcset attribute (srcset is comma-separated `url [descriptor]`).
+        candidates = list(LINK.findall(body))
+        for attr in ATTR.findall(body):
+            candidates += [c.strip().split()[0] for c in attr.split(",") if c.strip()]
+        for target in candidates:
             t = target.strip().split()[0]  # drop optional "title"
             if t.startswith(SKIP_SCHEMES) or not t:
                 continue
