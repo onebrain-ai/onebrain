@@ -1,6 +1,6 @@
 ---
-latest_version: 3.1.9
-released: 2026-06-29
+latest_version: 3.1.10
+released: 2026-07-03
 ---
 
 # Changelog
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.1.10 — 2026-07-03 — native MCP backend (`onebrain mcp` replaces `qmd mcp`)
+
+- **feat(mcp): `.mcp.json` now launches `onebrain mcp` instead of `qmd mcp`.** Agent-session vault search is served by the native OneBrain engine (`onebrain-search`, hybrid lex+vector, RRF-fused) over the same `query`/`get`/`multi_get`/`status` tools qmd exposed. The server key stays `qmd`, so the tool namespace (`mcp__plugin_onebrain_qmd__*`) and every INSTRUCTIONS.md reference are unchanged — a pure backend swap.
+- **Requires CLI ≥ 3.4.1** (`requires.cli` raised from `>=3.1.0`): the top-level `onebrain mcp` command first shipped in onebrain-cli v3.4.1; older CLIs lack it and the server would fail to start.
+- No skill/agent/INSTRUCTIONS changes — qmd stays installed and usable via `/qmd`; full qmd removal + `/qmd`→`/search` cutover land later in the v3.4.5 epic.
 
 ## v3.1.9 — 2026-06-29 — fence-aware task scan via `onebrain task list`
 
