@@ -1,6 +1,6 @@
 {
   "qmd": {
-    "command": "qmd",
+    "command": "onebrain",
     "args": ["mcp"]
   }
 }
