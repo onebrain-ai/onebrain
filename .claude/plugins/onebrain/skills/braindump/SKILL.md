@@ -70,7 +70,7 @@ created: YYYY-MM-DD
 (Omit this section if no related notes are found)
 ```
 
-Find related notes via qmd if available; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. Omit `## Related Notes` if nothing relevant found.
+Find related notes via the search tools if available; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. Omit `## Related Notes` if nothing relevant found.
 
 ---
 

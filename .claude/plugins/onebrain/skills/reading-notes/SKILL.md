@@ -126,7 +126,7 @@ rating: [1-5 if they want to rate it]
 [[Related Note 2]]
 ```
 
-Populate `## Related` by searching for vault notes related to the book's topic (use qmd if available, otherwise Glob `[resources_folder]/**/*.md`, `[knowledge_folder]/**/*.md`).
+Populate `## Related` by searching for vault notes related to the book's topic (use the search tools if available, otherwise Glob `[resources_folder]/**/*.md`, `[knowledge_folder]/**/*.md`).
 
 ---
 

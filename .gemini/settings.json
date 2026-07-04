@@ -20,7 +20,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain qmd reindex --json > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain search reindex --json > /dev/null 2>&1; echo '{}'"
           }
         ]
       }

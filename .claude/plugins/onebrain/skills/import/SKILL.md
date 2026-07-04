@@ -142,7 +142,7 @@ Ask using AskUserQuestion:
 
 **If "yes":** For each successfully created note (process one at a time):
 
-1. **Find related vault notes:** Search using qmd if available, otherwise Grep `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md` for keywords from the imported note's title, tags, and Summary section. Exclude the imported note itself.
+1. **Find related vault notes:** Search using the search tools if available, otherwise Grep `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md` for keywords from the imported note's title, tags, and Summary section. Exclude the imported note itself.
 
 2. **Present suggestions:**
    ```
@@ -164,7 +164,7 @@ Ask using AskUserQuestion:
 4. After processing all suggestions for this note: confirm what was linked or appended.
 
 ```
-onebrain qmd reindex
+onebrain search reindex
 ```
 
 ### Supported File Types

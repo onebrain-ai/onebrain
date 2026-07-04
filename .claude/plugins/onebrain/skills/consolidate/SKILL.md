@@ -54,7 +54,7 @@ For each item:
 ### 3a. Analyze
 Read the file fully. Use the pre-classification from Step 2.5 as the starting point. Confirm or adjust based on your own reading:
 - What type of knowledge this is (insight, reference, idea, project note, area)
-- What existing notes it relates to (search via qmd if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`)
+- What existing notes it relates to (search via the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`)
 - Whether it deserves its own note or should be merged into an existing one
 
 ### 3b. Decide Destination
@@ -150,7 +150,7 @@ Empty state:
 ✅ Inbox is empty — nothing to process.
 
 ```
-onebrain qmd reindex
+onebrain search reindex
 ```
 
 ---

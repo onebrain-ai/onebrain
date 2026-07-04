@@ -7,7 +7,7 @@ description: "Canonical audit-log frontmatter, append-per-day algorithm, run-sec
 
 Shared canonical format for skill-run audit logs. Every skill that writes to `[logs_folder]/log/YYYY/MM/` follows this format. The unique per-skill body sections (e.g. `### Memory Changes` for /recap, slug rules for /distill) live in each skill's own SKILL.md; everything common lives here.
 
-Referenced by: `recap/`, `distill/`, `learn/`, `memory-review/`, `consolidate/`, `connect/`, `reorganize/`, `onboarding/`, `qmd/`, `clone/`, `doctor/`, `update/`, `weekly/`.
+Referenced by: `recap/`, `distill/`, `learn/`, `memory-review/`, `consolidate/`, `connect/`, `reorganize/`, `onboarding/`, `clone/`, `doctor/`, `update/`, `weekly/`.
 
 ---
 
@@ -26,7 +26,7 @@ date: YYYY-MM-DD
 **Field rules:**
 
 - **`tags`** — always a list with `audit-log` first (umbrella) and the skill name second (specific). The umbrella `audit-log` tag lets users query all audit logs in one Dataview block; the second tag narrows by skill.
-- **`skill`** — the slash-command form (`/recap`, `/distill`, `/qmd`, …). Always present, even when the skill name appears in `tags`. Files shared across two skills (e.g. `memory.md` written by both `/learn` and `/memory-review`) use a YAML list: `skill: [/learn, /memory-review]`.
+- **`skill`** — the slash-command form (`/recap`, `/distill`, `/weekly`, …). Always present, even when the skill name appears in `tags`. Files shared across two skills (e.g. `memory.md` written by both `/learn` and `/memory-review`) use a YAML list: `skill: [/learn, /memory-review]`.
 - **`date`** — the file's date in ISO format. Replaces the older `created:` and `updated:` fields used inconsistently across skills. One file per (skill, day), so `date` matches the date in the filename.
 
 **Per-skill discriminators** (added below the canonical 3 when the skill needs them):
@@ -34,7 +34,6 @@ date: YYYY-MM-DD
 | Skill | Extra frontmatter | Reason |
 |---|---|---|
 | `/distill` | `topic: "<verbatim>"`, `slug: "<slug>"` | one file per (topic, day) — discriminator is in filename and frontmatter |
-| `/qmd` | `subcommand: setup\|embed\|reindex\|uninstall`, `collection: <name>` | one file per (subcommand, day) |
 | `/clone` | `method: folder-copy \| display-paths`, `include_archive: true \| false` | run shape |
 | `/onboarding` | `path: A \| B`, `plugin_version: X.Y.Z`, `run: N` | install path + version snapshot |
 | `/reorganize` | `mode: full \| subfolder \| both` | which migration ran |
@@ -48,7 +47,7 @@ date: YYYY-MM-DD
 
 All audit-log files are append-per-day. Algorithm:
 
-1. Compute `target_path = [logs_folder]/log/YYYY/MM/YYYY-MM-DD-<name>.md` where `<name>` is the per-skill filename (e.g. `recap`, `distill-{slug}`, `qmd-setup`, `memory`).
+1. Compute `target_path = [logs_folder]/log/YYYY/MM/YYYY-MM-DD-<name>.md` where `<name>` is the per-skill filename (e.g. `recap`, `distill-{slug}`, `memory`).
 2. Create parent dir `[logs_folder]/log/YYYY/MM/` if missing.
 3. **If the target file already exists:** append a new `## Run HH:MM` section to the bottom — do NOT duplicate the frontmatter or `# <Skill> — YYYY-MM-DD` heading. Each run produces one new section.
 4. **If the target file does not exist:** create it with the frontmatter block above, the `# <Skill> — YYYY-MM-DD` heading, then the first `## Run HH:MM` section.
@@ -116,7 +115,6 @@ Some skills run but have nothing to log (e.g. `/consolidate` against an empty in
 | `/connect` | `YYYY-MM-DD-connect.md` | one per day |
 | `/reorganize` | `YYYY-MM-DD-reorganize.md` | one per day |
 | `/onboarding` | `YYYY-MM-DD-onboarding.md` | one-shot per vault lifetime |
-| `/qmd <sub>` | `YYYY-MM-DD-qmd-<sub>.md` | one per (subcommand, day) |
 | `/clone` | `YYYY-MM-DD-clone.md` | one per day |
 | `/doctor` | `YYYY-MM-DD-doctor.md` | one per day |
 | `/update` | `YYYY-MM-DD-update-vX.X.X.md` | per update run; lives in `[logs_folder]/update/` (NOT `[logs_folder]/log/`) post-v2.4.0 |

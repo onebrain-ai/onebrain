@@ -53,7 +53,7 @@ Key files: [plugin.json](.claude/plugins/onebrain/.claude-plugin/plugin.json) ·
 
 Skills are plain Markdown files. The AI reads them at runtime — no compilation or build step.
 
-**Predefined scripts** (`startup/scripts/` and `skills/[name]/scripts/`) are shell scripts the AI calls via `bash "path/to/script.sh"` instead of writing bash inline. Use them for repeatable operations (datetime, session token detection, qmd update, file opens, hook state reset) so Claude does not spend tokens re-generating the same bash logic each time. All scripts must be defensive — exit silently when conditions are not met (binary missing, variable unset, etc.).
+**Predefined scripts** (`startup/scripts/` and `skills/[name]/scripts/`) are shell scripts the AI calls via `bash "path/to/script.sh"` instead of writing bash inline. Use them for repeatable operations (datetime, session token detection, search index update, file opens, hook state reset) so Claude does not spend tokens re-generating the same bash logic each time. All scripts must be defensive — exit silently when conditions are not met (binary missing, variable unset, etc.).
 
 ## Multi-Harness Support
 
@@ -176,13 +176,13 @@ Use `cron:` for recurring schedules and `at:` for one-shot fire-once-then-uninst
 
 ### Don't wrap CLI tasks in skills
 
-If you have a CLI maintenance task (e.g., `onebrain qmd reindex`), do NOT create a thin wrapper skill just to make it schedulable. Use command mode in `onebrain.yml` instead:
+If you have a CLI maintenance task (e.g., `onebrain search reindex`), do NOT create a thin wrapper skill just to make it schedulable. Use command mode in `onebrain.yml` instead:
 
 ```yaml
 schedule:
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd, reindex]
+    args: [search, reindex]
 ```
 
 Command mode matches the Claude Code hook shape — single source of pattern across event-driven (hooks) and time-driven (schedules) automation.

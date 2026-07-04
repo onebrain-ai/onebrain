@@ -116,7 +116,7 @@ published: [Publication date if known]
 
 ## Step 7: Suggest Links and Clean Up Bookmark
 
-**Suggest links:** Search for related vault notes (use qmd if available, otherwise Glob `[resources_folder]/**/*.md` and `[knowledge_folder]/**/*.md`).
+**Suggest links:** Search for related vault notes (use the search tools if available, otherwise Glob `[resources_folder]/**/*.md` and `[knowledge_folder]/**/*.md`).
 
 ──────────────────────────────────────────────────────────────
 📄 Summary — {Title}

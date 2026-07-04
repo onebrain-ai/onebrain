@@ -11,7 +11,7 @@ Skills and INSTRUCTIONS.md use Claude Code tool names. When you encounter these,
 | `AskUserQuestion` | Ask inline via output |
 | `Skill` (invoke a skill) | Skills load natively — follow instructions directly |
 | `Agent` (dispatch sub-agent) | `spawn_agent` — see below |
-| `mcp__plugin_onebrain_qmd__*` | Not available — use native search tools |
+| `mcp__plugin_onebrain_search__*` | Not available — use native search tools |
 
 ## Sub-agent dispatch
 

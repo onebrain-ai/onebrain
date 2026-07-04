@@ -50,7 +50,6 @@ Skills are organized by workflow phase — Input → Process → Recall → Main
 | `/doctor` | Vault + plugin health check |
 | `/reorganize` | Migrate vault structure |
 | `/clone` | Package agent context for transfer |
-| `/qmd` | qmd search index management |
 | `/help` | This catalog |
 | `/wrapup` | Session log |
 | `/schedule-add` | Interactive wizard for adding a scheduled skill |

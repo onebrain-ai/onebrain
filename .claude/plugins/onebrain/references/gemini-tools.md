@@ -15,7 +15,7 @@ Skills and INSTRUCTIONS.md use Claude Code tool names. When you encounter these,
 | `AskUserQuestion` | `ask_user` |
 | Skills (follow SKILL.md) | Read `.claude/plugins/onebrain/skills/[name]/SKILL.md` via `read_file`, then follow it — no separate tool call needed |
 | `Agent` (dispatch sub-agent) | No equivalent — execute inline |
-| `mcp__plugin_onebrain_qmd__*` | Not available — use `glob` + `grep_search` |
+| `mcp__plugin_onebrain_search__*` | Not available — use `glob` + `grep_search` |
 
 ## No sub-agent support
 

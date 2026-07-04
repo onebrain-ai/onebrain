@@ -1,6 +1,6 @@
 ---
 name: search
-description: General vault retrieval — answers both "what" and "why" questions across MEMORY.md, memory/, session logs, project trackers, and vault notes. Uses qmd (lex+vec+hyde) with grep fallback.
+description: General vault retrieval — answers both "what" and "why" questions across MEMORY.md, memory/, session logs, project trackers, and vault notes. Uses the search tools (lex+vec+hyde) with grep fallback.
 auto-invoke:
   - "search vault"
   - "find in vault"
@@ -18,7 +18,7 @@ First-class retrieval skill that answers both **what** and **why** questions acr
 Distinct from existing skills:
 - `/distill` synthesizes a topic into a *new persisted note* (write); /search is read-only
 - `/recap` promotes session insights to *memory/* (write); /search is read-only
-- Direct qmd query gives content matches; /search ranks by question type and surfaces decision chains
+- A direct search query gives content matches; /search ranks by question type and surfaces decision chains
 
 ## Sources searched (in order of relevance)
 
@@ -32,8 +32,8 @@ Distinct from existing skills:
 
 ## Tools used
 
-- **qmd lex+vec+hyde** if `qmd_collection` is configured in onebrain.yml (preferred)
-- **Glob + Grep fallback** if qmd unavailable
+- **Search tools lex+vec+hyde** if `qmd_collection` is configured in onebrain.yml (preferred)
+- **Glob + Grep fallback** if the search tools are unavailable
 - **Heuristic question-type detection**: matches `^why\b` (or the agent's bilingual intent inference on non-English equivalents) → "why mode"; else → "what mode"
 
 ## Output format — what mode
@@ -64,14 +64,14 @@ For "why did X" / "why is X" questions, reconstruct chronological decision chain
 ## Skill flow
 
 1. Detect question type from input (`why` keyword or default to `what`)
-2. Run qmd query (lex+vec+hyde) OR grep fallback
+2. Run search query (lex+vec+hyde) OR grep fallback
 3. Score results by question type (why → emphasize sessions + decisions logs; what → emphasize knowledge + project notes)
 4. Top-K cap: 5 results by default; `--all` flag returns full ranked list
 5. Format per mode above
 
 ## Known limitations
 
-- Search quality depends on qmd index freshness — run `/qmd embed` if recent vault changes not reflected
+- Search quality depends on search index freshness — run `onebrain search reindex` if recent vault changes not reflected
 - Why mode requires chronological events to exist; if no decision history found, falls back to what-mode output with a note
 
 ## Progress reporting
@@ -79,8 +79,8 @@ For "why did X" / "why is X" questions, reconstruct chronological decision chain
 This skill is long-running for large vaults. Emit:
 
 ```
-→ [step 1/4] detecting question type · routing to qmd...
-→ [step 2/4] running qmd lex+vec+hyde across all sources...
+→ [step 1/4] detecting question type · routing to search...
+→ [step 2/4] running search lex+vec+hyde across all sources...
 → [step 3/4] scoring + ranking results...
 → [step 4/4] formatting answer...
 ```

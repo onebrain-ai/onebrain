@@ -30,7 +30,7 @@ For users who don't want to hand-edit onebrain.yml or learn cron syntax. Walks t
 3. Show preset selection via `AskUserQuestion`:
    - **Tier 1 — Minimal** (1 entry: `/daily` 09:00 every day)
    - **Tier 2 — Essentials (Recommended)** (3 entries: `/daily`, `/weekly` Friday, `/recap` Sunday)
-   - **Tier 3 — Maintenance Plus** (6 entries: Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd reindex` Sunday command-mode entry)
+   - **Tier 3 — Maintenance Plus** (6 entries: Essentials + `/doctor` monthly + `/tasks` daily + `onebrain search reindex` Sunday command-mode entry)
    - **Tier 4 — Custom** (skip presets, go to manual wizard)
 
 4. Apply the chosen tier:

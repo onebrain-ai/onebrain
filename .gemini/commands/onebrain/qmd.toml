@@ -1,2 +1,0 @@
-description = "Run the OneBrain qmd skill"
-prompt = "Run the OneBrain 'qmd' skill by reading .claude/plugins/onebrain/skills/qmd/SKILL.md and following its workflow. Do not call activate_skill — OneBrain skills are not Gemini agent-skills; follow the SKILL.md directly."

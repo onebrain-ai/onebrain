@@ -37,7 +37,7 @@ Classify the content : do not ask, infer from context:
 
 ## Step 3: Find and Link Related Notes
 
-Search for related notes (use qmd if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[projects_folder]/**/*.md`). Exclude the destination file. Include top 1–3 as wikilinks automatically. Omit `## Related` if nothing relevant found.
+Search for related notes (use the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[projects_folder]/**/*.md`). Exclude the destination file. Include top 1–3 as wikilinks automatically. Omit `## Related` if nothing relevant found.
 
 ---
 
@@ -126,7 +126,7 @@ Say in one line:
 
 - **Project notes: always append, never overwrite.** Even if an existing project file looks sparse, create a new `## [Date] : [heading]` section rather than replacing content. Overwriting destroys project history.
 
-- **qmd may lag on fresh notes.** If qmd returns 0 results for wikilink suggestions immediately after creating a note, fall back to Glob — the PostToolUse hook updates the index after each write, so the very latest file may not yet be searchable.
+- **The search index may lag on fresh notes.** If the search tools return 0 results for wikilink suggestions immediately after creating a note, fall back to Glob — the PostToolUse hook updates the index after each write, so the very latest file may not yet be searchable.
 
 - **Knowledge vs. resources classification edge case.** "My conclusion after reading external docs" → knowledge (personal synthesis). "What the docs themselves say" → resources (external reference). When content is a direct restatement of an external source, route to resources even if it feels like an original insight.
 

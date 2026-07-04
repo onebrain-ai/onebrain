@@ -329,7 +329,7 @@ cd my-vault
 onebrain serve --open      # → http://127.0.0.1:6789/?token=<TOKEN>
 ```
 
-A file explorer, a reading view (markdown, code, PDF, Office docs, images, audio/video, Jupyter notebooks), a qmd-backed search panel, and agent chat — over a token-gated, loopback-only vault API. See the [onebrain-cli README](https://github.com/onebrain-ai/onebrain-cli#local-web-ui) for flags + self-host (TLS) notes.
+A file explorer, a reading view (markdown, code, PDF, Office docs, images, audio/video, Jupyter notebooks), a built-in search panel, and agent chat — over a token-gated, loopback-only vault API. See the [onebrain-cli README](https://github.com/onebrain-ai/onebrain-cli#local-web-ui) for flags + self-host (TLS) notes.
 
 ### Bring Your Own LLM (via Claude Code)
 
@@ -415,7 +415,6 @@ Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebr
 | `/doctor` | Vault + config health check — broken links, orphan notes, stale memory entries, inbox backlog |
 | `/reorganize` | Migrate flat notes into organized subfolders |
 | `/clone` | Package your agent context for transfer to a new vault |
-| `/qmd` | Set up fast vault search index — enables semantic search across all notes |
 | `/help` | List all available commands with descriptions |
 | `/wrapup` | Wrap up session — merges any auto-checkpoints and saves full summary to session log |
 | `/pause` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Save a snapshot of long-running work mid-flight so a future session can `/resume` (does NOT end the session or clear context) |
@@ -567,7 +566,7 @@ For CLI maintenance tasks that aren't OneBrain skills, use the `command + args[]
 schedule:
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd, reindex]
+    args: [search, reindex]
   - cron: "0 5 * * *"
     command: rsync
     args: [-av, /vault, /backup]
@@ -581,7 +580,7 @@ Don't want to hand-craft cron entries? OneBrain ships three preset tiers. New va
 
 - **Minimal** — `/daily` briefing only
 - **Essentials (default)** — `/daily` + `/weekly` Friday + `/recap` Sunday
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily + `onebrain qmd reindex` Sunday (mixes skill + command modes)
+- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily + `onebrain search reindex` Sunday (mixes skill + command modes)
 
 Canonical tier definitions live at `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`.
 

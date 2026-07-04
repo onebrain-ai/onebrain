@@ -21,7 +21,7 @@ These variables are used throughout this file. Start with the defaults below, th
 | `[agent_folder]` | `folders.agent` | `05-agent` |
 | `[archive_folder]` | `folders.archive` | `06-archive` |
 | `[logs_folder]` | `folders.logs` | `07-logs` |
-| `[qmd_collection]` | `qmd_collection` | _(absent = qmd disabled)_ |
+| `[qmd_collection]` | `qmd_collection` | _(absent = search disabled)_ |
 
 ## Your Role
 
@@ -79,7 +79,7 @@ TASKS.md           Live task dashboard (created by /tasks, read-only query block
 - Pause snapshots: `[logs_folder]/pause/YYYY-MM-DD-{slug}-pause-NN.md` (flat, NN scoped to slug across all dates)
 - Pause pointer: `[logs_folder]/pause/_active.md` (single line containing the active slug)
 - Update logs: `[logs_folder]/update/YYYY-MM-DD-update-vX.Y.Z.md` (flat, written by /update)
-- Skill logs: `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-{skill}.md` (append per day; some have discriminator e.g. `distill-{slug}`, `qmd-{subcommand}`)
+- Skill logs: `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-{skill}.md` (append per day; some have discriminator e.g. `distill-{slug}`)
 - Inbox items: `[inbox_folder]/YYYY-MM-DD-topic.md` (flat, no subfolders)
 
 **Subfolder rules:**
@@ -106,7 +106,7 @@ Always use Obsidian wikilink syntax to connect related notes:
 [[Note Title|display text]]
 ```
 
-When creating a new note, search the vault first (using qmd or Grep), then automatically add the top 1–3 relevant wikilinks under a `## Related` section.
+When creating a new note, search the vault first (using the search MCP tools or Grep), then automatically add the top 1–3 relevant wikilinks under a `## Related` section.
 
 ## Task Syntax (Obsidian Tasks Plugin)
 
@@ -160,7 +160,6 @@ These workflows are documented in `.claude/plugins/onebrain/skills/`:
 | `/memory-review` | `memory-review/SKILL.md` | Interactive memory pruning | (manual only) |
 | `/clone` | `clone/SKILL.md` | Package agent context for vault transfer | (manual only) |
 | `/reorganize` | `reorganize/SKILL.md` | Migrate flat notes into subfolders (one-time) | (manual only, high impact) |
-| `/qmd` | `qmd/SKILL.md` | Set up and manage qmd search index | (manual only) |
 | `/update` | `update/SKILL.md` | Update system files from GitHub | (manual only) |
 | `/doctor` | `doctor/SKILL.md` | Vault + config health check: broken links, orphan notes, stale memory/ files, plugin config | user asks to check vault health, diagnose issues, or run /doctor |
 | `/help` | `help/SKILL.md` | List available commands with use cases | user asks what commands or skills are available, or what the agent can do |
@@ -189,13 +188,13 @@ When a user message clearly maps to a skill, invoke it directly — no `/command
 
 ## Search Strategy
 
-If qmd MCP tools are available (`mcp__plugin_onebrain_qmd__query` in tool list):
+If the search MCP tools are available (`mcp__plugin_onebrain_search__query` in tool list):
 
-- **Default to qmd for any vault content search.** Topic lookup, concept search, "find notes about X", "what did I write about Y", related-notes discovery — these all go through `mcp__plugin_onebrain_qmd__query`. Do not reach for Grep first.
-- **Reserve Glob/Grep/Read for non-content lookups only:** known file paths, frontmatter field checks, exact regex/structural matches inside a known file, task-line scans, file-existence checks. If you find yourself grepping vault `.md` files for a topic or keyword, switch to qmd.
-- See `skills/startup/QMD.md` for full search strategy, sub-query types (lex/vec/hyde), and index maintenance rules.
+- **Default to the search tools for any vault content search.** Topic lookup, concept search, "find notes about X", "what did I write about Y", related-notes discovery — these all go through `mcp__plugin_onebrain_search__query`. Do not reach for Grep first.
+- **Reserve Glob/Grep/Read for non-content lookups only:** known file paths, frontmatter field checks, exact regex/structural matches inside a known file, task-line scans, file-existence checks. If you find yourself grepping vault `.md` files for a topic or keyword, switch to the search tools.
+- See `skills/startup/SEARCH.md` for full search strategy, sub-query types (lex/vec/hyde), and index maintenance rules.
 
-If qmd tools are NOT available: use Glob/Grep/Read for all vault searches. No special handling needed.
+If the search tools are NOT available: use Glob/Grep/Read for all vault searches. No special handling needed.
 
 ---
 
@@ -262,15 +261,15 @@ On weekends: lighter, less task-focused tone. **No-repeat rule:** don't ask abou
 
 **Step 4 — Send startup status (after Step 3 completes):**
 
-If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 (a definite zero — **not** `null`) and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting. (When `qmd_unembedded` is `null` the qmd status line below is shown, so the status block is not silent.)
+If inbox_count = 0 and orphan_count = 0 and qmd_unembedded = 0 (a definite zero — **not** `null`) and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting. (When `qmd_unembedded` is `null` the search status line below is shown, so the status block is not silent.)
 
 Otherwise, append after the greeting:
 
 ```
 📥 inbox [N]                               ← omit if inbox_count = 0
 📋 [N] orphan session(s) — /wrapup?        ← omit if orphan_count = 0
-⚠️ qmd: [N] doc(s) need embedding — /qmd embed   ← when qmd_unembedded = N > 0; omit entirely when = 0
-⚠️ qmd: index status unknown (qmd unavailable) — /qmd status   ← when qmd_unembedded is null (probe couldn't check)
+⚠️ search: [N] doc(s) need embedding — onebrain search reindex   ← when qmd_unembedded = N > 0; omit entirely when = 0
+⚠️ search: index status unknown (search unavailable) — onebrain search status   ← when qmd_unembedded is null (probe couldn't check)
 📂 active pause: {active_pause_slug} ({active_pause_count} snapshots, last {active_pause_last_date}) — /resume?   ← omit if active_pause_slug is null
 ⚠️ vault structure outdated — run /update to migrate   ← omit if vault_structure_legacy = false
 
@@ -305,7 +304,7 @@ Note inline: `[Loading memory: filename]`
 When the user asks you to recall something (a decision, preference, fact, or past discussion), search the memory layers in order of permanence:
 
 1. **`[agent_folder]/MEMORY.md`** : already in context; check here first
-2. **`[agent_folder]/memory/`** : MEMORY-INDEX.md is already in context — match query keywords against its Topics column to identify relevant files, then read those files. If no topic match, grep memory/ directly. Use qmd if available for broader semantic search.
+2. **`[agent_folder]/memory/`** : MEMORY-INDEX.md is already in context — match query keywords against its Topics column to identify relevant files, then read those files. If no topic match, grep memory/ directly. Use the search tools if available for broader semantic search.
 3. **`[logs_folder]/session/`** : grep session logs at `[logs_folder]/session/**/*-session-*.md` (post-v2.4.0: session logs live under the dedicated `session/` subfolder; checkpoints live flat in `checkpoint/` and update/log entries in their own folders, so the old defensive `*-session-*` filter is no longer strictly necessary but keep it as a defense-in-depth) for past decisions and discussions
 
 Stop as soon as you find a confident answer. If the answer spans multiple layers, synthesize across them.
@@ -359,7 +358,7 @@ Different commands have different verbosity expectations. Match output to the pr
 | **Automated** | cron jobs, Auto Session Summary, `/wrapup` | Structured output only (bullets/sections). No commentary. Under 300 words. |
 | **Interactive** | `/research`, `/connect`, `/consolidate`, `/reading-notes`, `/weekly`, `/distill`, `/recap`, `/resume` | Normal verbosity : depth matches task complexity. |
 | **Diagnostic** | `/doctor` | Structured report output. No meta-commentary. Lead with findings. |
-| **Config/Setup** | `/onboarding`, `/tasks`, `/moc`, `/qmd` | Confirm actions taken. No verbose explanation unless asked. |
+| **Config/Setup** | `/onboarding`, `/tasks`, `/moc` | Confirm actions taken. No verbose explanation unless asked. |
 > **Terminal rendering:** The Obsidian terminal plugin renders markdown natively (tables, bold, headers, code blocks). Interactive and Diagnostic profiles should use full markdown. Capture profile: 1-line plain-text confirm only (exception: `/pause` emits a 2-line confirm + 2-line user instruction block per its SKILL.md Step 6). Automated profile: no headers — output is read async via Telegram where markdown rendering varies.
 
 
@@ -427,7 +426,7 @@ schedule:
       topic: this-week
   - cron: "0 3 * * 0"
     command: onebrain
-    args: [qmd, reindex]
+    args: [search, reindex]
   - cron: "0 5 * * *"
     command: rsync
     args: [-av, /vault, /backup]
@@ -443,7 +442,7 @@ New users and fresh vaults can install a maintenance preset in one decision. Thr
 
 - **Minimal** — `/daily` 09:00 (1 entry)
 - **Essentials (Recommended)** — `/daily` 09:00 + `/weekly` Friday 17:00 + `/recap` Sunday 12:00 (3 entries)
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain qmd reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
+- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily 06:00 + `onebrain search reindex` Sunday 03:00 (6 entries; includes 1 command-mode entry)
 - **Custom** — drops into the `/schedule-add` wizard
 
 Presets surface automatically:
