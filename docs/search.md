@@ -45,17 +45,9 @@ search:
 
 `exclude` is honored by indexing, reindex, and `search status` drift checks.
 
-- `search.collection` is the canonical key. The legacy top-level `qmd_collection` is still honored as a fallback.
+- `search.collection` is the canonical key.
 - If neither key is set, search is disabled — `onebrain search reindex` exits silently.
 - Embedding model can be set either with `onebrain search model set <name>` (which persists it to `onebrain.yml`) or by writing `search.embed_model:` directly in `onebrain.yml`; the registry default is `multilingual-e5-small`. Check current selection with `onebrain search status`. Other supported models include `multilingual-e5-base`, `multilingual-e5-large`, `bge-m3`, and two `embeddinggemma-300m` variants — run `onebrain search model list` for size/dimension/Thai-accuracy tradeoffs.
-
-## qmd → native search migration
-
-Earlier versions of OneBrain shipped search via an external npm package (`@tobilu/qmd`) wrapped by a `/qmd` plugin skill. As of the plugin v3.2.0 cutover (part of the v3.4.5 qmd epic):
-
-- The `/qmd` plugin skill is **removed**. Search-index management now lives entirely in the CLI (`onebrain search reindex` / `search status` / `search model`) — no plugin skill wraps it.
-- MCP tool names moved from `mcp__plugin_onebrain_qmd__*` to `mcp__plugin_onebrain_search__*`. The `.mcp.json` server key changed from `qmd` to `search`; the underlying command is unchanged (`onebrain mcp`).
-- The CLI still ships a separate `onebrain qmd` subcommand (`embed` / `status` / `reindex`) — this is a legacy/internal surface (its `reindex` verb doc even says "replaces v3.0 `qmd-reindex`") and some internal wiring (a session-init JSON field, a PostToolUse hook name) still says "qmd" for backward compatibility. New setups and all documented workflows should use `onebrain search ...`, not `onebrain qmd ...`.
 
 ## Troubleshooting
 

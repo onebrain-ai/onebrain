@@ -21,7 +21,6 @@ onebrain <command> --help  # per-command flags
 | `update` | Self-update the CLI binary (auto-detects install channel) |
 | `doctor` | Diagnose system (vault + plugin + CLI, includes harness) |
 | `plugin` | Plugin lifecycle + hook rewriter |
-| `qmd` | Vault search index (legacy — see [search.md](search.md) for the current native search surface) |
 | `schedule` | launchd schedule management — see [scheduling.md](scheduling.md) |
 
 ## Vault Management
