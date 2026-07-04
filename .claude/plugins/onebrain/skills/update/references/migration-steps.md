@@ -95,7 +95,7 @@ Always: update `updated:` frontmatter to today.
 
 Runs every /update — idempotent. Ensures all hooks point to the correct script.
 
-- Run `onebrain plugin update` — registers Stop hook; auto-registers PostToolUse qmd hook when `qmd_collection` is set in onebrain.yml; removes stale onebrain entries from any other hook event (PreCompact, PostCompact, UserPromptSubmit, etc.); preserves user-added non-onebrain hooks under the same events
+- Run `onebrain plugin update` — registers the Stop checkpoint hook; auto-registers the PostToolUse search-reindex hook (`search reindex --lex-only`) and the Stop embed hook (`search reindex --pending-only`) when a search collection is configured; removes stale onebrain entries from any other hook event (PreCompact, PostCompact, UserPromptSubmit, etc.); preserves user-added non-onebrain hooks under the same events
 - Check output: "all hooks already registered" → ✅ done; "added X" → ✅ registered
 
 **Bash permission for onebrain CLI:**

@@ -142,7 +142,7 @@ Steps:
    - [x] Step 3: Updated frontmatter on N memory/ files
    - [x] Step 4: Restructured MEMORY.md → 3 sections
    - [x] Step 5: Created MEMORY-INDEX.md (N active entries)
-   - [x] Step 6: Registered Stop hook; removed stale onebrain entries from any other event (PreCompact, PostCompact, etc.) (+ PostToolUse qmd hook if qmd_collection set)
+   - [x] Step 6: Registered Stop hook; removed stale onebrain entries from any other event (PreCompact, PostCompact, etc.) (+ PostToolUse search-reindex & Stop embed hooks if a search collection is configured)
    - [x] Step 7: /doctor — N issues
    - [x] Step 8: Initialized onebrain.yml stats + recap block
 

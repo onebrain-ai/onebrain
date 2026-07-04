@@ -241,7 +241,7 @@ Agents are stateless — they receive all context in the prompt payload and do n
 
 Hooks run shell commands automatically when the harness performs certain actions. For Claude Code, hook configuration lives in the vault's `.claude/settings.json`; shell scripts (for PostToolUse hooks) go in `.claude/plugins/onebrain/hooks/`. For Gemini CLI, hooks live declaratively in `.gemini/settings.json` (under the `hooks` key).
 
-OneBrain currently registers `Stop` + optional `PostToolUse` (qmd) on the Claude side, and the parallel `AfterAgent` + optional `AfterTool` (qmd) on the Gemini side. Reference tables below list every event each harness supports — useful when adding new hooks or porting between harnesses.
+OneBrain currently registers `Stop` (checkpoint) + optional `PostToolUse` (search-reindex) + optional `Stop` (embed) on the Claude side, and the parallel `AfterAgent` + optional `AfterTool` (search-reindex) on the Gemini side. Reference tables below list every event each harness supports — useful when adding new hooks or porting between harnesses.
 
 **Claude Code hook events:**
 
@@ -302,7 +302,7 @@ Tool-name matchers in Gemini accept regex (e.g. `write_file|replace`) — they m
 
 4. **Stop hooks must NOT use `"async": true`** — they inject prompts via `decision:block` written to stdout, which requires synchronous completion before Claude's next response. Async execution fires too late for prompt injection.
 
-5. Use `/update` (or `onebrain plugin update`) to register or repair the `Stop` hook (and the optional `PostToolUse` qmd-reindex hook when `qmd_collection` is set in `onebrain.yml`) automatically.
+5. Use `/update` (or `onebrain plugin update`) to register or repair the `Stop` checkpoint hook (and the optional `PostToolUse` search-reindex + `Stop` embed hooks when a search collection is configured in `onebrain.yml`) automatically.
 
 ## Memory System
 
@@ -359,7 +359,7 @@ MEMORY-INDEX.md must be kept in sync at all times. Every skill that creates, upd
 Vault setup is owned by the `onebrain` CLI binary (Rust — lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli)), **not** by shell scripts in this repo. The user flow is:
 
 1. Install the CLI from any path — `brew install onebrain-ai/onebrain/onebrain` (macOS) or `npm install -g @onebrain-ai/cli` or direct download from [onebrain-ai/onebrain-cli/releases](https://github.com/onebrain-ai/onebrain-cli/releases/latest)
-2. `onebrain init` — in a new or existing folder, writes `onebrain.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, and registers the `Stop` hook (plus a `PostToolUse` qmd-reindex hook when `qmd_collection` is set). Aborts safely if a `onebrain.yml` already exists
+2. `onebrain init` — in a new or existing folder, writes `onebrain.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, and registers the `Stop` checkpoint hook (plus the `PostToolUse` search-reindex + `Stop` embed hooks when a search collection is configured). Aborts safely if a `onebrain.yml` already exists
 3. `/onboarding` — inside the chosen harness, personalises identity + active projects
 
 There are no `install.sh` or `install.ps1` scripts to maintain — the equivalent logic lives in the CLI's `init` and `update` commands. Bug fixes for vault bootstrap belong in the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli) repo, not this one.
