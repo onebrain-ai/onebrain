@@ -36,8 +36,8 @@ Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebr
 | Command | What it does |
 |---------|-------------|
 | `/search` | General vault retrieval — answers what + why questions across MEMORY, sessions, plans, decisions logs, notes |
-| `/tasks` | Live task dashboard in Obsidian — creates/updates `TASKS.md` with always-current query sections |
-| `/moc` | Vault portal in Obsidian — creates/updates `MOC.md` with projects, areas, knowledge, tasks, and pinned links |
+| `/tasks` | Live task dashboard — creates/updates `TASKS.md` at the vault root with always-current query sections |
+| `/moc` | Vault portal — creates/updates `MOC.md` with projects, areas, knowledge, tasks, and pinned links |
 | `/memory-review` | Interactive review of memory files — keep, update, deprecate, or delete entries |
 
 ## 🔧 MAINTAIN — System housekeeping
