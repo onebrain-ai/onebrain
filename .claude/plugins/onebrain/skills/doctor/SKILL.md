@@ -236,4 +236,4 @@ The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, fold
 
 - **CLI doctor JSON is the v3.x stable contract.** If the JSON shape changes in a future v3.x release, the skill MUST update accordingly (CLI repo's CHANGELOG announces schema changes). If `onebrain doctor --json` fails to parse, treat it like CLI-not-installed (fall back to skill checks only) and surface the parse error.
 
-- **`onebrain doctor` already handles the schema-policy checks.** Don't duplicate them in skill body: `onebrain.yml-keys`, `plugin-files` integrity, `settings-hooks` (Stop + PostToolUse qmd), and `claude-settings` (stale marketplace) are CLI-side. The skill's job is content-level checks (wikilinks, memory, pause, scheduler) the CLI doesn't know about.
+- **`onebrain doctor` already handles the schema-policy checks.** Don't duplicate them in skill body: `onebrain.yml-keys`, `plugin-files` integrity, `settings-hooks` (Stop checkpoint + PostToolUse search-reindex + Stop embed), and `claude-settings` (stale marketplace) are CLI-side. The skill's job is content-level checks (wikilinks, memory, pause, scheduler) the CLI doesn't know about.

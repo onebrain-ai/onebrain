@@ -1,6 +1,6 @@
 ---
-latest_version: 3.2.0
-released: 2026-07-04
+latest_version: 3.2.1
+released: 2026-07-05
 ---
 
 # Changelog
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.2.1 — 2026-07-05 — adopt search_unembedded + search hook naming (v3.4.5 Track 3b, plugin follow-up)
+
+Plugin side of the CLI-coupled rename, paired with onebrain-cli PR #146 (session-init field rename + hook spec rename). Closes onebrain-ai/onebrain#212.
+
+- **Startup reads `search_unembedded`** from `onebrain session init --json` (canonical, CLI v3.4.5+), **falling back to the legacy `qmd_unembedded` key** for older CLIs. v3.4.5 emits both with the same value during the transition, so the plugin works against either CLI. Updated the JSON-shape doc + all status-line conditions.
+- **Hook wording modernized to match the CLI.** The "PostToolUse hook for qmd indexing" prose now describes the current mechanism: a PostToolUse **search-reindex** hook (`search reindex --lex-only`, incremental keyword reindex on Write/Edit) plus a Stop **embed** hook (`search reindex --pending-only`, deferred embedding at session end) — Track 4's dual-hook setup, registered when a search collection is configured. Swept INSTRUCTIONS.md, `/doctor`, `/update` + migration-steps, and CONTRIBUTING.md.
+- No CLI-coupled `qmd` names remain in the plugin except where the CLI still emits them (the legacy `qmd_collection` config fallback).
 
 ## v3.2.0 — 2026-07-04 — search cutover (qmd → search, Tracks 3 + 3b)
 
