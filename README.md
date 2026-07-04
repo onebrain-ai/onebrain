@@ -89,10 +89,10 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 
 | # | Layer | Role | What lives here |
 |---|---|---|---|
-| 01 | **OneBrain** | OS layer (plugin + CLI) | 30 skills · lifecycle hooks · vault sync · indexing · checkpoints · harness routing |
+| 01 | **OneBrain** | OS layer (plugin + CLI) | 30 skills · lifecycle hooks · local vault sync · indexing · checkpoints · harness routing |
 | 02 | **Harness** | Agentic runtime | Bring your own — Claude Code · Gemini CLI · Codex · Qwen · ... |
 | 03 | **LLM** | Intelligence source | Local (mlx, ollama) · cloud (claude, gemini, gpt) · raw API |
-| 04 | **Obsidian Vault** | Source of truth | Plain Markdown — notes, memory, decisions, knowledge graph |
+| 04 | **Markdown Vault** | Source of truth | Plain Markdown — notes, memory, decisions, knowledge graph |
 
 **Extend, don't replace.** A great harness already knows how to talk to an LLM, edit files, and run shell commands. It does not know who you are, what you've decided last week, or how you prefer to work. OneBrain fills exactly that gap:
 
@@ -115,7 +115,7 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 | Tier | Location | What it stores | Promoted by |
 |------|----------|---------------|-------------|
 | **Working** | `00-inbox/` + current session | Raw captures, active conversation | `/consolidate`, `/wrapup` |
-| **Episodic** | `07-logs/YYYY/MM/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
+| **Episodic** | `07-logs/session/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
 | **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
 | **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
 | **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
@@ -143,7 +143,7 @@ OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
 
 ## Commands
 
-Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump`.
+Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (a few newer skills are Claude Code-only for now — see [docs/skills.md](docs/skills.md)).
 
 | Command | What it does |
 |---------|-------------|

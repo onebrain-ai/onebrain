@@ -15,7 +15,7 @@ Each harness reads OneBrain's instruction file automatically. Install it, run it
 | **OpenAI Codex** | `npm install -g @openai/codex` | `codex` | `AGENTS.md` |
 | **Qwen Code** | `npm install -g @qwen-code/qwen-code` | `qwen` | `AGENTS.md` |
 
-> Auto-checkpoint and stop-hook coverage ship for Claude Code (`Stop` + optional `PostToolUse` qmd) and Gemini CLI (`AfterAgent` + optional `AfterTool` qmd) out of the box. Slash commands are namespaced on Gemini (`/onebrain:braindump`) to avoid collisions with built-ins; on Claude they invoke directly (`/braindump`). Other harnesses gain hook coverage as upstream support lands.
+> Auto-checkpoint and stop-hook coverage ship for Claude Code (`Stop` + optional `PostToolUse` qmd) and Gemini CLI (`AfterAgent` + optional `AfterTool` qmd) out of the box. Slash commands are namespaced on Gemini (`/onebrain:braindump`) to avoid collisions with built-ins; on Claude they invoke directly (`/braindump`). Other harnesses gain hook coverage as upstream support lands. Seven newer skills are not yet available as Gemini slash commands: /pause, /resume, /search, and the four /schedule-* wizards.
 
 ### 1. Install the OneBrain CLI
 

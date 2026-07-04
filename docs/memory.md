@@ -25,7 +25,7 @@ OneBrain uses a four-tier memory system — knowledge sinks downward as it gets 
 | Tier | Location | What it stores | Promoted by |
 |------|----------|---------------|-------------|
 | **Working** | `00-inbox/` + current session | Raw captures, active conversation | `/consolidate`, `/wrapup` |
-| **Episodic** | `07-logs/YYYY/MM/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
+| **Episodic** | `07-logs/session/YYYY/MM/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
 | **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
 | **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
 | **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
@@ -36,7 +36,7 @@ Each tier has specific skills responsible for writing to it. Knowledge moves dow
 
 | Layer | Storage | Written by |
 |---|---|---|
-| Session log | `07-logs/` | `/wrapup` (end of session) |
+| Session log | `07-logs/session/` | `/wrapup` (end of session) |
 | Memory files | `05-agent/memory/` | `/learn` (user-driven, single fact), `/recap` (batch synthesis), `/memory-review` (edits) |
 | Always-loaded — Identity | `05-agent/MEMORY.md` | `/onboarding` (one-time), manual edits |
 | Always-loaded — Active Projects | `05-agent/MEMORY.md` | `/learn` (project lifecycle events), manual edits |
@@ -53,7 +53,7 @@ session → session log (`/wrapup`) → `memory/` files (`/recap`) → `MEMORY.m
 - Only behaviors applying every session with high-impact failure if missed → MEMORY.md Critical Behaviors
 - `MEMORY-INDEX.md` is loaded every session alongside `MEMORY.md` — it is the registry that enables lazy-loading of `memory/` files; updated automatically by any skill that writes to `memory/`
 
-Memory entries carry confidence scores — every promoted insight is tagged `[conf:high/medium/low]` plus `[verified:YYYY-MM-DD]`, so knowledge grows more reliable as it gets re-verified. `/doctor` audits stale scores and `/doctor --fix` auto-repairs confidence tags and broken wikilinks.
+Memory entries carry confidence scores — every promoted insight carries `conf: high|medium|low` and `verified: YYYY-MM-DD` frontmatter fields, so knowledge grows more reliable as it gets re-verified. `/doctor` audits stale scores and `/doctor --fix` auto-repairs confidence tags and broken wikilinks.
 
 ## Session start
 
@@ -70,7 +70,7 @@ OneBrain has automatic behaviors that run without you doing anything:
 
 | Behavior | Trigger | What it does |
 |----------|---------|-------------|
-| **Auto Checkpoint** | Every 15 messages, every 30 min, or before context compression | Writes a checkpoint file to `07-logs/YYYY/MM/` as a safety net |
+| **Auto Checkpoint** | Every 15 messages, every 30 min, or before context compression | Writes a checkpoint file to `07-logs/checkpoint/` as a safety net |
 | **Auto Session Summary** | You say "bye", "good night", "I'm done for today", etc. — only if `/wrapup` was not already run this session AND ≥ 3 exchanges | Saves a silent session log (marked `auto-saved: true`) without showing any output |
 
 **How they work together:**
