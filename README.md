@@ -75,8 +75,6 @@ claude                  # or any supported harness
 /onboarding
 ```
 
-Use Obsidian? Open the same folder via File → Open Folder as Vault — entirely optional. → [docs/install.md](docs/install.md)
-
 ---
 
 ## How it works
