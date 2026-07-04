@@ -17,7 +17,7 @@ Usage:
 **Flag detection:** Determine active flags from the user's message. `--vault` = user mentions vault-only or content health; `--config` = user mentions config or plugin check; `--fix` = user explicitly asks to fix or auto-fix. Default (no flags) = run all checks.
 
 **Two-source architecture** (post-v3.0.0 GA):
-- **CLI doctor** (`onebrain doctor --json`) handles the 8 built-in checks: onebrain.yml, onebrain.yml-keys, folders, plugin-files, settings-hooks, orphan-checkpoints, qmd-embeddings, claude-settings. Rust-native, single subprocess call, structured JSON output.
+- **CLI doctor** (`onebrain doctor --json`) handles the built-in checks, grouped into four sections: **Config** (onebrain.yml, onebrain.yml-keys, vault-config-migration, legacy-qmd-collection), **Vault structure** (folders, plugin-files, plugin-cache), **Integration** (settings-hooks, claude-settings), **Index & state** (orphan-checkpoints, search). Rust-native, single subprocess call, structured JSON output. (`search` replaced the v3.3 `qmd-embeddings` probe; `legacy-qmd-collection` migrates a top-level `qmd_collection` → `search.collection`.)
 - **Skill checks** handle vault-content + state-machine checks the CLI doesn't cover: broken wikilinks, orphan notes, stale memory/ files, MEMORY.md size, inbox backlog, log folder size, scheduler health, pause-thread state, memory health.
 
 The skill merges both into one unified report.
@@ -179,7 +179,7 @@ Combine CLI doctor findings (Step 2a) and skill findings (Step 2b) into one unif
 - All green → ✅ `Everything looks healthy. N checks · 0 issues.`
 - Otherwise → `🔴 N issues found (M critical, P warnings). Run /doctor --fix to repair safe issues.` (use CLI's `summary` + skill issue count)
 
-For each finding, prefer the CLI's `message` verbatim when it's from `onebrain doctor` (single source of truth for the 8 built-in checks). For skill findings, render the action-oriented form (`Fix: <command>`).
+For each finding, prefer the CLI's `message` verbatim when it's from `onebrain doctor` (single source of truth for the built-in checks). For skill findings, render the action-oriented form (`Fix: <command>`).
 
 ---
 
@@ -191,7 +191,7 @@ Two-stream fix:
 
 2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D, E in order. Each pass confirms with the user before writing. After all passes, run `onebrain search reindex` as the Final step. Pass E de-links the 🔴 auto-memory mislinks detected in Step 2b (the 🟡 missing-note bucket is never auto-fixed).
 
-The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, claude-settings, qmd. The skill fix passes cover: stale confidence-score updates, broken-wikilink fuzzy-match repair, auto-memory wikilink de-linking, MEMORY.md structure migration. Together: CLI handles config, skill handles content.
+The CLI fix recipes cover: settings-hooks, plugin-files, onebrain.yml-keys, folders, claude-settings, plugin-cache, vault-config-migration, and legacy-qmd-collection (migrates a top-level `qmd_collection` → `search.collection`). The skill fix passes cover: stale confidence-score updates, broken-wikilink fuzzy-match repair, auto-memory wikilink de-linking, MEMORY.md structure migration. Together: CLI handles config, skill handles content.
 
 ---
 

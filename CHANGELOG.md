@@ -11,15 +11,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
-## v3.2.0 — 2026-07-04 — search surface cutover (qmd → search)
+## v3.2.0 — 2026-07-04 — search cutover (qmd → search, Tracks 3 + 3b)
 
-Plugin-side surface rename for the v3.4.5 qmd epic (Track 3, onebrain-ai/onebrain#206). User-facing "qmd" surfaces become native "search"; CLI-emitted names are intentionally deferred to a later coordinated pass.
+Plugin-side cutover for the v3.4.5 qmd epic (onebrain-ai/onebrain#206). Pairs with the merged CLI Track 2 (`@tobilu/qmd` removed, native search everywhere).
 
-- **`.mcp.json` server key `qmd` → `search`.** The MCP tool namespace is now `mcp__plugin_onebrain_search__*` (was `mcp__plugin_onebrain_qmd__*`). Command is unchanged (`onebrain mcp`). Every INSTRUCTIONS.md / skill reference to the tool names updated to match.
-- **Removed the `/qmd` skill entirely** (`skills/qmd/`). Search-index management now lives in the CLI (`onebrain search reindex` / `search status` / `search model`) and the web service — no plugin skill wraps it. Removed the `/qmd` row from the skills table, help catalog, response-profile list, audit-log format, and the Gemini `qmd.toml` slash command. Onboarding no longer runs an interactive qmd setup step.
+**Surface (Track 3):**
+- **`.mcp.json` server key `qmd` → `search`.** The MCP tool namespace is now `mcp__plugin_onebrain_search__*` (was `mcp__plugin_onebrain_qmd__*`). Command is unchanged (`onebrain mcp`). Every INSTRUCTIONS.md / skill reference updated to match.
+- **Removed the `/qmd` skill entirely** (`skills/qmd/`). Search-index management now lives in the CLI (`onebrain search reindex` / `search status` / `search model`) and the web service — no plugin skill wraps it. Removed the `/qmd` row from the skills table, help catalog, response-profile list, audit-log format, and the Gemini `qmd.toml` slash command. Onboarding no longer sets up or mentions search — the qmd/MCP install ceremony (`npm install -g @tobilu/qmd` + collection setup) lived only in the deleted skill; search is native now.
 - **Renamed `skills/startup/QMD.md` → `SEARCH.md`** and rewrote it for the new tool names; kept the lex/vec/hyde sub-query strategy.
 - **`onebrain qmd reindex` → `onebrain search reindex`** across all skill steps, schedule presets, and hook configs (`.gemini/settings.json` `AfterTool`). Startup-status hints `/qmd embed` / `/qmd status` now point at `onebrain search reindex` / `onebrain search status`.
-- **Intentionally kept (CLI-coupled, renamed later in the coordinated Track 3b pass after the CLI lands):** the session-init JSON field `qmd_unembedded`, the `qmd_collection` config key, the CLI doctor check `qmd-embeddings`, and the "PostToolUse/AfterTool qmd-reindex hook" mechanism wording (tied to `qmd_collection`).
+
+**CLI-coupled (Track 3b, now that CLI Track 2 is merged):**
+- **Config key `qmd_collection` → `search.collection`** (nested `search:` block) as the canonical search-index collection, across INSTRUCTIONS config table, `SEARCH.md`, `/search`, and `/clone`. The legacy top-level `qmd_collection` is still honored as a fallback and `/doctor` auto-migrates it via the CLI's `legacy-qmd-collection` fix.
+- **Doctor check list updated** to the CLI's current set (`search` replaced the `qmd-embeddings` probe; added `vault-config-migration`, `legacy-qmd-collection`, `plugin-cache`).
+- **Kept as `qmd` to match the merged CLI** (renaming would break parsing/registration): the session-init JSON field `qmd_unembedded` (CLI v3.4 contract, tests lock it), and the "PostToolUse qmd hook" name + its top-level-`qmd_collection` trigger (`register_hooks/mod.rs` gates on `cfg.qmd_collection` specifically; the hook command itself migrates to `onebrain search reindex`).
 
 ## v3.1.10 — 2026-07-03 — native MCP backend (`onebrain mcp` replaces `qmd mcp`)
 

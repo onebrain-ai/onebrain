@@ -21,7 +21,7 @@ These variables are used throughout this file. Start with the defaults below, th
 | `[agent_folder]` | `folders.agent` | `05-agent` |
 | `[archive_folder]` | `folders.archive` | `06-archive` |
 | `[logs_folder]` | `folders.logs` | `07-logs` |
-| `[qmd_collection]` | `qmd_collection` | _(absent = search disabled)_ |
+| `[search_collection]` | `search.collection` | _(absent = search disabled; legacy top-level `qmd_collection` still honored as a fallback)_ |
 
 ## Your Role
 

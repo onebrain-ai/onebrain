@@ -38,4 +38,4 @@ Whenever you add, edit, or delete any file in the vault, check first whether the
 onebrain search reindex
 ```
 
-This triggers a background reindex. The command reads `qmd_collection` from onebrain.yml and exits silently if the search index is not installed or the collection is not set. It is fire-and-forget — no need to wait for it to complete.
+This triggers a background reindex. The command reads `search.collection` from onebrain.yml (falling back to the legacy top-level `qmd_collection` when unset) and exits silently if the search index is not installed or the collection is not set. It is fire-and-forget — no need to wait for it to complete.

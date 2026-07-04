@@ -32,7 +32,7 @@ Distinct from existing skills:
 
 ## Tools used
 
-- **Search tools lex+vec+hyde** if `qmd_collection` is configured in onebrain.yml (preferred)
+- **Search tools lex+vec+hyde** if `search.collection` is configured in onebrain.yml (legacy top-level `qmd_collection` still honored) (preferred)
 - **Glob + Grep fallback** if the search tools are unavailable
 - **Heuristic question-type detection**: matches `^why\b` (or the agent's bilingual intent inference on non-English equivalents) → "why mode"; else → "what mode"
 
