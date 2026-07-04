@@ -16,7 +16,6 @@
       <stop offset="0%" stop-color="#9500c7"/>
       <stop offset="100%" stop-color="#007a90"/>
     </linearGradient>
-    
     <path id="gc41" d="M340 -700H464L597 0H459L431 -155H185L99 0H-39ZM418 -267 373 -533H371L233 -267Z"/>
     <path id="gc42" d="M145 -700H575L665 -592L631 -404L584 -363L642 -291L608 -98L493 0H22ZM462 -407 504 -443 523 -551 494 -586H258L227 -407ZM434 -114 485 -157 502 -255 467 -298H208L175 -114Z"/>
     <path id="gc45" d="M145 -700H650L630 -585H261L230 -408H570L550 -295H210L178 -115H547L527 0H22Z"/>
@@ -64,7 +63,6 @@
       .sparks .spark { opacity: .22; }
     }
   </style>
-  <rect width="560" height="470" fill="#f4f4f7"/>
   <path class="plug" d="M199 157 L122 83" opacity="0.22"/>
   <path class="plug plug-flow" d="M199 157 L122 83" style="animation-delay:0ms"/>
   <circle cx="122" cy="83" r="2.5" fill="#6d28d9" opacity="0.9"/>
