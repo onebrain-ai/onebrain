@@ -26,7 +26,7 @@ onebrain/
 │   ├── MEMORY-INDEX.md  Registry of all memory files — loaded every session, enables lazy-loading
 │   └── memory/        All memory files — behavioral patterns, domain context, project facts
 ├── 06-archive/        Completed projects and archived areas
-├── 07-logs/           Logs split by type (session/, checkpoint/, pause/, update/, log/)
+├── 07-logs/           Logs split by type (session/, checkpoint/, pause/, update/, log/, scheduler/)
 ├── attachments/       Copied files from /import --attach
 │   ├── pdf/
 │   ├── images/
@@ -75,6 +75,7 @@ Organized by date archived: `06-archive/YYYY/MM/`.
 - `pause/` — flat; `_active.md` pointer + `YYYY-MM-DD-{slug}-pause-NN.md` snapshots.
 - `update/` — flat, version-named release history written by `/update`.
 - `log/YYYY/MM/` — skill log entries (recap, doctor, memory, ...).
+- `scheduler/YYYY/MM/` — Scheduled-skill output and error logs (`YYYY-MM-DD-{skill}.md` / `.err.md`).
 
 ## Task Syntax
 

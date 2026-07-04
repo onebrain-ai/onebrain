@@ -53,7 +53,7 @@ session → session log (`/wrapup`) → `memory/` files (`/recap`) → `MEMORY.m
 - Only behaviors applying every session with high-impact failure if missed → MEMORY.md Critical Behaviors
 - `MEMORY-INDEX.md` is loaded every session alongside `MEMORY.md` — it is the registry that enables lazy-loading of `memory/` files; updated automatically by any skill that writes to `memory/`
 
-Memory entries carry confidence scores — every promoted insight carries `conf: high|medium|low` and `verified: YYYY-MM-DD` frontmatter fields, so knowledge grows more reliable as it gets re-verified. `/doctor` audits stale scores and `/doctor --fix` auto-repairs confidence tags and broken wikilinks.
+Memory entries carry confidence scores — every promoted insight carries `conf: high|medium|low` and `verified: YYYY-MM-DD` frontmatter fields, so knowledge grows more reliable as it gets re-verified. `/doctor` audits stale scores and `/doctor --fix` auto-repairs confidence fields and broken wikilinks.
 
 ## Session start
 

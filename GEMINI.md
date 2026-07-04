@@ -1,6 +1,6 @@
 # OneBrain — Gemini CLI
 
-OneBrain is a personal AI OS for Obsidian. INSTRUCTIONS.md is written using Claude Code
+OneBrain is a personal AI OS built on a plain-Markdown vault — use its built-in web UI, or Obsidian if you prefer. INSTRUCTIONS.md is written using Claude Code
 tool names — the mapping below translates them to Gemini CLI equivalents before the
 shared instructions load.
 

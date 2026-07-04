@@ -16,12 +16,12 @@ schedule:
     skill: /recap
 ```
 
-For a one-shot reminder, use `at:` instead of `cron:`:
+For a one-shot firing, use `at:` instead of `cron:` — e.g. run the daily briefing once at a specific datetime:
 
 ```yaml
 schedule:
   - at: "2026-05-13 14:30"
-    skill: /reminder
+    skill: /daily
 ```
 
 After firing, the launchd plist auto-uninstalls itself.
