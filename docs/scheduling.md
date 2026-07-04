@@ -2,7 +2,7 @@
 
 Run OneBrain skills automatically on a recurring or one-shot schedule via your OS scheduler.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 OneBrain skills can run automatically on a schedule via your OS scheduler (macOS launchd; Linux + Windows coming soon). Configure in `onebrain.yml`:
 

@@ -2,7 +2,7 @@
 
 `onebrain mcp` serves OneBrain over the Model Context Protocol (stdio) — search tools today, more vault tool groups to come *(planned)*.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Quick start
 

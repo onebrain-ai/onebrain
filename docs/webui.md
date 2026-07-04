@@ -2,7 +2,7 @@
 
 `onebrain serve` runs an embedded web UI and JSON API over your vault — no separate install.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Quick start
 

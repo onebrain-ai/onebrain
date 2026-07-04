@@ -2,7 +2,7 @@
 
 The folder layout OneBrain creates in your vault, and the task syntax it writes.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 <p align="center">
   <picture>

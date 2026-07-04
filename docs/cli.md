@@ -2,7 +2,7 @@
 
 One-line orientation to every top-level `onebrain` command, grouped as the CLI's own `--help` groups them.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Quick start
 

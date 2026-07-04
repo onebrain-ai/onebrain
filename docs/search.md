@@ -2,7 +2,7 @@
 
 `onebrain search` is OneBrain's native hybrid search over your vault's `*.md` notes — lexical (BM25) and semantic (vector) search, RRF-fused, no external service required.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Quick start
 

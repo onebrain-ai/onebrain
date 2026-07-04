@@ -2,7 +2,7 @@
 
 How OneBrain's four-tier memory system works, how knowledge gets promoted between tiers, and what saves automatically.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Memory System
 

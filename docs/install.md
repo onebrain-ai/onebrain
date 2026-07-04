@@ -2,7 +2,7 @@
 
 How to install OneBrain, pick a harness, and set up optional extras.
 
-> Part of [OneBrain docs](../README.md)
+> Part of [OneBrain docs](README.md)
 
 ## Pick Your Harness
 
