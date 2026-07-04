@@ -230,14 +230,6 @@ Write `onebrain.yml` to the vault root using the template in `references/vault-c
 
 ---
 
-## Step 11b: Search Index (Optional)
-
-Faster vault search (semantic + keyword, via the `mcp__plugin_onebrain_search__*` tools) is powered by the `onebrain` CLI and the OneBrain web service. Setting up the search index happens outside the plugin — there is nothing to configure here during onboarding.
-
-Let the user know in one line: faster search can be enabled anytime via the `onebrain` CLI or the web service, and it is not required for OneBrain to work. Then continue to Step 11b2.
-
----
-
 ## Step 11b2: Schedule Presets (optional)
 
 1. Read the canonical preset tier table from `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`.
@@ -310,7 +302,6 @@ run: 1
 - Logs: [logs_folder]
 
 ### Initial Capabilities Enabled
-- Search index: {configured (collection: <name>) / not configured — enable via the onebrain CLI or web service}
 - Auto-summary: yes
 - Plugin hooks: registered
 ```
@@ -328,7 +319,6 @@ Say:
   `onebrain.yml`                  vault configuration saved
   Folders created:             {list of folders created}
   Plugin hooks:                registered ✅
-  [If search index configured:] Search index: `{collection-name}` ✅
 
 → Run /daily to see your first briefing.
 → Run /help to see all available commands.
@@ -497,12 +487,6 @@ Check if `onebrain.yml` already exists in the vault root:
 
 ---
 
-## Path B : Step 12b: Search Index (Optional)
-
-Identical to Step 11b in Path A. Note in one line that faster search is set up via the `onebrain` CLI or the web service, not the plugin. Continue to Step 12c.
-
----
-
 ## Path B : Step 12b2: Schedule Presets (optional)
 
 Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-presets.md`, skip if `onebrain.yml` already has a non-empty `schedule:` block, show `AskUserQuestion` with default = Tier 2, apply selected tier atomically. On `onebrain schedule register` failure, log and continue — non-blocking.
@@ -511,7 +495,7 @@ Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-preset
 
 ## Path B : Step 12c: Write Onboarding Log
 
-Identical to **Step 11c** in Path A. Write the one-shot snapshot to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md` using the same template (substitute live values from Path B Steps 2–8, Step 10/12 config, and search-index state from Step 12b). Create `[logs_folder]/log/YYYY/MM/` if missing. On failure, report once and continue to Step 13 — non-blocking.
+Identical to **Step 11c** in Path A. Write the one-shot snapshot to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md` using the same template (substitute live values from Path B Steps 2–8 and Step 10/12 config). Create `[logs_folder]/log/YYYY/MM/` if missing. On failure, report once and continue to Step 13 — non-blocking.
 
 ---
 
@@ -526,7 +510,6 @@ Say:
   `onebrain.yml`                  vault configuration saved
   Folders created:             {list of folders created}
   Plugin hooks:                registered ✅
-  [If search index configured:] Search index: `{collection-name}` ✅
 
 → Run /daily to see your first briefing.
 → Run /help to see all available commands.
