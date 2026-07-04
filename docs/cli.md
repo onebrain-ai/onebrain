@@ -4,6 +4,8 @@ One-line orientation to every top-level `onebrain` command, grouped as the CLI's
 
 > Part of [OneBrain docs](README.md)
 
+The CLI is a single self-contained Rust binary — no Bun, Python, or Node.js runtime required.
+
 ## Quick start
 
 ```bash

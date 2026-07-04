@@ -4,6 +4,13 @@ How OneBrain's four-tier memory system works, how knowledge gets promoted betwee
 
 > Part of [OneBrain docs](README.md)
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/bidir-flow-dark.svg">
+    <img alt="Bidirectional flow — Human sends preferences, decisions, and corrections to Agent; Agent returns captures, links, and synthesis." src="../assets/diagrams/bidir-flow-light.svg" width="640">
+  </picture>
+</p>
+
 ## Memory System
 
 OneBrain uses a four-tier memory system — knowledge sinks downward as it gets validated, while the agent recalls upward on demand. The Semantic tier has two loading modes (always-loaded and lazy-loaded).
@@ -46,6 +53,8 @@ session → session log (`/wrapup`) → `memory/` files (`/recap`) → `MEMORY.m
 - Only behaviors applying every session with high-impact failure if missed → MEMORY.md Critical Behaviors
 - `MEMORY-INDEX.md` is loaded every session alongside `MEMORY.md` — it is the registry that enables lazy-loading of `memory/` files; updated automatically by any skill that writes to `memory/`
 
+Memory entries carry confidence scores — every promoted insight is tagged `[conf:high/medium/low]` plus `[verified:YYYY-MM-DD]`, so knowledge grows more reliable as it gets re-verified. `/doctor` audits stale scores and `/doctor --fix` auto-repairs confidence tags and broken wikilinks.
+
 ## Session start
 
 After `/onboarding`, every new session:
@@ -65,6 +74,8 @@ OneBrain has automatic behaviors that run without you doing anything:
 | **Auto Session Summary** | You say "bye", "good night", "I'm done for today", etc. — only if `/wrapup` was not already run this session AND ≥ 3 exchanges | Saves a silent session log (marked `auto-saved: true`) without showing any output |
 
 **How they work together:**
+
+Checkpoints are concurrent-session safe: each session writes under its own isolated session token, so multiple parallel sessions never mix checkpoint files.
 
 - Say "bye" → Auto Session Summary fires silently and saves a session log. No extra steps needed.
 - If you already ran `/wrapup` manually and then say "bye": Auto Session Summary **skips** — the log was already written.
