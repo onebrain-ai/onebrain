@@ -1,6 +1,6 @@
 # Install
 
-Everything you need to install OneBrain, pick a harness, and connect an LLM.
+How to install OneBrain, pick a harness, and set up optional extras.
 
 > Part of [OneBrain docs](../README.md)
 
@@ -111,7 +111,7 @@ Run OneBrain as your personal AI operating system — a complete AI environment 
 
 **Setting up the full stack:**
 
-1. Install OneBrain and initialize your vault ([Get Started](#install-the-onebrain-cli))
+1. Install OneBrain and initialize your vault ([Get Started](#1-install-the-onebrain-cli))
 2. Start a tmux session: `tmux new -s onebrain`
 3. Start Claude Code in your vault directory: `claude`
 4. Run `/telegram:configure` to connect Claude Code's built-in Telegram channel — no custom bot or external infra needed

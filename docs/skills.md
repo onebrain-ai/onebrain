@@ -1,6 +1,6 @@
-# All 31 skills
+# Skills reference
 
-Full reference of every OneBrain skill, organized by workflow phase.
+OneBrain ships 30 skills (plus `/help` to list them in-session) — grouped below by workflow phase.
 
 > Part of [OneBrain docs](../README.md)
 
