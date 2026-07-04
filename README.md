@@ -37,7 +37,12 @@
 >
 > *Drive whichever car you like. Your brain rides with you.*
 
-<!-- car-analogy diagram: PR 2 -->
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/car-analogy-dark.svg">
+    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
+  </picture>
+</p>
 
 | In the garage | In the AI stack |
 |---|---|
@@ -108,7 +113,7 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four-stage persistence stack: WORKING (00-inbox + current session) at top, EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), and KNOWLEDGE (03-knowledge) at the base" src="assets/diagrams/memory-tiers-light.svg" width="780">
+    <img alt="Memory tiers — four stages flowing top to bottom as knowledge gets validated: WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge)" src="assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
