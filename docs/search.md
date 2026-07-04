@@ -36,16 +36,22 @@ Only Markdown files are indexed; other file types in the vault are never touched
 
 ```yaml
 search:
-  collection: my-vault-abc123
+  collection: my-vault-1a2b3c   # index collection id (set by setup)
+  embed_model: multilingual-e5-base   # optional — overrides the registry default (multilingual-e5-small)
+  exclude:                      # optional — folders left out of the index
+    - attachments
+    - 06-archive
 ```
+
+`exclude` is honored by indexing, reindex, and `search status` drift checks.
 
 - `search.collection` is the canonical key. The legacy top-level `qmd_collection` is still honored as a fallback.
 - If neither key is set, search is disabled — `onebrain search reindex` exits silently.
-- Embedding model is chosen per-vault via `onebrain search model set <name>` (persisted to `onebrain.yml`), not a plain YAML key — check current selection with `onebrain search status`. `multilingual-e5-small` is the registry default for new setups; other supported models include `multilingual-e5-base`, `multilingual-e5-large`, `bge-m3`, and two `embeddinggemma-300m` variants — run `onebrain search model list` for size/dimension/Thai-accuracy tradeoffs.
+- Embedding model can be set either with `onebrain search model set <name>` (which persists it to `onebrain.yml`) or by writing `search.embed_model:` directly in `onebrain.yml`; the registry default is `multilingual-e5-small`. Check current selection with `onebrain search status`. Other supported models include `multilingual-e5-base`, `multilingual-e5-large`, `bge-m3`, and two `embeddinggemma-300m` variants — run `onebrain search model list` for size/dimension/Thai-accuracy tradeoffs.
 
 ## qmd → native search migration
 
-Earlier versions of OneBrain shipped search via an external npm package (`@tobilu/qmd`) wrapped by a `/qmd` plugin skill. As of the v3.4.5 cutover:
+Earlier versions of OneBrain shipped search via an external npm package (`@tobilu/qmd`) wrapped by a `/qmd` plugin skill. As of the plugin v3.2.0 cutover (part of the v3.4.5 qmd epic):
 
 - The `/qmd` plugin skill is **removed**. Search-index management now lives entirely in the CLI (`onebrain search reindex` / `search status` / `search model`) — no plugin skill wraps it.
 - MCP tool names moved from `mcp__plugin_onebrain_qmd__*` to `mcp__plugin_onebrain_search__*`. The `.mcp.json` server key changed from `qmd` to `search`; the underlying command is unchanged (`onebrain mcp`).

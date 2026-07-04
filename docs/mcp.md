@@ -43,4 +43,4 @@ Any MCP-compatible client can launch `onebrain mcp` as a stdio server — the wi
 ## Notes
 
 - Requires CLI ≥ 3.4.1 (`onebrain mcp` first shipped there); older CLIs lack the top-level command.
-- The server key in `.mcp.json` was renamed from `qmd` to `search` during the v3.4.5 cutover — the command invoked (`onebrain mcp`) did not change, only the config key and tool namespace.
+- The server key in `.mcp.json` was renamed from `qmd` to `search` during the plugin v3.2.0 cutover (part of the v3.4.5 qmd epic) — the command invoked (`onebrain mcp`) did not change, only the config key and tool namespace.
