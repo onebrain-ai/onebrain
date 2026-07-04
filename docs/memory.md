@@ -18,7 +18,7 @@ OneBrain uses a four-tier memory system — knowledge sinks downward as it gets 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four-stage persistence stack: WORKING (00-inbox + current session) at top, EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), and KNOWLEDGE (03-knowledge) at the base" src="../assets/diagrams/memory-tiers-light.svg" width="780">
+    <img alt="Memory tiers — four stages flowing top to bottom as knowledge gets validated: WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge)" src="../assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
