@@ -119,7 +119,7 @@ Run OneBrain as your personal AI operating system — a complete AI environment 
 
 ### Using Obsidian? (optional)
 
-These three plugins are pre-configured in vault settings — install them via **Settings → Community plugins → Browse**, then click **Trust author and enable plugins** when prompted:
+Install these three plugins via **Settings → Community plugins → Browse**, then click **Trust author and enable plugins** when prompted:
 
 - **Tasks** — task management with due dates
 - **Dataview** — query notes like a database
