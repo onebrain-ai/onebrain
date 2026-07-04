@@ -159,6 +159,6 @@ For Step 4b (Display Paths), set `Method:` to `display-paths`, `Destination:` to
 
 ## Known Gotchas
 
-- **`qmd_collection` in `onebrain.yml` is vault-specific.** When cloning to a new vault, the `qmd_collection` value will point to the old vault's collection. The user must run `/qmd setup` in the new vault to create a collection for the new vault and update `onebrain.yml` accordingly.
+- **`search.collection` in `onebrain.yml` is vault-specific.** When cloning to a new vault, the `search.collection` value (or a legacy top-level `qmd_collection`) will point to the old vault's collection. The user must set up the search index for the new vault (via the `onebrain` CLI or the web service) to create a collection for the new vault and update `onebrain.yml` accordingly.
 
 - **Cloned memory/ files reference project paths from the old vault.** Project-type memory files may contain file paths (e.g., repo locations) that differ in the new environment. Run `/memory-review` after cloning to audit and update any path-specific facts.

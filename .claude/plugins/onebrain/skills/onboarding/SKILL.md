@@ -230,22 +230,6 @@ Write `onebrain.yml` to the vault root using the template in `references/vault-c
 
 ---
 
-## Step 11b: qmd Setup (Optional)
-
-Ask the user using AskUserQuestion:
-- question: "Would you like to set up qmd for faster vault search? qmd is a local search engine that makes finding notes much faster."
-- header: "qmd Search"
-- multiSelect: false
-- options:
-  - label: "Yes, set up qmd", description: "Recommended : enables faster search, especially as your vault grows"
-  - label: "Skip for now", description: "You can always run /qmd setup later"
-
-If user selects "Yes, set up qmd": run the `/qmd setup` flow from `skills/qmd/SKILL.md` (skip the initial confirmation question : they already confirmed). If qmd setup fails for any reason, report the error and continue to Step 12 without stopping onboarding.
-
-If user selects "Skip for now": continue to Step 12.
-
----
-
 ## Step 11b2: Schedule Presets (optional)
 
 1. Read the canonical preset tier table from `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`.
@@ -318,7 +302,6 @@ run: 1
 - Logs: [logs_folder]
 
 ### Initial Capabilities Enabled
-- qmd: {yes (collection: <name>) / no}
 - Auto-summary: yes
 - Plugin hooks: registered
 ```
@@ -336,7 +319,6 @@ Say:
   `onebrain.yml`                  vault configuration saved
   Folders created:             {list of folders created}
   Plugin hooks:                registered ✅
-  [If qmd set up:] qmd search: `{collection-name}` ✅
 
 → Run /daily to see your first briefing.
 → Run /help to see all available commands.
@@ -505,12 +487,6 @@ Check if `onebrain.yml` already exists in the vault root:
 
 ---
 
-## Path B : Step 12b: qmd Setup (Optional)
-
-Identical to Step 11b in Path A. Ask the user whether to set up qmd, and if yes, run the `/qmd setup` flow (skipping its initial confirmation question). Continue to Step 12c regardless of outcome.
-
----
-
 ## Path B : Step 12b2: Schedule Presets (optional)
 
 Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-presets.md`, skip if `onebrain.yml` already has a non-empty `schedule:` block, show `AskUserQuestion` with default = Tier 2, apply selected tier atomically. On `onebrain schedule register` failure, log and continue — non-blocking.
@@ -519,7 +495,7 @@ Identical to **Step 11b2** in Path A. Read presets from `_shared/schedule-preset
 
 ## Path B : Step 12c: Write Onboarding Log
 
-Identical to **Step 11c** in Path A. Write the one-shot snapshot to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md` using the same template (substitute live values from Path B Steps 2–8, Step 10/12 config, and qmd state from Step 12b). Create `[logs_folder]/log/YYYY/MM/` if missing. On failure, report once and continue to Step 13 — non-blocking.
+Identical to **Step 11c** in Path A. Write the one-shot snapshot to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-onboarding.md` using the same template (substitute live values from Path B Steps 2–8 and Step 10/12 config). Create `[logs_folder]/log/YYYY/MM/` if missing. On failure, report once and continue to Step 13 — non-blocking.
 
 ---
 
@@ -534,7 +510,6 @@ Say:
   `onebrain.yml`                  vault configuration saved
   Folders created:             {list of folders created}
   Plugin hooks:                registered ✅
-  [If qmd set up:] qmd search: `{collection-name}` ✅
 
 → Run /daily to see your first briefing.
 → Run /help to see all available commands.

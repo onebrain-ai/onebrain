@@ -130,9 +130,9 @@ Report each file changed (one line per file). Do NOT touch the 🟡 missing-note
 
 ## Final step
 
-After all fix passes complete, if any files were written to disk (Pass B, Pass C, or Pass E made confirmed changes — Pass A writes to `installed_plugins.json` outside vault, not indexed by qmd; Pass D edits onebrain.yml which is not indexed by qmd):
+After all fix passes complete, if any files were written to disk (Pass B, Pass C, or Pass E made confirmed changes — Pass A writes to `installed_plugins.json` outside vault, not indexed by the search index; Pass D edits onebrain.yml which is not indexed by the search index):
 ```
-onebrain qmd reindex
+onebrain search reindex
 ```
 
 Do NOT delete any content, modify files outside `[agent_folder]/MEMORY.md` and the files containing broken or auto-memory wikilinks, or restructure vault folders automatically.

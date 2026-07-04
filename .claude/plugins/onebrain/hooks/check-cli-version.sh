@@ -5,7 +5,7 @@
 # than v3.1.0. Pairs with `requires.cli` in plugin.json — that field is
 # metadata for tooling; this hook is the runtime enforcement. The floor is
 # v3.1.0 because this plugin emits v3.1 nested commands (`session init`,
-# `qmd reindex`, …) + the `--json` hook contract that v3.0.x can't parse.
+# `search reindex`, …) + the `--json` hook contract that v3.0.x can't parse.
 #
 # Comparison strategy: extract the bare MAJOR.MINOR.PATCH from
 # `onebrain --version` (drops any prerelease suffix like -alpha.9) and

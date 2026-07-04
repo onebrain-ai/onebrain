@@ -27,7 +27,7 @@ AskUserQuestion:
 
 ## Step 2: Scan Notes
 
-Use qmd if available for semantic search across notes; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. For each note, extract:
+Use the search tools if available for semantic search across notes; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. For each note, extract:
 - Title
 - Tags (from frontmatter)
 - Key concepts mentioned (first 200 words)

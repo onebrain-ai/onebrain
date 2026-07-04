@@ -38,9 +38,9 @@ schedule:
     skill: /doctor
   - cron: "0 6 * * *"      # all days 06:00 — pre-work tasks dashboard refresh
     skill: /tasks
-  - cron: "0 3 * * 0"      # Sunday 03:00 — qmd embed safety-net sweep (CLI command, hook-style)
+  - cron: "0 3 * * 0"      # Sunday 03:00 — search embed safety-net sweep (CLI command, hook-style)
     command: onebrain
-    args: [qmd, reindex]
+    args: [search, reindex]
 ```
 
 ## Tier 4 — Custom
@@ -51,7 +51,7 @@ No preset entries. Drop the user into the regular `/schedule-add` wizard for man
 
 | Hour | Used by | Why |
 |---|---|---|
-| 03:00 | command qmd reindex (Sunday) | Quiet pre-dawn maintenance — no editing conflicts |
+| 03:00 | command search reindex (Sunday) | Quiet pre-dawn maintenance — no editing conflicts |
 | 06:00 | /tasks (daily) | Pre-work dashboard refresh — ready before 09:00 |
 | 09:00 | /daily (daily), /doctor (monthly) | Start-of-day briefing window |
 | 12:00 | /recap (Sunday) | Weekend mid-day quiet reflection |

@@ -54,7 +54,7 @@ Print the schedule table:
   ✓ [cron] 0 17 * * 5     skill: /weekly
   ✓ [cron] 0 12 * * 0     skill: /recap
   ✓ [cron] 0 9 * * *      skill: /distill (topic=this-week)
-  ✓ [cron] 0 3 * * 0      cmd: onebrain qmd reindex
+  ✓ [cron] 0 3 * * 0      cmd: onebrain search reindex
   ✓ [cron] 0 5 * * *      cmd: rsync -av /vault /backup
   ✓ [once] 2026-05-13 14:30  skill: /reminder
   ✗ [cron] 0 18 * * 5     skill: /weekly (plist missing — re-run /schedule-add)
