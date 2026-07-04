@@ -65,7 +65,7 @@ OneBrain is harness-agnostic — it ships entrypoint files for the major AI harn
 | `GEMINI.md` | Gemini CLI | `references/gemini-tools.md` → `INSTRUCTIONS.md` |
 | `AGENTS.md` | OpenAI Codex · Qwen Code · any AGENTS-spec harness | `references/codex-tools.md` → `INSTRUCTIONS.md` |
 
-Users can also drive any of the above with a different LLM behind it (local via litellm/ollama proxy, or any cloud BYOK). See [README → The Harness OS Architecture](README.md#the-harness-os-architecture) for the user-facing flow.
+Users can also drive any of the above with a different LLM behind it (local via litellm/ollama proxy, or any cloud BYOK). See [README → How it works](README.md#how-it-works) for the user-facing flow.
 
 **INSTRUCTIONS.md is harness-neutral** — it uses Claude Code tool names throughout. The `references/` files translate those names to each harness's equivalents.
 

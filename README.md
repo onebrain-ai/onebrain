@@ -17,47 +17,66 @@
 </p>
 
 <p align="center">
-  <em>Your AI forgets everything when the session ends.<br>
-  Your notes, your AI, and your tools live in separate silos.<br>
-  OneBrain fixes both — giving you a thinking partner that remembers everything.</em>
+  <strong>OneBrain</strong> is a free, open-source AI OS layer: persistent memory, 30 skills, and a portable vault that works with any AI harness — entirely on your machine.
 </p>
 
 <p align="center">
-  <strong>Your personal AI OS</strong> — persistent memory, 29+ skills, and a full local stack<br>
-  (Claude Code + Obsidian + tmux + Telegram), entirely on your own machine.
-</p>
-
-<p align="center">
-  <a href="#installation">Get Started →</a> &nbsp;·&nbsp; <a href="#commands">View Commands →</a>
+  <a href="#quickstart">Get Started →</a> &nbsp;·&nbsp; <a href="#commands">View Commands →</a>
 </p>
 
 ---
 
 ## What is OneBrain?
 
-OneBrain is an AI operating system layer built on top of Obsidian. It gives your AI agent persistent memory, a structured knowledge vault, and 29+ pre-built skills — so every session picks up exactly where the last one left off.
+> **Imagine the AI industry as the car industry.** If Anthropic, Google, and OpenAI were car makers, each would ship a complete branded car — building its own engine (the LLM), wrapping it in its own chassis and electronics (the harness: Claude Code, Gemini CLI, Codex), and selling the whole thing under its own badge.
+>
+> **OneBrain is not another car brand.** We don't build cars, and we don't build engines. OneBrain is the free, open-source (MIT/Apache-2.0) brain that rides in any of them:
+>
+> - **The plug-in ECU** — install it on any brand and you get the same skills, the same workflows, and behavior as close to identical as each harness allows. It gets the most out of whatever engine it's given — you choose the cost/quality point per task.
+> - **The driver profile** — your memory, preferences, decisions, and knowledge live in your vault, not in the car. Swap cars any time — everything rides with you.
+>
+> *Drive whichever car you like. Your brain rides with you.*
 
-Unlike chat-based AI tools, OneBrain lives in plain Markdown files you own forever. No cloud sync required. No proprietary format. Just your agent, your vault, your data.
+<!-- car-analogy diagram: PR 2 -->
 
-> Most tools ask you to query an AI. OneBrain **co-evolves** with you — every preference you teach sharpens the agent, every link it surfaces sharpens you.
+| In the garage | In the AI stack |
+|---|---|
+| Car makers — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
+| Engine | LLM — Claude, Gemini, GPT, local models |
+| The complete branded car | Harness — Claude Code, Gemini CLI, Codex, Qwen |
+| Plug-in ECU + control software | **OneBrain** — skills, hooks, memory system, calibration |
+| Driver profile that travels with you | **Your vault** — plain Markdown you own forever |
 
-**The bidirectional flow:**
-
-- **Human → Agent** — Every preference, decision, and correction becomes persistent memory. The agent calibrates to you with every interaction.
-- **Agent → Human** — Captures, classifies, links, and synthesizes the noise of your day — so your attention stays on what only you can do.
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/bidir-flow-dark.svg">
-    <img alt="Bidirectional flow — Human sends preferences, decisions, and corrections to Agent; Agent returns captures, links, and synthesis. Every interaction sharpens both." src="assets/diagrams/bidir-flow-light.svg" width="640">
-  </picture>
-</p>
-
-**Harness-agnostic** — Claude Code · Gemini CLI · OpenAI Codex · Qwen · or BYO LLM via API key. [See the architecture ↓](#the-harness-os-architecture)
+> Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
 
 ---
 
-## The Harness OS Architecture
+## Quickstart
+
+```bash
+# 1. Install the CLI
+brew install onebrain-ai/onebrain/onebrain
+# or: npm install -g @onebrain-ai/cli
+
+# 2. Create your vault
+mkdir my-vault && cd my-vault
+onebrain init
+
+# 3. Start working — pick one
+onebrain serve --open   # browser, no harness needed
+claude                  # or any supported harness
+
+# 4. Personalize (inside your harness, or the web UI chat)
+/onboarding
+```
+
+Use Obsidian? Open the same folder via File → Open Folder as Vault — entirely optional. → [docs/install.md](docs/install.md)
+
+---
+
+## How it works
+
+### The stack
 
 OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness — **it extends them**. Whichever harness you drive, OneBrain adds the persistent memory, skill surface, and personal calibration that harnesses don't ship with. Same harness; suddenly it remembers who you are, what you're working on, and how you like to work — all while your Markdown vault stays the durable source of truth underneath.
 
@@ -70,48 +89,40 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 
 | # | Layer | Role | What lives here |
 |---|---|---|---|
-| 01 | **OneBrain** | OS layer (plugin + CLI) | 29+ skills · lifecycle hooks · vault sync · indexing · checkpoints · harness routing |
+| 01 | **OneBrain** | OS layer (plugin + CLI) | 30 skills · lifecycle hooks · local vault sync · indexing · checkpoints · harness routing |
 | 02 | **Harness** | Agentic runtime | Bring your own — Claude Code · Gemini CLI · Codex · Qwen · ... |
 | 03 | **LLM** | Intelligence source | Local (mlx, ollama) · cloud (claude, gemini, gpt) · raw API |
-| 04 | **Obsidian Vault** | Source of truth | Plain Markdown — notes, memory, decisions, knowledge graph |
+| 04 | **Markdown Vault** | Source of truth | Plain Markdown — notes, memory, decisions, knowledge graph |
 
-The **Harness** layer is where most AI tools pick a fight with each other. We don't — pick whichever harness you love. By familiarity, by task, or by cost. Your vault stays the same.
-
-### Extend, don't replace
-
-A great harness already knows how to talk to an LLM, edit files, and run shell commands. It does **not** know who you are, what you've decided last week, or how you prefer to work. OneBrain fills exactly that gap.
+**Extend, don't replace.** A great harness already knows how to talk to an LLM, edit files, and run shell commands. It does not know who you are, what you've decided last week, or how you prefer to work. OneBrain fills exactly that gap:
 
 | | What OneBrain adds | Why it matters |
 |---|---|---|
 | 🧠 | **Memory** — Identity, preferences, decisions, project state — promoted across four tiers as it earns trust | The harness alone starts every session from zero. OneBrain doesn't. |
-| ⚡ | **Skills** — 31+ vault-aware verbs (`/braindump`, `/research`, `/distill`, `/learn`, `/wrapup`, …) | Pre-built workflows the harness would otherwise need you to script every time. |
+| ⚡ | **Skills** — 30 vault-aware verbs (`/braindump`, `/research`, `/distill`, `/learn`, `/wrapup`, …) | Pre-built workflows the harness would otherwise need you to script every time. |
 | 🎯 | **Calibration** — Every correction, every preference, every learned habit tunes the agent to *you* | The longer you use it, the sharper it gets — your vault is the training data. |
-| 🔀 | **Continuity** — Context lives in the vault, not the harness | Switch from Claude Code to Gemini CLI to Codex. Same memory. Same skills. Same agent. |
+| 🔀 | **Continuity** — Context lives in the vault, not the harness | Switch from Claude Code to Gemini CLI to Codex — context carries over. |
 
-> Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
-
----
-
-## One Vault, All Projects — The Command Center
-
-Obsidian becomes your dispatch hub for everything you do:
-
-- **Read once, understand all** — agent context lives in one place, never re-explained.
-- **Code in repos, orchestration in vault** — agent dispatches from here to wherever the work actually lives.
-- **Markdown replaces Slack / Linear / Notion** — version-controlled, AI-readable, yours forever.
+### Memory
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/vault-hub-dark.svg">
-    <img alt="OneBrain as command center — eight spokes radiate from the vault to CLI/repo, website, web UI, social media, office docs, project notes, research, and MCP server" src="assets/diagrams/vault-hub-light.svg" width="460">
+    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/memory-tiers-dark.svg">
+    <img alt="Memory tiers — four-stage persistence stack: WORKING (00-inbox + current session) at top, EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), and KNOWLEDGE (03-knowledge) at the base" src="assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
-The agent reaches outward FROM the vault to every surface where the work actually lives. No tab juggling. No tool sprawl.
+| Tier | Location | What it stores | Promoted by |
+|------|----------|---------------|-------------|
+| **Working** | `00-inbox/` + current session | Raw captures, active conversation | `/consolidate`, `/wrapup` |
+| **Episodic** | `07-logs/session/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
+| **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
+| **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
+| **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
 
----
+Full promotion rules, automatic session saving, and pause/resume → [docs/memory.md](docs/memory.md)
 
-## Every Session Sharpens Both
+### The loop
 
 OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
 
@@ -126,537 +137,81 @@ OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
 2. **Evolve** — `/research` and `/distill` expand your knowledge. `/learn` deepens the agent. The loop tightens. → `/research` · `/distill` · `/learn`
 3. **Wrapup** — `/wrapup` consolidates the session log. `/recap` promotes lessons to memory. → `/wrapup` · `/recap`
 
-### Behind the loop
-
-After `/onboarding`, your AI agent:
-
-1. **Loads your identity** — name, role, goals, communication style, active projects
-2. **Greets you with context** — inbox status, overdue tasks, patterns from recent sessions
-3. **Remembers everything** — decisions, preferences, and insights accumulate over time
-4. **Suggests next actions** — based on what's in your vault, not what it can infer from scratch
-
----
-
-## Memory System
-
-OneBrain uses a four-tier memory system — knowledge sinks downward as it gets validated, while the agent recalls upward on demand. The Semantic tier has two loading modes (always-loaded and lazy-loaded).
-
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four-stage persistence stack: WORKING (00-inbox + current session) at top, EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), and KNOWLEDGE (03-knowledge) at the base" src="assets/diagrams/memory-tiers-light.svg" width="780">
-  </picture>
-</p>
-
-| Tier | Location | What it stores | Promoted by |
-|------|----------|---------------|-------------|
-| **Working** | `00-inbox/` + current session | Raw captures, active conversation | `/consolidate`, `/wrapup` |
-| **Episodic** | `07-logs/YYYY/MM/` | Session summaries, decisions, action items | `/wrapup`, auto-checkpoint |
-| **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
-| **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
-| **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
-
-### Memory Promotion
-
-Each tier has specific skills responsible for writing to it. Knowledge moves down the stack only as fast as it earns trust.
-
-| Layer | Storage | Written by |
-|---|---|---|
-| Session log | `07-logs/` | `/wrapup` (end of session) |
-| Memory files | `05-agent/memory/` | `/learn` (user-driven, single fact), `/recap` (batch synthesis), `/memory-review` (edits) |
-| Always-loaded — Identity | `05-agent/MEMORY.md` | `/onboarding` (one-time), manual edits |
-| Always-loaded — Active Projects | `05-agent/MEMORY.md` | `/learn` (project lifecycle events), manual edits |
-| Always-loaded — Critical Behaviors | `05-agent/MEMORY.md` | `/learn` only (user explicitly teaches behavior; must meet all 3 threshold conditions) |
-| Always-loaded — Memory registry | `05-agent/MEMORY-INDEX.md` | Any skill writing to `memory/` (`/learn`, `/recap`, `/memory-review`) |
-
-**Promotion pipeline:**
-session → session log (`/wrapup`) → `memory/` files (`/recap`) → `MEMORY.md` Critical Behaviors (`/learn`)
-
-**Rules:**
-- `/wrapup` writes session logs only — does not promote to `memory/`
-- `/learn` writes to `memory/` immediately; only skill that writes to MEMORY.md Critical Behaviors
-- `/recap` batch-promotes from session logs → `memory/` only — does NOT write to MEMORY.md
-- Only behaviors applying every session with high-impact failure if missed → MEMORY.md Critical Behaviors
-- `MEMORY-INDEX.md` is loaded every session alongside `MEMORY.md` — it is the registry that enables lazy-loading of `memory/` files; updated automatically by any skill that writes to `memory/`
-
-### Automatic Session Saving
-
-OneBrain has automatic behaviors that run without you doing anything:
-
-| Behavior | Trigger | What it does |
-|----------|---------|-------------|
-| **Auto Checkpoint** | Every 15 messages, every 30 min, or before context compression | Writes a checkpoint file to `07-logs/YYYY/MM/` as a safety net |
-| **Auto Session Summary** | You say "bye", "good night", "I'm done for today", etc. — only if `/wrapup` was not already run this session AND ≥ 3 exchanges | Saves a silent session log (marked `auto-saved: true`) without showing any output |
-
-**How they work together:**
-
-- Say "bye" → Auto Session Summary fires silently and saves a session log. No extra steps needed.
-- If you already ran `/wrapup` manually and then say "bye": Auto Session Summary **skips** — the log was already written.
-- If the session ends with no signal (browser closed, terminal killed): Auto Checkpoint files serve as the recovery mechanism. At next session start, Phase 2 automatically synthesizes any orphaned checkpoints into a session log.
-
-**`/wrapup` is manual only.** Run it yourself when you want a visible, full session summary with output shown.
-
-**Pausing long work across sessions.** For multi-day tasks that don't fit one session, run `/pause` to save a snapshot, then `/resume` in a future session to pick up seamlessly. Pause snapshots accumulate per-thread in `07-logs/pause/`; the next `/wrapup` consolidates them into one session log. This fills the gap between auto-checkpoint (involuntary) and `/wrapup` (terminal).
-
-**The practical result:** Just say "bye" and everything is saved. If the session ends unexpectedly, you lose at most 15 messages — the last checkpoint recovers the rest.
-
-> Auto Checkpoint runs on Claude Code (`Stop` hook) and Gemini CLI (`AfterAgent` hook), and uses the `onebrain` CLI binary. Install via Homebrew (`brew install onebrain-ai/onebrain/onebrain`) or npm (`npm install -g @onebrain-ai/cli`) — see the [Installation section](#installation). Auto Session Summary works with any agent that follows INSTRUCTIONS.md.
-
----
-
-## Built for Synergetic Thinking
-
-OneBrain doesn't just store markdown. Every feature exists to make you and the agent better at each other's job.
-
-| | Feature | Description |
-|---|---|---|
-| 🧠 | **Persistent Memory** | Remembers your name, goals, preferences, and decisions across every session |
-| 🖥️ | **Personal AI OS** | Full local stack: Claude Code + Obsidian + tmux + Telegram — no cloud infra needed |
-| ⚡ | **31+ Skills** | Braindump, research, consolidate, bookmark, import files, daily briefing, and more |
-| 📂 | **Vault-native Markdown** | Plain Markdown, no lock-in. Your data stays yours forever |
-| 🔀 | **Multi-Harness OS** | Switch between Claude Code, Gemini CLI, Codex, Qwen, or BYO LLM — context never breaks. [See architecture ↑](#the-harness-os-architecture) |
-| 🔌 | **Zero Config** | Clone, open in Obsidian, run `/onboarding`. Ready in under 2 minutes |
-| 📓 | **Session Logs & Checkpoints** | Every conversation saved with summaries and action items. Auto-checkpoints fire every 15 messages or 30 min so nothing is lost mid-session *(supported on Claude Code and Gemini CLI)* |
-| 💾 | **Auto Session Summary** | When you say "bye", the agent silently saves a complete session log — no `/wrapup` needed |
-| 🔗 | **Knowledge Synthesis** | `/consolidate` turns inbox captures into permanent connected knowledge |
-| 🔬 | **Confidence-scored Memory** | Every insight carries `[conf:high/medium/low]` + `[verified:YYYY-MM-DD]` — knowledge that grows more reliable with use |
-| 💎 | **Knowledge Distillation** | `/distill` crystallizes a completed research thread into a permanent structured note in your knowledge base |
-| 🩺 | **Vault Doctor** | `/doctor` audits broken links, orphan notes, stale memory, and inbox backlog; `--fix` auto-repairs confidence scores and wikilinks |
-| 🎓 | **Teachable AI** | `/learn` permanently shapes how your agent thinks and responds |
-| 🪄 | **Smart Memory Review** | `/memory-review` lets you interactively prune, update, or archive memory entries one by one |
-| 🔒 | **Concurrent-session Safe** | Each session generates an isolated 6-char token — multiple parallel sessions never mix checkpoints |
-| 📱 | **Mobile Access** | Send instructions and receive briefings from anywhere via Telegram |
-| ⚙️ | **CLI Binary** | `onebrain` binary handles checkpoints, session init, doctor, plugin update, and updates — no Bun, Python, or Node.js required |
-
----
-
-## Use Cases
-
-### 🖥️ Personal AI OS
-
-Run OneBrain as your personal AI operating system — a complete AI environment that runs locally with no cloud infrastructure required.
-
-**Recommended stack:**
-
-| Tool | Role |
-|------|------|
-| [Claude Code](https://claude.ai/code) | Your AI agent, running in the terminal |
-| [Obsidian](https://obsidian.md) | Your vault — single source of truth for memory and knowledge |
-| [tmux](https://github.com/tmux/tmux) | Persistent sessions that survive disconnects and reboots |
-| [Telegram](https://telegram.org) | Mobile access: send instructions, receive briefings from anywhere |
-
-**Setting up the full stack:**
-
-1. Install OneBrain and open your vault in Obsidian ([Get Started](#installation))
-2. Start a tmux session: `tmux new -s onebrain`
-3. Start Claude Code in your vault directory: `claude`
-4. Run `/telegram:configure` to connect Claude Code's built-in Telegram channel — no custom bot or external infra needed
-5. From any device, open Telegram and send instructions directly to your OneBrain agent
-
-Your agent, your vault, your data — forever.
-
-### 🧠 Thinking Partner
-
-Use OneBrain as a daily thinking partner. Capture ideas with `/braindump`, research topics with `/research`, synthesize knowledge with `/consolidate`, and surface connections you'd never find manually with `/connect`.
-
-### 📚 Knowledge Base Builder
-
-Turn your AI into a knowledge curator: research, summarize, import files, and build a connected Markdown knowledge base that grows smarter over time.
-
----
-
-## Installation
-
-### Pick Your Harness
-
-Each harness reads OneBrain's instruction file automatically. Install it, run it inside your vault, and the plugin loads on first prompt.
-
-| Harness | Install | Run | Reads |
-|---|---|---|---|
-| **Claude Code** *(recommended)* | `npm install -g @anthropic-ai/claude-code` | `claude` | `CLAUDE.md` |
-| **Gemini CLI** | `npm install -g @google/gemini-cli` | `gemini` | `GEMINI.md` |
-| **OpenAI Codex** | `npm install -g @openai/codex` | `codex` | `AGENTS.md` |
-| **Qwen Code** | `npm install -g @qwen-code/qwen-code` | `qwen` | `AGENTS.md` |
-
-> Auto-checkpoint and stop-hook coverage ship for Claude Code (`Stop` + optional `PostToolUse` qmd) and Gemini CLI (`AfterAgent` + optional `AfterTool` qmd) out of the box. Slash commands are namespaced on Gemini (`/onebrain:braindump`) to avoid collisions with built-ins; on Claude they invoke directly (`/braindump`). Other harnesses gain hook coverage as upstream support lands.
-
-### 1. Install the OneBrain CLI
-
-Pick the install path that fits your environment — all three converge on the same v3.x Rust binary.
-
-```bash
-# macOS (Homebrew tap — recommended)
-brew tap onebrain-ai/onebrain
-brew install onebrain
-
-# Any platform via npm wrapper (postinstall downloads the platform binary)
-npm install -g @onebrain-ai/cli
-
-# Direct download — pick the matching target triple for your platform
-# https://github.com/onebrain-ai/onebrain-cli/releases/latest
-```
-
-The full CLI source + release pipeline lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli). After install, use the built-in self-installer to refresh in place:
-
-```bash
-onebrain update          # prompt-and-confirm
-onebrain update --check  # dry-run
-```
-
-### 2. Create and initialize your vault
-
-```bash
-mkdir my-vault && cd my-vault
-onebrain init
-```
-
-### 3. Open Obsidian
-
-File → Open Folder as Vault → select this folder
-
-### 4. Personalize your vault
-
-In your harness: `/onboarding`
-
-> **Adding OneBrain to an existing vault?** `cd` into it and run `onebrain init`
-
-### Browse in a browser — `onebrain serve`
-
-Prefer the browser, or on a machine without Obsidian? The CLI ships a local **web UI** — nothing extra to install (it's embedded in the binary):
-
-```bash
-cd my-vault
-onebrain serve --open      # → http://127.0.0.1:6789/?token=<TOKEN>
-```
-
-A file explorer, a reading view (markdown, code, PDF, Office docs, images, audio/video, Jupyter notebooks), a built-in search panel, and agent chat — over a token-gated, loopback-only vault API. See the [onebrain-cli README](https://github.com/onebrain-ai/onebrain-cli#local-web-ui) for flags + self-host (TLS) notes.
-
-### Bring Your Own LLM (via Claude Code)
-
-Already love Claude Code? Use it as a universal frontend. Point `ANTHROPIC_BASE_URL` at any OpenAI-compatible endpoint — Claude Code stays the harness, the LLM behind it changes per task.
-
-```bash
-# Recommended: claude-code-router handles Anthropic ↔ provider translation
-npm install -g @musistudio/claude-code-router
-ccr code                                    # first-run config, then launches Claude Code via the router
-# (later) ccr stop                          # tear down the router before going native again
-
-# Or direct: point ANTHROPIC_BASE_URL at any Anthropic-protocol endpoint
-export ANTHROPIC_BASE_URL=https://your-router-or-anthropic-compatible-host
-export ANTHROPIC_API_KEY=sk-byok-key
-cd vault && claude
-
-# Switch back to native Claude any time (manual-export route)
-unset ANTHROPIC_BASE_URL ANTHROPIC_API_KEY
-claude
-```
-
-| Route | What it gets you |
-|---|---|
-| **Local** (mlx, ollama, llama.cpp) | Cost-free routine work, full privacy. Pair with [`litellm`](https://github.com/BerriAI/litellm) or [`claude-code-router`](https://github.com/musistudio/claude-code-router). |
-| **Cloud BYOK** (Claude, Gemini, GPT, Groq, OpenRouter) | Pay-as-you-go premium reasoning. One env-var swap, no code changes. |
-| **Hybrid** (route by task or by cost) | Cheap models for routine, premium when it counts. |
-
-Same vault. Same skills. Same memory. The LLM swaps; OneBrain doesn't notice.
-
----
-
-> **After `/update`:** Run `/reload-plugins` to pick up changes in your current session, or simply start a new session.
-
 ---
 
 <a id="commands"></a>
 
-<!-- NEW-BADGE-CLEANUP: remove the green NEW shields.io badges from /search, /pause, /resume, /schedule-* on or after 2026-05-19 -->
+## Commands
 
-## 📋 31+ Commands
-
-Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (avoids collisions with Gemini built-in commands like `/help` and `/tasks`).
-
-### 📥 INPUT — Capture & ingest
+Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (a few newer skills are Claude Code-only for now — see [docs/skills.md](docs/skills.md)).
 
 | Command | What it does |
 |---------|-------------|
-| `/onboarding` | First-run setup — run this first · *first run only* |
 | `/braindump` | Dump everything on your mind — it gets classified and filed |
 | `/capture` | Quick note with auto-linking to related notes |
-| `/bookmark [url]` | Save a URL with AI-generated name, description, and category to Bookmarks.md |
-| `/summarize [url]` | Fetch a URL and save a deep summary note |
-| `/import [path]` | Import local files (PDF, Word, images, scripts) into vault notes |
-| `/reading-notes` | Turn a book or article into structured notes |
 | `/research [topic]` | Web research → structured note in your vault |
-
-### ⚙️ PROCESS — Synthesize & organize
-
-| Command | What it does |
-|---------|-------------|
 | `/consolidate` | Process inbox into permanent knowledge |
-| `/distill [topic]` | Crystallize a completed topic thread into a permanent knowledge note in `03-knowledge/` |
-| `/connect` | Find connections between notes, suggest wikilinks |
-| `/recap` | Cross-session synthesis — batch-promote recurring insights from session logs into `memory/` files (does NOT write to MEMORY.md) |
-| `/weekly` | Review the week, surface patterns, set intentions |
-| `/daily` | Daily briefing — surfaces tasks and last session context, then saves your focus as a daily note |
+| `/distill [topic]` | Crystallize a completed topic thread into a permanent knowledge note |
 | `/learn` | Teach the agent something — facts about your world or behavioral preferences |
-
-### 🔍 RECALL — Retrieve & navigate
-
-| Command | What it does |
-|---------|-------------|
-| `/search` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | General vault retrieval — answers what + why questions across MEMORY, sessions, plans, decisions logs, notes |
-| `/tasks` | Live task dashboard in Obsidian — creates/updates `TASKS.md` with always-current query sections |
-| `/moc` | Vault portal in Obsidian — creates/updates `MOC.md` with projects, areas, knowledge, tasks, and pinned links |
-| `/memory-review` | Interactive review of memory files — keep, update, deprecate, or delete entries |
-
-### 🔧 MAINTAIN — System housekeeping
-
-| Command | What it does |
-|---------|-------------|
-| `/update` | Update skills, config, and plugins from GitHub |
-| `/doctor` | Vault + config health check — broken links, orphan notes, stale memory entries, inbox backlog |
-| `/reorganize` | Migrate flat notes into organized subfolders |
-| `/clone` | Package your agent context for transfer to a new vault |
-| `/help` | List all available commands with descriptions |
+| `/daily` | Daily briefing — surfaces tasks and last session context |
 | `/wrapup` | Wrap up session — merges any auto-checkpoints and saves full summary to session log |
-| `/pause` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Save a snapshot of long-running work mid-flight so a future session can `/resume` (does NOT end the session or clear context) |
-| `/resume` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Load the latest snapshot of an active pause thread and pick up seamlessly in a fresh session |
-| `/schedule-add` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Interactive wizard for adding a recurring scheduled skill |
-| `/schedule-once` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | One-shot wizard: schedule a skill to run once at a specific datetime |
-| `/schedule-list` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Show all scheduled entries |
-| `/schedule-remove` ![NEW](https://img.shields.io/badge/NEW-success?style=flat-square) | Remove a scheduled entry |
 
 <details>
-<summary><strong>📁 Vault Structure</strong></summary>
+<summary><strong>Full command reference</strong></summary>
 <br>
 
-Vault folders are created during `/onboarding`.
-
-```
-onebrain/
-├── 00-inbox/          Raw braindumps and captures (process regularly)
-│   └── imports/       Staging area for /import (drop files here)
-├── 01-projects/       Active projects with inline tasks
-├── 02-areas/          Ongoing responsibilities (health, finances, career...)
-├── 03-knowledge/      Your own synthesized thinking and insights
-├── 04-resources/      External info — research output, summaries, reference
-├── 05-agent/          AI-specific context and memory
-│   ├── MEMORY.md      Identity + Active Projects + Critical Behaviors
-│   ├── MEMORY-INDEX.md  Registry of all memory files — loaded every session, enables lazy-loading
-│   └── memory/        All memory files — behavioral patterns, domain context, project facts
-├── 06-archive/        Completed projects and archived areas
-├── 07-logs/           Session logs and checkpoints (YYYY/MM/ subfolders)
-├── attachments/       Copied files from /import --attach
-│   ├── pdf/
-│   ├── images/
-│   └── video/
-├── TASKS.md           Live task dashboard (created by /tasks, opened in Obsidian)
-├── MOC.md             Vault portal — Map of Content (created by /moc)
-├── CLAUDE.md          Instructions for Claude Code
-├── GEMINI.md          Instructions for Gemini CLI
-├── AGENTS.md          Universal agent instructions
-├── onebrain.yml          Your vault configuration (created during onboarding)
-├── .claude/plugins/   AI skills, hooks, and shared INSTRUCTIONS (read by Claude Code)
-└── .gemini/           Gemini CLI project config — hooks + namespaced slash commands
-```
-
-The core workflow: capture everything to inbox → process with `/consolidate` → synthesize into knowledge or save as reference → archive what's done.
-
-**`00-inbox/`** — Raw braindumps and captures
-Process regularly. Everything unclassified lands here first. The `imports/` subfolder is the staging area for `/import` — copy files there and run `/import` to distill them into vault notes.
-
-**`01-projects/`** — Active work with a clear goal and end date
-Examples: `work/Website Redesign.md`, `personal/Japan Trip 2026.md`
-
-**`02-areas/`** — Ongoing responsibilities that never "complete"
-Examples: `health/Running Log.md`, `finances/Budget 2026.md`
-
-**`03-knowledge/`** — Your own synthesized thinking
-Conclusions, frameworks, and insights you've developed — not raw reference material.
-Examples: `productivity/Deep Work Principles.md`, `technology/When to Use Microservices.md`
-
-**`04-resources/`** — External information saved for reference
-Output from `/research`, `/summarize`, `/reading-notes`, `/import`, and saved reference material.
-Examples: `research/Zettelkasten Method.md`, `code-snippets/Go HTTP Middleware.md`
-
-**`05-agent/`** — Your agent's portable mind
-Everything the AI knows about you. Copy this folder to move your agent to a new vault.
-- `MEMORY.md` — Identity + Active Projects + Critical Behaviors — loaded every session
-- `MEMORY-INDEX.md` — Registry of all memory files — loaded every session, enables lazy-loading of `memory/` files
-- `memory/` — All memory files — behavioral patterns, domain context, project facts
-
-**`06-archive/`** — Completed projects and retired areas
-Organized by date archived: `06-archive/YYYY/MM/`.
-
-**`07-logs/`** — Session logs and checkpoints
-Session logs: `07-logs/YYYY/MM/YYYY-MM-DD-session-NN.md` — generated by `/wrapup` or auto-saved at session end.
-Checkpoints: `07-logs/YYYY/MM/YYYY-MM-DD-{session_token}-checkpoint-NN.md` — auto-generated by hooks every 15 messages or 30 minutes, and before context compression. Incorporated and deleted by `/wrapup` when wrapping up.
+All 30 skills, grouped by workflow phase (INPUT, PROCESS, RECALL, MAINTAIN), with the Gemini namespacing note and per-command descriptions → [docs/skills.md](docs/skills.md)
 
 </details>
 
-## Task Syntax
+---
 
-OneBrain creates tasks in [Obsidian Tasks](https://publish.obsidian.md/tasks/) plugin format:
+## Highlights
 
-```
-- [ ] Task description 📅 2026-03-25
-- [ ] High priority task 🔺 📅 2026-03-22
-```
-
-Tasks live inline in your notes — the Tasks plugin surfaces them across the vault. Run `/tasks` to open a live dashboard in Obsidian (`TASKS.md` at vault root) with sections for overdue, due this week, unscheduled, due later, and recently completed.
+| | Feature |
+|---|---|
+| 🧠 | **Persistent Memory** — remembers your name, goals, preferences, and decisions across every session → [docs/memory.md](docs/memory.md) |
+| ⚡ | **30 Skills** — one number, every workflow phase covered → [docs/skills.md](docs/skills.md) |
+| 🔀 | **Multi-Harness** — Claude Code, Gemini CLI, Codex, Qwen, or BYO LLM — same vault, same memory → [docs/install.md](docs/install.md) |
+| 🖥️ | **Web UI built in** — `onebrain serve` opens a file explorer, reader, search, and agent chat in your browser → [docs/webui.md](docs/webui.md) |
+| 🔍 | **Native search + MCP** — hybrid lex+vector search over your vault, servable over MCP (stdio) → [docs/search.md](docs/search.md) · [docs/mcp.md](docs/mcp.md) |
+| 📂 | **Vault-native Markdown** — plain Markdown, no lock-in. Your data stays yours forever |
+| 📓 | **Session logs & checkpoints** — every conversation saved with summaries and action items; auto-checkpoints every 15 messages or 30 min |
+| 📱 | **Mobile via Telegram** — send instructions and receive briefings from anywhere → [docs/install.md](docs/install.md) |
 
 ---
 
-## OneBrain Cloud
+## OneBrain Sync *(planned)*
 
-Multi-device sync and hosted agent runtimes. Your unified intelligence travels with you.
-
-| Tier | What you get | Status |
-|---|---|---|
-| **FREE** | Local vault · OSS skills · BYOK | ✅ Available now |
-| **PRO** | Sync · mobile · hosted runtime | 🟡 [Join waitlist](https://onebrain.run) |
-| **TEAM** | Shared intelligence · team mesh | 🟡 Coming soon |
-
----
+One driver profile, every garage. OneBrain Sync will keep your vault, memory, and context in sync across machines — while the agent always runs locally, on your own keys. No hosted runtime. No lock-in.
 
 ## Scheduling
 
-OneBrain skills can run automatically on a schedule via your OS scheduler (macOS launchd; Linux + Windows coming soon). Configure in `onebrain.yml`:
+Run OneBrain skills automatically — daily briefings, weekly reviews, recurring maintenance — via your OS scheduler (macOS launchd; Linux + Windows coming soon), configured in `onebrain.yml`.
 
-```yaml
-schedule:
-  - cron: "0 9 * * *"      # daily 9am
-    skill: /daily
-  - cron: "0 18 * * 5"     # Friday 6pm
-    skill: /weekly
-  - cron: "0 12 * * 0"     # Sunday noon
-    skill: /recap
-```
-
-For a one-shot reminder, use `at:` instead of `cron:`:
-
-```yaml
-schedule:
-  - at: "2026-05-13 14:30"
-    skill: /reminder
-```
-
-After firing, the launchd plist auto-uninstalls itself.
-
-Register schedules:
-
-```bash
-onebrain schedule register
-```
-
-Or use the interactive wizards from inside your vault:
-
-```
-/schedule-add      # recurring schedule wizard
-/schedule-once     # one-shot wizard
-/schedule-list     # show all scheduled entries
-/schedule-remove   # remove an entry
-```
-
-Output goes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.md` as readable markdown.
-
-### Command mode (CLI binaries, hook-style)
-
-For CLI maintenance tasks that aren't OneBrain skills, use the `command + args[]` shape:
-
-```yaml
-schedule:
-  - cron: "0 3 * * 0"
-    command: onebrain
-    args: [search, reindex]
-  - cron: "0 5 * * *"
-    command: rsync
-    args: [-av, /vault, /backup]
-```
-
-This matches the same shape Claude Code uses for `hooks` in `settings.json` — direct binary invocation with positional argv. No wrapper skill needed.
-
-### Quick start — preset bundles
-
-Don't want to hand-craft cron entries? OneBrain ships three preset tiers. New vaults are prompted during `/onboarding`; existing vaults can trigger the selector by running `/schedule-add` when the `schedule:` block is empty.
-
-- **Minimal** — `/daily` briefing only
-- **Essentials (default)** — `/daily` + `/weekly` Friday + `/recap` Sunday
-- **Maintenance Plus** — Essentials + `/doctor` monthly + `/tasks` daily + `onebrain search reindex` Sunday (mixes skill + command modes)
-
-Canonical tier definitions live at `.claude/plugins/onebrain/skills/_shared/schedule-presets.md`.
-
-CLI flags:
-
-| Flag | Purpose |
-|---|---|
-| `--dry-run` | Print plist without writing |
-| `--remove` | Remove all OneBrain schedules |
-| `--refresh` | Re-emit plists after vault move |
-| `--resume <skill>` | Resume an auto-paused skill |
-| `--status` | Show registered schedules + run history |
-| `--test <skill>` | Manually invoke a scheduled skill once |
-
-**Note:** OneBrain's scheduler is distinct from Claude Code's `/loop` (in-session) and `/schedule` (cloud-hosted). OneBrain runs locally and writes to your vault.
-
----
-
-<details>
-<summary><strong>⚙️ Prerequisites & Detailed Setup</strong></summary>
-<br>
-
-### Prerequisites
-
-**Required:** [git](https://git-scm.com) — used to version-control your vault.
-
-| Platform | Install command |
-|----------|----------------|
-| macOS (Homebrew) | `brew install git` |
-| macOS (Xcode CLT) | `xcode-select --install` |
-| Windows (winget) | `winget install --id Git.Git` |
-| Windows (Chocolatey) | `choco install git` |
-| Debian / Ubuntu | `sudo apt install git` |
-| Fedora / RHEL | `sudo dnf install git` |
-| Arch | `sudo pacman -S git` |
-
-Verify with `git --version` before running the installer.
-
-**Source builds (optional):** The published v3.x CLI is a self-contained Rust binary — `npm install`, `brew install`, and direct GH Release download all give you the same artifact, no build dependencies needed. Building from source requires a [Rust toolchain](https://rustup.rs) (`rustup default stable`); see [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli#build-from-source) for instructions.
-
-**Windows:** Git for Windows (above) includes Git Bash, which provides the `bash` environment required to run all hooks.
-
-### Community Plugins
-
-These three plugins are pre-configured in vault settings — install them via **Settings → Community plugins → Browse**, then click **Trust author and enable plugins** when prompted:
-
-- **Tasks** — task management with due dates
-- **Dataview** — query notes like a database
-- **Terminal** — run your AI agent from within Obsidian
-
-These are recommended but optional:
-
-- **Templater** — advanced templates
-- **Calendar** — visual calendar view
-- **Tag Wrangler** — manage tags across vault
-- **QuickAdd** — fast capture workflows
-- **Obsidian Git** — version control for your vault
-
-### Claude Code Skills (Optional)
-
-For Obsidian-specific Claude Code skills (markdown, bases, canvas, and more), install the [Obsidian Skills](https://github.com/kepano/obsidian-skills) plugin separately:
-
-```
-/plugin marketplace add kepano/obsidian-skills
-/plugin install obsidian@obsidian-skills
-```
-
-</details>
-
----
+Full config format, preset bundles, and CLI flags → [docs/scheduling.md](docs/scheduling.md)
 
 ## Customization
 
 Edit `05-agent/MEMORY.md` directly to update your identity, goals, or recurring context at any time. The AI picks up changes on the next session start.
 
-The full set of AI instructions that govern your agent's behavior lives in [`.claude/plugins/onebrain/INSTRUCTIONS.md`](.claude/plugins/onebrain/INSTRUCTIONS.md). You can read it to understand how your agent works. Note that `/update` will overwrite this file — add any session-level customizations to your `CLAUDE.md` instead, so they survive updates.
+The full set of AI instructions that govern your agent's behavior lives in [`.claude/plugins/onebrain/INSTRUCTIONS.md`](.claude/plugins/onebrain/INSTRUCTIONS.md). Note that `/update` will overwrite this file — add session-level customizations to your `CLAUDE.md` instead, so they survive updates.
+
+## Docs
+
+| Page | What's inside |
+|------|---------------|
+| [Install](docs/install.md) | Pick a harness, install the CLI, set up optional extras |
+| [Memory](docs/memory.md) | Four-tier memory system, promotion rules, automatic session saving |
+| [Skills reference](docs/skills.md) | All 30 skills grouped by workflow phase |
+| [Web UI](docs/webui.md) | `onebrain serve` — embedded browser UI and JSON API |
+| [Search](docs/search.md) | Native hybrid (lex + vector) search over your vault |
+| [MCP Server](docs/mcp.md) | Serve OneBrain over the Model Context Protocol |
+| [Scheduling](docs/scheduling.md) | Recurring and one-shot skill scheduling |
+| [Vault Structure](docs/vault-structure.md) | Folder layout and task syntax |
+| [CLI Command Map](docs/cli.md) | Every top-level `onebrain` command |
+
+Questions or gaps? [Open an issue](https://github.com/onebrain-ai/onebrain/issues).
 
 ## Contributing
 

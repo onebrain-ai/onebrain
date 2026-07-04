@@ -1,6 +1,6 @@
 # OneBrain — Codex CLI
 
-OneBrain is a personal AI OS for Obsidian. INSTRUCTIONS.md is written using Claude Code
+OneBrain is a personal AI OS built on a plain-Markdown vault — use its built-in web UI, or Obsidian if you prefer. INSTRUCTIONS.md is written using Claude Code
 tool names — the mapping below translates them to Codex CLI equivalents and explains
 how to dispatch sub-agents for skills that require parallel execution.
 
