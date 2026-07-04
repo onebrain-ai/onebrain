@@ -46,6 +46,15 @@ session → session log (`/wrapup`) → `memory/` files (`/recap`) → `MEMORY.m
 - Only behaviors applying every session with high-impact failure if missed → MEMORY.md Critical Behaviors
 - `MEMORY-INDEX.md` is loaded every session alongside `MEMORY.md` — it is the registry that enables lazy-loading of `memory/` files; updated automatically by any skill that writes to `memory/`
 
+## Session start
+
+After `/onboarding`, every new session:
+
+1. **Loads your identity** — name, role, goals, communication style, active projects
+2. **Greets you with context** — inbox status, overdue tasks, patterns from recent sessions
+3. **Recalls what's been promoted** — decisions, preferences, and insights accumulated in memory/ so far
+4. **Suggests next actions** — based on what's in your vault, not a cold start
+
 ## Automatic Session Saving
 
 OneBrain has automatic behaviors that run without you doing anything:
