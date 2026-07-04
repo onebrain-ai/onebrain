@@ -2,10 +2,8 @@
 .DS_Store
 Thumbs.db
 
-# ── Obsidian — ignore all per-device settings; allow only shared config ───────
-.obsidian/*
-!.obsidian/community-plugins.json
-!.obsidian/core-plugins.json
+# ── Obsidian — per-device settings, never tracked (web UI replaces shared config) ───
+.obsidian/
 
 # ── AI Agents ─────────────────────────────────────────────────────────────────
 .claude/settings.local.json
