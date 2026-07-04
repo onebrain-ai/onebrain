@@ -13,6 +13,11 @@ without updating every doc that states the count. It enforces:
   2. The command table in docs/skills.md has exactly N+1 rows (the extra
      row is `/help`).
 Pure stdlib — no third-party deps.
+
+Known limitations:
+  - EXCLUDED is exact-name match ({_shared, help, startup}) — a new underscore-prefixed dir WITH a SKILL.md gets counted (fail-safe by design).
+  - Count guard only: a rename (e.g. wrapup -> wrapup-v2) keeps N stable and passes even if docs/skills.md rows go stale — row NAMES are not cross-checked.
+  - Counts inside fenced code blocks are not exempted; avoid literal "<N> skills" strings in code examples.
 """
 import glob
 import os
@@ -46,7 +51,7 @@ def doc_files():
 def check_doc_counts(actual):
     errors = []
     for path in doc_files():
-        with open(path, encoding="utf-8") as fh:
+        with open(path, encoding="utf-8-sig") as fh:
             for lineno, line in enumerate(fh, start=1):
                 for match in COUNT_RE.finditer(line):
                     stated = int(match.group(1))
@@ -60,7 +65,7 @@ def check_doc_counts(actual):
 def check_skills_table(actual):
     path = "docs/skills.md"
     rows = 0
-    with open(path, encoding="utf-8") as fh:
+    with open(path, encoding="utf-8-sig") as fh:
         for line in fh:
             if TABLE_ROW_RE.match(line):
                 rows += 1
