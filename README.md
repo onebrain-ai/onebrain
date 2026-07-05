@@ -112,11 +112,11 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 
 ### The plugin decides, the CLI acts
 
-OneBrain ships as two halves of one system. The **plugin** is the brain — the skills, hooks, and memory that decide *what* should happen. **`onebrain-cli`** is the hands — a native Rust binary that carries the work out precisely, the same way on every harness.
+OneBrain ships as two halves of one system. The **plugin** is the brain — the skills, hooks, and memory that decide *what* should happen. **`onebrain-cli`** is the toolkit — a native Rust binary that carries the work out precisely, the same way on every harness.
 
 The plugin runs on its own. Without the CLI it leans on the harness's LLM to improvise the mechanics — grep the vault, count due tasks, resolve the session token, reindex search. But every harness improvises differently: each is limited to the tools its vendor designed and the way its model was trained. The CLI removes that lottery — the same command, the same result, in any car.
 
-| Job | Plugin alone — borrowed tools | With `onebrain-cli` — its own hands |
+| Job | Plugin alone — borrowed tools | With `onebrain-cli` — its own toolkit |
 |---|---|---|
 | Session startup | LLM greps folders and guesses state | `onebrain session init --json` — one deterministic call |
 | Tasks due today | LLM scans Markdown, fence-aware by luck | `onebrain task list --due-by today` — fence-aware, always |
@@ -124,7 +124,7 @@ The plugin runs on its own. Without the CLI it leans on the harness's LLM to imp
 | Scheduling | Not reachable from inside the harness | `onebrain schedule register` — real OS-level cron |
 | Session recovery | Manual glob heuristics for orphans | `onebrain checkpoint orphans` — exact counts |
 
-**OneBrain runs with just the plugin — but it's whole when the CLI rides with it.** One system: brain plus hands, on whatever car you drive.
+**OneBrain runs with just the plugin — but it's whole when the CLI rides with it.** One system: brain plus toolkit, on whatever car you drive.
 
 ### Memory
 
