@@ -32,15 +32,16 @@
 >
 > **OneBrain is not another car brand.** We don't build cars, and we don't build engines. OneBrain is the free, open-source (MIT/Apache-2.0) brain that rides in any of them:
 >
-> - **The plug-in ECU** — install it on any brand and you get the same skills, the same workflows, and behavior as close to identical as each harness allows. It gets the most out of whatever engine it's given — you choose the cost/quality point per task.
+> - **The plug-in ECU** — the brain. Install it on any brand and you get the same skills, the same workflows, and behavior as close to identical as each harness allows. It decides *what* to do and gets the most out of whatever engine it's given.
+> - **The hands & power tools** (`onebrain-cli`) — an ECU only sends signals; something has to *act* on them. Left on its own, OneBrain has to borrow each car's factory robot-arms — the harness's own tools, which every brand builds differently and the LLM improvises with. `onebrain-cli` is the standardized toolset OneBrain carries into every car, so vault indexing, search, session state, scheduling, and task queries run the same precise way everywhere.
 > - **The driver profile** — your memory, preferences, decisions, and knowledge live in your vault, not in the car. Swap cars any time — everything rides with you.
 >
-> *Drive whichever car you like. Your brain rides with you.*
+> *Drive whichever car you like. Your brain — and its hands — ride with you.*
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/car-analogy-dark.svg">
-    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
+    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU (brain), onebrain-cli (hands and tools), and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
   </picture>
 </p>
 
@@ -49,7 +50,8 @@
 | Car makers — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
 | Engine | LLM — Claude, Gemini, GPT, local models |
 | The complete branded car | Harness — Claude Code, Gemini CLI, Codex, Qwen |
-| Plug-in ECU + control software | **OneBrain** — skills, hooks, memory system, calibration |
+| Plug-in ECU — the brain | **OneBrain plugin** — skills, hooks, memory system, calibration |
+| Hands, actuators & power tools | **`onebrain-cli`** — native operations that run the same on every harness |
 | Driver profile that travels with you | **Your vault** — plain Markdown you own forever |
 
 > Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
@@ -105,6 +107,22 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 | ⚡ | **Skills** — 30 vault-aware verbs (`/braindump`, `/research`, `/distill`, `/learn`, `/wrapup`, …) | Pre-built workflows the harness would otherwise need you to script every time. |
 | 🎯 | **Calibration** — Every correction, every preference, every learned habit tunes the agent to *you* | The longer you use it, the sharper it gets — your vault is the training data. |
 | 🔀 | **Continuity** — Context lives in the vault, not the harness | Switch from Claude Code to Gemini CLI to Codex — context carries over. |
+
+### The plugin decides, the CLI acts
+
+OneBrain ships as two halves of one system. The **plugin** is the brain — the skills, hooks, and memory that decide *what* should happen. **`onebrain-cli`** is the hands — a native Rust binary that carries the work out precisely, the same way on every harness.
+
+The plugin runs on its own. Without the CLI it leans on the harness's LLM to improvise the mechanics — grep the vault, count due tasks, resolve the session token, reindex search. But every harness improvises differently: each is limited to the tools its vendor designed and the way its model was trained. The CLI removes that lottery — the same command, the same result, in any car.
+
+| Job | Plugin alone — borrowed tools | With `onebrain-cli` — its own hands |
+|---|---|---|
+| Session startup | LLM greps folders and guesses state | `onebrain session init --json` — one deterministic call |
+| Tasks due today | LLM scans Markdown, fence-aware by luck | `onebrain task list --due-by today` — fence-aware, always |
+| Search | Keyword grep only | Native hybrid **lex + vector** index |
+| Scheduling | Not reachable from inside the harness | `onebrain schedule register` — real OS-level cron |
+| Session recovery | Manual glob heuristics for orphans | `onebrain checkpoint orphans` — exact counts |
+
+**OneBrain runs with just the plugin — but it's whole when the CLI rides with it.** One system: brain plus hands, on whatever car you drive.
 
 ### Memory
 
