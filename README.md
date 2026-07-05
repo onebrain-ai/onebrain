@@ -28,13 +28,15 @@
 
 ## What is OneBrain?
 
-> **Imagine the AI industry as the car industry.** If Anthropic, Google, and OpenAI were car makers, each would ship a complete branded car — building its own engine (the LLM), wrapping it in its own chassis and electronics (the harness: Claude Code, Gemini CLI, Codex), and selling the whole thing under its own badge.
+> **Every AI harness is a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
 >
-> **OneBrain is not another car brand.** We don't build cars, and we don't build engines. OneBrain is the free, open-source (MIT/Apache-2.0) brain that rides in any of them:
+> **But switch cars and you start over.** New controls to learn, and everything you'd dialed in — your preferences, your history, the way it had learned to work for you — stays behind in the car you left.
 >
-> - **The plug-in ECU** — the brain. Install it on any brand and you get the same skills, the same workflows, and behavior as close to identical as each harness allows. It decides *what* to do and gets the most out of whatever engine it's given.
-> - **The hands & power tools** (`onebrain-cli`) — an ECU only sends signals; something has to *act* on them. Left on its own, OneBrain has to borrow each car's factory robot-arms — the harness's own tools, which every brand builds differently and the LLM improvises with. `onebrain-cli` is the standardized toolset OneBrain carries into every car, so vault indexing, search, session state, scheduling, and task queries run the same precise way everywhere.
-> - **The driver profile** — your memory, preferences, decisions, and knowledge live in your vault, not in the car. Swap cars any time — everything rides with you.
+> **OneBrain isn't a car, and it isn't an engine.** It's the free, open-source (MIT/Apache-2.0) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
+>
+> - **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
+> - **The hands & power tools** (`onebrain-cli`) — an ECU only sends signals; something has to *act* on them. On its own, OneBrain makes do with whatever tools a car happens to have built in — which differ from one car to the next, and which the LLM improvises around. `onebrain-cli` is the toolkit OneBrain brings along to every car, so vault indexing, search, session state, scheduling, and task queries run the same precise way no matter what you're driving.
+> - **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
 >
 > *Drive whichever car you like. Your brain — and its hands — ride with you.*
 
@@ -45,14 +47,14 @@
   </picture>
 </p>
 
-| In the garage | In the AI stack |
+| Behind the wheel | In the AI stack |
 |---|---|
-| Car makers — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
-| Engine | LLM — Claude, Gemini, GPT, local models |
-| The complete branded car | Harness — Claude Code, Gemini CLI, Codex, Qwen |
+| The brands you can drive — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
+| Engine under the hood | LLM — Claude, Gemini, GPT, local models |
+| The car you drive | Harness — Claude Code, Gemini CLI, Codex, Qwen |
 | Plug-in ECU — the brain | **OneBrain plugin** — skills, hooks, memory system, calibration |
 | Hands, actuators & power tools | **`onebrain-cli`** — native operations that run the same on every harness |
-| Driver profile that travels with you | **Your vault** — plain Markdown you own forever |
+| The driver profile that rides with you | **Your vault** — plain Markdown you own forever |
 
 > Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
 
