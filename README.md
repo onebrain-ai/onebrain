@@ -150,18 +150,19 @@ Full promotion rules, automatic session saving, and pause/resume → [docs/memor
 
 ### The loop that compounds
 
-OneBrain gets sharper every time you use it. Each session runs a tight three-step loop — capture, evolve, wrap up — and every turn feeds the next: the agent learns a little more about you, your knowledge grows a little deeper, and the next session starts smarter than the last.
+OneBrain gets sharper every time you use it. Each session runs a tight four-step loop that begins by loading everything it knows about you — and ends by folding what it just learned back into memory, so the next loop opens smarter than the last.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/coevo-loop-dark.svg">
-    <img alt="Co-Evolution loop — three nodes (01 CAPTURE at top, 02 EVOLVE at bottom-right, 03 WRAPUP at bottom-left) connected by curved arrows flowing clockwise" src="assets/diagrams/coevo-loop-light.svg" width="350">
+    <img alt="Co-evolution loop — four nodes flowing clockwise: 01 INITIALIZE (top) loads what the agent knows, 02 CAPTURE (right), 03 EVOLVE (bottom), 04 WRAPUP (left) promotes lessons to memory; each loop the agent starts smarter" src="assets/diagrams/coevo-loop-light.svg" width="440">
   </picture>
 </p>
 
-1. **Capture** — Talk to the agent in natural language; it writes, classifies, and links your thoughts in real time. Nothing is lost — every thought becomes context it can draw on later. → `/braindump` · `/capture` · `/bookmark`
-2. **Evolve** — `/research` and `/distill` grow what you know; `/learn` teaches the agent how *you* work. Both sides level up together. → `/research` · `/distill` · `/learn`
-3. **Wrapup** — `/wrapup` consolidates the session; `/recap` promotes the lessons into permanent memory — so the next loop starts with everything this one learned. → `/wrapup` · `/recap`
+1. **Initialize** — Every session opens by loading what it knows: your memory, active projects, preferences, and what's due. This is where everything it's learned so far shows up. → `/daily` · `/resume`
+2. **Capture** — Talk to the agent in natural language; it writes, classifies, and links your thoughts in real time. Nothing is lost — every thought becomes context it can draw on later. → `/braindump` · `/capture` · `/bookmark`
+3. **Evolve** — `/research` and `/distill` grow what you know; `/learn` teaches the agent how *you* work. Both sides level up together. → `/research` · `/distill` · `/learn`
+4. **Wrapup** — `/wrapup` consolidates the session; `/recap` promotes the lessons into permanent memory — so the next Initialize starts with everything this one learned. → `/wrapup` · `/recap`
 
 The more you use it, the smarter it gets — and the more it understands you.
 
