@@ -35,15 +35,15 @@
 **OneBrain isn't a car, and it isn't an engine.** It's the free, open-source ([MIT](LICENSE-MIT)/[Apache-2.0](LICENSE-APACHE)) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
 
 - **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
-- **The hands, tools & gear** (`onebrain-cli`) — the native toolkit that does the real work: indexing, search, scheduling, task queries — all running the same on every car, instead of improvising with whatever each one has built in. OneBrain runs without it, but it's the upgrade that makes the whole thing perform.
+- **The toolkit** (`onebrain-cli`) — the native tools that do the real work: indexing, search, scheduling, task queries — all running the same on every car, instead of improvising with whatever each one has built in. OneBrain runs without it, but it's the upgrade that makes the whole thing perform.
 - **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
 
-*Drive whichever car you like. Your brain — and its hands — ride with you.*
+*Drive whichever car you like. Your brain — and its toolkit — ride with you.*
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/car-analogy-dark.svg">
-    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU (brain), onebrain-cli (hands and tools), and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
+    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU (brain), onebrain-cli (the toolkit), and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
   </picture>
 </p>
 
@@ -53,7 +53,7 @@
 | Engine under the hood | LLM — Claude, Gemini, GPT, local models |
 | The car you drive | Harness — Claude Code, Gemini CLI, Codex, Qwen |
 | Plug-in ECU — the brain | **OneBrain plugin** — skills, hooks, memory system, calibration |
-| The hands, tools & gear | **`onebrain-cli`** — the add-on kit of native operations that run the same on every harness |
+| The toolkit | **`onebrain-cli`** — the add-on kit of native operations that run the same on every harness |
 | The driver profile that rides with you | **Your vault** — plain Markdown you own forever |
 
 > Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
