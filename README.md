@@ -160,7 +160,7 @@ OneBrain gets sharper every time you use it. Each session runs a tight three-ste
 2. **Evolve** — `/research` and `/distill` grow what you know; `/learn` teaches the agent how *you* work. Both sides level up together. → `/research` · `/distill` · `/learn`
 3. **Wrapup** — `/wrapup` consolidates the session; `/recap` promotes the lessons into permanent memory — so the next loop starts with everything this one learned. → `/wrapup` · `/recap`
 
-Run it once and it's useful. Run it for a month and it knows you — your preferences, your decisions, the way you think.
+The more you use it, the smarter it gets — and the more it understands you.
 
 ---
 
