@@ -20,14 +20,14 @@
       .plug-flow { animation: none; }
     }
   </style>
-  <path class="plug" d="M334.4 74.0 A155 155 0 0 1 380.0 119.6" opacity="0.22"/>
-  <path class="plug plug-flow" d="M334.4 74.0 A155 155 0 0 1 380.0 119.6" style="animation-delay:0ms" marker-end="url(#arrow)"/>
-  <path class="plug" d="M380.0 288.4 A155 155 0 0 1 334.4 334.0" opacity="0.22"/>
-  <path class="plug plug-flow" d="M380.0 288.4 A155 155 0 0 1 334.4 334.0" style="animation-delay:300ms" marker-end="url(#arrow)"/>
-  <path class="plug" d="M165.6 334.0 A155 155 0 0 1 120.0 288.4" opacity="0.22"/>
-  <path class="plug plug-flow" d="M165.6 334.0 A155 155 0 0 1 120.0 288.4" style="animation-delay:600ms" marker-end="url(#arrow)"/>
-  <path class="plug" d="M120.0 119.6 A155 155 0 0 1 165.6 74.0" opacity="0.22"/>
-  <path class="plug plug-flow" d="M120.0 119.6 A155 155 0 0 1 165.6 74.0" style="animation-delay:900ms" marker-end="url(#arrow)"/>
+  <path class="plug" d="M329.0 70.6 A155 155 0 0 1 401.4 171.0" opacity="0.22"/>
+  <path class="plug plug-flow" d="M329.0 70.6 A155 155 0 0 1 401.4 171.0" style="animation-delay:0ms" marker-end="url(#arrow)"/>
+  <path class="plug" d="M401.4 237.0 A155 155 0 0 1 329.0 337.4" opacity="0.22"/>
+  <path class="plug plug-flow" d="M401.4 237.0 A155 155 0 0 1 329.0 337.4" style="animation-delay:300ms" marker-end="url(#arrow)"/>
+  <path class="plug" d="M171.0 337.4 A155 155 0 0 1 98.6 237.0" opacity="0.22"/>
+  <path class="plug plug-flow" d="M171.0 337.4 A155 155 0 0 1 98.6 237.0" style="animation-delay:600ms" marker-end="url(#arrow)"/>
+  <path class="plug" d="M98.6 171.0 A155 155 0 0 1 171.0 70.6" opacity="0.22"/>
+  <path class="plug plug-flow" d="M98.6 171.0 A155 155 0 0 1 171.0 70.6" style="animation-delay:900ms" marker-end="url(#arrow)"/>
   <!-- INITIALIZE -->
   <rect x="171.0" y="16.0" width="158" height="66" fill="#08080e" stroke="#ffffff14" stroke-width="1"/>
   <rect x="170.5" y="15.5" width="2" height="67" fill="#a8d000"/>
