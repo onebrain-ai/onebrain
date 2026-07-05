@@ -28,29 +28,33 @@
 
 ## What is OneBrain?
 
-> **Imagine the AI industry as the car industry.** If Anthropic, Google, and OpenAI were car makers, each would ship a complete branded car — building its own engine (the LLM), wrapping it in its own chassis and electronics (the harness: Claude Code, Gemini CLI, Codex), and selling the whole thing under its own badge.
->
-> **OneBrain is not another car brand.** We don't build cars, and we don't build engines. OneBrain is the free, open-source (MIT/Apache-2.0) brain that rides in any of them:
->
-> - **The plug-in ECU** — install it on any brand and you get the same skills, the same workflows, and behavior as close to identical as each harness allows. It gets the most out of whatever engine it's given — you choose the cost/quality point per task.
-> - **The driver profile** — your memory, preferences, decisions, and knowledge live in your vault, not in the car. Swap cars any time — everything rides with you.
->
-> *Drive whichever car you like. Your brain rides with you.*
+**Imagine every AI harness as a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
+
+**But switch cars and you start over.** New controls to learn, and everything you'd dialed in — your preferences, your history, the way it had learned to work for you — stays behind in the car you left.
+
+**OneBrain isn't a car, and it isn't an engine.** It's the free, open-source ([MIT](LICENSE-MIT)/[Apache-2.0](LICENSE-APACHE)) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
+
+- **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
+- **The toolkit** ([`onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli)) — the native tools that do the real work: indexing, search, scheduling, task queries — all running the same on every car, instead of improvising with whatever each one has built in. OneBrain runs without it, but it's the upgrade that makes the whole thing perform.
+- **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
+
+*Drive whichever car you like. Your brain — and its toolkit — ride with you.*
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/car-analogy-dark.svg">
-    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
+    <img alt="Car analogy — three harness cars (Claude Code, Gemini CLI, Codex) on the left; one OneBrain unit of plug-in ECU (brain), onebrain-cli (the toolkit), and driver profile connects to every car" src="assets/diagrams/car-analogy-light.svg" width="780">
   </picture>
 </p>
 
-| In the garage | In the AI stack |
+| Behind the wheel | In the AI stack |
 |---|---|
-| Car makers — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
-| Engine | LLM — Claude, Gemini, GPT, local models |
-| The complete branded car | Harness — Claude Code, Gemini CLI, Codex, Qwen |
-| Plug-in ECU + control software | **OneBrain** — skills, hooks, memory system, calibration |
-| Driver profile that travels with you | **Your vault** — plain Markdown you own forever |
+| The brands you can drive — Toyota, BMW, Tesla | AI companies — Anthropic, Google, OpenAI |
+| Engine under the hood | LLM — Claude, Gemini, GPT, local models |
+| The car you drive | Harness — Claude Code, Gemini CLI, Codex, Qwen |
+| Plug-in ECU — the brain | **OneBrain plugin** — skills, hooks, memory system, calibration |
+| The toolkit | **`onebrain-cli`** — the add-on kit of native operations that run the same on every harness |
+| The driver profile that rides with you | **Your vault** — plain Markdown you own forever |
 
 > Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
 
@@ -106,12 +110,28 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 | 🎯 | **Calibration** — Every correction, every preference, every learned habit tunes the agent to *you* | The longer you use it, the sharper it gets — your vault is the training data. |
 | 🔀 | **Continuity** — Context lives in the vault, not the harness | Switch from Claude Code to Gemini CLI to Codex — context carries over. |
 
+### The plugin decides, the CLI acts
+
+OneBrain ships as two halves of one system. The **plugin** is the brain — the skills, hooks, and memory that decide *what* should happen. **`onebrain-cli`** is the toolkit — a native Rust binary that carries the work out precisely, the same way on every harness.
+
+The plugin runs on its own. Without the CLI it leans on the harness's LLM to improvise the mechanics — grep the vault, count due tasks, resolve the session token, reindex search. But every harness improvises differently: each is limited to the tools its vendor designed and the way its model was trained. The CLI removes that lottery — the same command, the same result, in any car.
+
+| Job | Plugin alone — borrowed tools | With `onebrain-cli` — its own toolkit |
+|---|---|---|
+| Session startup | LLM greps folders and guesses state | `onebrain session init --json` — one deterministic call |
+| Tasks due today | LLM scans Markdown, fence-aware by luck | `onebrain task list --due-by today` — fence-aware, always |
+| Search | Keyword grep only | Native hybrid **lex + vector** index |
+| Scheduling | Not reachable from inside the harness | `onebrain schedule register` — real OS-level cron |
+| Session recovery | Manual glob heuristics for orphans | `onebrain checkpoint orphans` — exact counts |
+
+**OneBrain runs with just the plugin — but it's whole when the CLI rides with it.** One system: brain plus toolkit, on whatever car you drive.
+
 ### Memory
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four stages flowing top to bottom as knowledge gets validated: WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge)" src="assets/diagrams/memory-tiers-light.svg" width="780">
+    <img alt="Memory tiers — four active stages with two-way flow (validated downward, recalled upward): WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge); plus a dormant ARCHIVE layer (06-archive) that is never deleted" src="assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
@@ -122,23 +142,29 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 | **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
 | **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
 | **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
+| **Archive** *(dormant)* | `06-archive/` | Completed projects and areas — set aside, never deleted | manual · recall on demand |
+
+Nothing is ever deleted — completed work settles into the dormant **Archive**, out of the agent's active thinking but one recall away.
 
 Full promotion rules, automatic session saving, and pause/resume → [docs/memory.md](docs/memory.md)
 
-### The loop
+### Gets smarter every session
 
-OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
+OneBrain gets sharper every time you use it. Each session runs a tight four-step loop that begins by loading everything it knows about you — and ends by folding what it just learned back into memory, so the next loop opens smarter than the last.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/coevo-loop-dark.svg">
-    <img alt="Co-Evolution loop — three nodes (01 CAPTURE at top, 02 EVOLVE at bottom-right, 03 WRAPUP at bottom-left) connected by curved arrows flowing clockwise" src="assets/diagrams/coevo-loop-light.svg" width="350">
+    <img alt="Co-evolution loop — four nodes flowing clockwise: 01 INITIALIZE (top) loads what the agent knows, 02 CAPTURE (right), 03 EVOLVE (bottom), 04 WRAPUP (left) promotes lessons to memory; each loop the agent starts smarter" src="assets/diagrams/coevo-loop-light.svg" width="440">
   </picture>
 </p>
 
-1. **Capture** — Talk to the agent in natural language. It writes, classifies, and links your thoughts in real time. → `/braindump` · `/capture` · `/bookmark`
-2. **Evolve** — `/research` and `/distill` expand your knowledge. `/learn` deepens the agent. The loop tightens. → `/research` · `/distill` · `/learn`
-3. **Wrapup** — `/wrapup` consolidates the session log. `/recap` promotes lessons to memory. → `/wrapup` · `/recap`
+1. **Initialize** — Every session opens by loading what it knows: your memory, active projects, preferences, and what's due. This is where everything it's learned so far shows up. → `/daily` · `/resume`
+2. **Capture** — Talk to the agent in natural language; it writes, classifies, and links your thoughts in real time. Nothing is lost — every thought becomes context it can draw on later. → `/braindump` · `/capture` · `/bookmark`
+3. **Evolve** — `/research` and `/distill` grow what you know; `/learn` teaches the agent how *you* work. Both sides level up together. → `/research` · `/distill` · `/learn`
+4. **Wrapup** — `/wrapup` consolidates the session; `/recap` promotes the lessons into permanent memory — so the next Initialize starts with everything this one learned. → `/wrapup` · `/recap`
+
+The more you use it, the smarter it gets — and the more it understands you.
 
 ---
 
