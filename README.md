@@ -148,7 +148,7 @@ Nothing is ever deleted — completed work settles into the dormant **Archive**,
 
 Full promotion rules, automatic session saving, and pause/resume → [docs/memory.md](docs/memory.md)
 
-### The loop that compounds
+### Gets smarter every session
 
 OneBrain gets sharper every time you use it. Each session runs a tight four-step loop that begins by loading everything it knows about you — and ends by folding what it just learned back into memory, so the next loop opens smarter than the last.
 
