@@ -13,12 +13,12 @@ How OneBrain's four-tier memory system works, how knowledge gets promoted betwee
 
 ## Memory System
 
-OneBrain uses a four-tier memory system — knowledge sinks downward as it gets validated, while the agent recalls upward on demand. The Semantic tier has two loading modes (always-loaded and lazy-loaded).
+OneBrain uses a four-tier memory system — knowledge sinks downward as it gets validated, while the agent recalls upward on demand. The Semantic tier has two loading modes (always-loaded and lazy-loaded). Beneath the four active tiers sits a dormant **Archive**: completed work is set aside there, never deleted, and stays out of the agent's active thinking until you recall it.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="../assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four stages flowing top to bottom as knowledge gets validated: WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge)" src="../assets/diagrams/memory-tiers-light.svg" width="780">
+    <img alt="Memory tiers — four active stages with two-way flow (validated downward, recalled upward): WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge); plus a dormant ARCHIVE layer (06-archive) that is never deleted" src="../assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
@@ -29,10 +29,11 @@ OneBrain uses a four-tier memory system — knowledge sinks downward as it gets 
 | **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
 | **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
 | **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
+| **Archive** *(dormant)* | `06-archive/` | Completed projects and areas — set aside, never deleted | manual · recall on demand |
 
 ## Memory Promotion
 
-Each tier has specific skills responsible for writing to it. Knowledge moves down the stack only as fast as it earns trust.
+Each tier has specific skills responsible for writing to it. Knowledge moves down the stack only as fast as it earns trust. The **Archive** is not part of this flow — it's cold storage: work is moved there manually (never auto-deleted) and pulled back only when you recall it.
 
 | Layer | Storage | Written by |
 |---|---|---|

@@ -131,7 +131,7 @@ The plugin runs on its own. Without the CLI it leans on the harness's LLM to imp
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/diagrams/memory-tiers-dark.svg">
-    <img alt="Memory tiers — four stages flowing top to bottom as knowledge gets validated: WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge)" src="assets/diagrams/memory-tiers-light.svg" width="780">
+    <img alt="Memory tiers — four active stages with two-way flow (validated downward, recalled upward): WORKING (00-inbox + current session), EPISODIC (07-logs), SEMANTIC (05-agent/MEMORY.md + memory/), KNOWLEDGE (03-knowledge); plus a dormant ARCHIVE layer (06-archive) that is never deleted" src="assets/diagrams/memory-tiers-light.svg" width="780">
   </picture>
 </p>
 
@@ -142,6 +142,9 @@ The plugin runs on its own. Without the CLI it leans on the harness's LLM to imp
 | **Semantic** (always-loaded) | `05-agent/MEMORY.md` + `05-agent/MEMORY-INDEX.md` | Identity + Active Projects + Critical Behaviors + memory file registry | `/learn`, `/onboarding` |
 | **Semantic** (lazy-loaded) | `05-agent/memory/` | Behavioral patterns, domain facts — loaded on demand via MEMORY-INDEX.md | `/learn`, `/recap`, `/memory-review` |
 | **Knowledge** | `03-knowledge/` | Permanent synthesized notes | `/distill` |
+| **Archive** *(dormant)* | `06-archive/` | Completed projects and areas — set aside, never deleted | manual · recall on demand |
+
+Nothing is ever deleted — completed work settles into the dormant **Archive**, out of the agent's active thinking but one recall away.
 
 Full promotion rules, automatic session saving, and pause/resume → [docs/memory.md](docs/memory.md)
 
