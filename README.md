@@ -28,7 +28,7 @@
 
 ## What is OneBrain?
 
-> **Every AI harness is a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
+> **Imagine every AI harness as a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
 >
 > **But switch cars and you start over.** New controls to learn, and everything you'd dialed in — your preferences, your history, the way it had learned to work for you — stays behind in the car you left.
 >
