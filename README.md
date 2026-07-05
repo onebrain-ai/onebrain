@@ -35,7 +35,7 @@
 > **OneBrain isn't a car, and it isn't an engine.** It's the free, open-source (MIT/Apache-2.0) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
 >
 > - **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
-> - **The hands & power tools** (`onebrain-cli`) — an ECU only sends signals; something has to *act* on them. On its own, OneBrain makes do with whatever tools a car happens to have built in — which differ from one car to the next, and which the LLM improvises around. `onebrain-cli` is the toolkit OneBrain brings along to every car, so vault indexing, search, session state, scheduling, and task queries run the same precise way no matter what you're driving.
+> - **The hands, tools & gear** (`onebrain-cli`) — OneBrain runs on the plugin alone, but a car is only as capable as the gear you bring to it. On its own it makes do with whatever tools each car has built in — which differ from one to the next, and which the LLM has to improvise around. `onebrain-cli` is the kit OneBrain packs for every car: the power tools and the extra pair of hands that turn intent into real work — vault indexing, search, session state, scheduling, task queries — all running the same precise way no matter what you're driving. Optional, but it's the upgrade that makes the whole thing perform.
 > - **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
 >
 > *Drive whichever car you like. Your brain — and its hands — ride with you.*
@@ -53,7 +53,7 @@
 | Engine under the hood | LLM — Claude, Gemini, GPT, local models |
 | The car you drive | Harness — Claude Code, Gemini CLI, Codex, Qwen |
 | Plug-in ECU — the brain | **OneBrain plugin** — skills, hooks, memory system, calibration |
-| Hands, actuators & power tools | **`onebrain-cli`** — native operations that run the same on every harness |
+| The hands, tools & gear | **`onebrain-cli`** — the add-on kit of native operations that run the same on every harness |
 | The driver profile that rides with you | **Your vault** — plain Markdown you own forever |
 
 > Pick a harness for **how it lets you work** (CLI, IDE, mobile, API). Pick OneBrain for **how it remembers you** across all of them.
