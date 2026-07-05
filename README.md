@@ -35,7 +35,7 @@
 **OneBrain isn't a car, and it isn't an engine.** It's the free, open-source ([MIT](LICENSE-MIT)/[Apache-2.0](LICENSE-APACHE)) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
 
 - **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
-- **The toolkit** (`onebrain-cli`) — the native tools that do the real work: indexing, search, scheduling, task queries — all running the same on every car, instead of improvising with whatever each one has built in. OneBrain runs without it, but it's the upgrade that makes the whole thing perform.
+- **The toolkit** ([`onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli)) — the native tools that do the real work: indexing, search, scheduling, task queries — all running the same on every car, instead of improvising with whatever each one has built in. OneBrain runs without it, but it's the upgrade that makes the whole thing perform.
 - **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
 
 *Drive whichever car you like. Your brain — and its toolkit — ride with you.*
@@ -145,9 +145,9 @@ The plugin runs on its own. Without the CLI it leans on the harness's LLM to imp
 
 Full promotion rules, automatic session saving, and pause/resume → [docs/memory.md](docs/memory.md)
 
-### The loop
+### The loop that compounds
 
-OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
+OneBrain gets sharper every time you use it. Each session runs a tight three-step loop — capture, evolve, wrap up — and every turn feeds the next: the agent learns a little more about you, your knowledge grows a little deeper, and the next session starts smarter than the last.
 
 <p align="center">
   <picture>
@@ -156,9 +156,11 @@ OneBrain runs as a tight 3-step loop. Each cycle, both sides sharpen.
   </picture>
 </p>
 
-1. **Capture** — Talk to the agent in natural language. It writes, classifies, and links your thoughts in real time. → `/braindump` · `/capture` · `/bookmark`
-2. **Evolve** — `/research` and `/distill` expand your knowledge. `/learn` deepens the agent. The loop tightens. → `/research` · `/distill` · `/learn`
-3. **Wrapup** — `/wrapup` consolidates the session log. `/recap` promotes lessons to memory. → `/wrapup` · `/recap`
+1. **Capture** — Talk to the agent in natural language; it writes, classifies, and links your thoughts in real time. Nothing is lost — every thought becomes context it can draw on later. → `/braindump` · `/capture` · `/bookmark`
+2. **Evolve** — `/research` and `/distill` grow what you know; `/learn` teaches the agent how *you* work. Both sides level up together. → `/research` · `/distill` · `/learn`
+3. **Wrapup** — `/wrapup` consolidates the session; `/recap` promotes the lessons into permanent memory — so the next loop starts with everything this one learned. → `/wrapup` · `/recap`
+
+Run it once and it's useful. Run it for a month and it knows you — your preferences, your decisions, the way you think.
 
 ---
 
