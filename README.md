@@ -28,17 +28,17 @@
 
 ## What is OneBrain?
 
-> **Imagine every AI harness as a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
->
-> **But switch cars and you start over.** New controls to learn, and everything you'd dialed in — your preferences, your history, the way it had learned to work for you — stays behind in the car you left.
->
-> **OneBrain isn't a car, and it isn't an engine.** It's the free, open-source (MIT/Apache-2.0) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
->
-> - **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
-> - **The hands, tools & gear** (`onebrain-cli`) — OneBrain runs on the plugin alone, but a car is only as capable as the gear you bring to it. On its own it makes do with whatever tools each car has built in — which differ from one to the next, and which the LLM has to improvise around. `onebrain-cli` is the kit OneBrain packs for every car: the power tools and the extra pair of hands that turn intent into real work — vault indexing, search, session state, scheduling, task queries — all running the same precise way no matter what you're driving. Optional, but it's the upgrade that makes the whole thing perform.
-> - **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
->
-> *Drive whichever car you like. Your brain — and its hands — ride with you.*
+**Imagine every AI harness as a car you can drive.** Claude Code, Gemini CLI, Codex — each is a complete car from a different maker, with its own engine (the LLM) under the hood and its own dashboard. Any of them will get you where you're going.
+
+**But switch cars and you start over.** New controls to learn, and everything you'd dialed in — your preferences, your history, the way it had learned to work for you — stays behind in the car you left.
+
+**OneBrain isn't a car, and it isn't an engine.** It's the free, open-source (MIT/Apache-2.0) layer that rides with *you* — making every car feel like yours, so you drive whichever you like, change cars any time, and never relearn a thing:
+
+- **The plug-in ECU** — the brain. Drop it into any car and you get the same skills, the same workflows, the same behavior — as close to identical as each car allows. It decides *what* to do and gets the most out of whatever engine it's given.
+- **The hands, tools & gear** (`onebrain-cli`) — OneBrain runs on the plugin alone, but a car is only as capable as the gear you bring to it. On its own it makes do with whatever tools each car has built in — which differ from one to the next, and which the LLM has to improvise around. `onebrain-cli` is the kit OneBrain packs for every car: the power tools and the extra pair of hands that turn intent into real work — vault indexing, search, session state, scheduling, task queries — all running the same precise way no matter what you're driving. Optional, but it's the upgrade that makes the whole thing perform.
+- **The driver profile** — your memory, preferences, decisions, and knowledge ride with you, not with the car. Change cars any time — it all comes along.
+
+*Drive whichever car you like. Your brain — and its hands — ride with you.*
 
 <p align="center">
   <picture>
