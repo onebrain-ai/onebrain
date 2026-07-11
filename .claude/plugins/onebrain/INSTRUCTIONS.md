@@ -341,6 +341,19 @@ OneBrain registers the Stop checkpoint hook, plus — when a search collection i
 
 **Session logs are NOT created from the Stop hook.** They are created only by `/wrapup` (manual) or AUTO-SUMMARY (end-of-session signal); both consolidate accumulated checkpoint files into one session log per call. This preserves the "1 session = 1 session log" invariant.
 
+### Vault-read Ledger Gate (PreToolUse Hook)
+
+The plugin statically registers a PreToolUse hook (`hooks/hooks.json`, matcher `Read`, script `hooks/read-hook.sh`, 5s timeout) that gates repeat `Read` calls on vault `.md` files already delivered unchanged this session — the token-optimization "already-sent ledger" (CLI v3.4.10+, design §5b). It calls `onebrain token check <path>` and translates the CLI's exit-code protocol straight through: exit 0 = allow (first-time read, or the doc changed since it was last sent) — the Read proceeds untouched; exit 2 = deny — stdout carries a reference envelope (`{doc_path, hash, sent_earlier: true, bytes_saved, rematerialize: "onebrain search get <path> --force"}`) that the hook surfaces as the block reason. When a Read is denied this way, use the `--force` re-materialize command from the envelope instead of retrying the same Read — the content was already delivered this session and is unchanged.
+
+This hook is separate from the CLI-registered PostToolUse **search-reindex** / Stop **embed** hooks mentioned above — those are dynamically written into the vault's own `.claude/settings.json` by the CLI. The Ledger Gate hook ships statically in this plugin's `hooks/hooks.json` and is always *present* once the plugin loads; what's conditional is its *behavior*, not its registration.
+
+**Default: OFF.** The CLI answers `allow` immediately unless the vault's `onebrain.yml` sets `token_optimization.read_hook: ledger` (default `off`) — no plugin-side config parsing is needed; the CLI is the single source of truth for whether the gate is active.
+
+**Three ways it stays harmless:**
+1. **Off by default** — `read_hook: off` in onebrain.yml means every check is an instant allow.
+2. **`ONEBRAIN_HOOK_BYPASS=1`** — set this env var to skip the hook entirely for the session, regardless of onebrain.yml.
+3. **Fail-open** — a missing or too-old `onebrain` CLI, a missing `jq`, a non-`.md` path, malformed hook input, the 5s hook timeout, or any exit code other than 0/2 all resolve to "allow, do nothing." The hook only ever blocks on a genuine repeat-send verdict from the CLI — never on its own trouble.
+
 ---
 
 <!-- ═══════════════════════════════════════════════════════════
