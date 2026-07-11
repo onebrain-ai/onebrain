@@ -1,6 +1,6 @@
 ---
-latest_version: 3.2.1
-released: 2026-07-05
+latest_version: 3.3.0
+released: 2026-07-11
 ---
 
 # Changelog
@@ -10,6 +10,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.3.0 — 2026-07-11 — Vault-read Ledger Gate hook (v3.4.10 Track 8)
+
+Plugin side of the token-optimization epic (onebrain-ai/onebrain-cli v3.4.10). Registers, but does not enable, the read-hook mechanism the CLI's `onebrain token check` command answers.
+
+- **New PreToolUse hook** (`hooks/hooks.json`, matcher `Read`, 5s timeout) runs `hooks/read-hook.sh` on every `Read` tool call. For vault `.md` paths it calls `onebrain token check <path>` and passes the CLI's exit code straight through to Claude Code's own PreToolUse protocol: exit 0 = allow, exit 2 = block with the reference envelope (JSON on stdout from the CLI) surfaced on stderr as the block reason, telling the agent to re-materialize via `onebrain search get <path> --force` instead of re-reading.
+- **Off by default, three-layer harmless-by-construction:** (1) the CLI itself answers `allow` immediately unless `onebrain.yml` sets `token_optimization.read_hook: ledger` — no plugin-side config parsing; (2) `ONEBRAIN_HOOK_BYPASS=1` skips the hook for the session; (3) fail-open on any trouble (CLI missing/old, no `jq`, non-`.md` path, malformed input, timeout, unexpected exit code) — never blocks a Read on its own error.
+- **INSTRUCTIONS.md**: new "Vault-read Ledger Gate (PreToolUse Hook)" subsection under Session Behavior documenting the mechanism, the config key, and all three bypasses.
+- No `requires.cli` floor bump — the hook fails open against any CLI that lacks `token check`, so it stays safe on older installs.
 
 ## v3.2.1 — 2026-07-05 — adopt search_unembedded + search hook naming (v3.4.5 Track 3b, plugin follow-up)
 

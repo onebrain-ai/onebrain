@@ -1,5 +1,5 @@
 {
-  "description": "OneBrain plugin v3 — SessionStart hook that refuses to load against an incompatible OneBrain CLI (< v3.0.0). Pairs with the `requires.cli` field in plugin.json.",
+  "description": "OneBrain plugin v3 — SessionStart hook that refuses to load against an incompatible OneBrain CLI (< v3.0.0), pairs with `requires.cli` in plugin.json. PreToolUse hook gates repeat Read calls on vault .md docs already sent this session (token-optimization Ledger Gate, CLI v3.4.10+, design §5b) — off by default (onebrain.yml `token_optimization.read_hook: off`), always fail-open. See INSTRUCTIONS.md \"Vault-read Ledger Gate (PreToolUse Hook)\".",
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +8,18 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-cli-version.sh\"",
             "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/read-hook.sh\"",
+            "timeout": 5
           }
         ]
       }
