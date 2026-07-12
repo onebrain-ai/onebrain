@@ -7,10 +7,12 @@
 # always pass through untouched.
 #
 # Default posture: OFF and fail-open everywhere.
-#   - `onebrain token check` itself answers "allow" immediately unless the
-#     vault's onebrain.yml sets `token_optimization.read_hook: ledger`
-#     (default: off) — no config parsing needed on the plugin side, the CLI
-#     is the single source of truth for whether the gate is active.
+#   - The gate is active ONLY when the vault's onebrain.yml sets
+#     `token_optimization.read_hook: ledger` (default: off). A cheap config
+#     short-circuit (below) skips the `onebrain` subprocess entirely on the
+#     off path, so the hook costs ~a grep, not a process spawn, when off. When
+#     ledger IS set — or the config can't be resolved — it falls through to
+#     `onebrain token check`, which stays the source of truth for the verdict.
 #   - ONEBRAIN_HOOK_BYPASS=1 skips this hook entirely for the session.
 #   - Any trouble at all (CLI missing/old, no `jq`, non-.md path, malformed
 #     hook input, unexpected exit code, the 5s hook timeout below) fails
@@ -71,6 +73,29 @@ case "${file_path}" in
   *.md | *.MD | *.Md | *.mD) ;;
   *) exit 0 ;;
 esac
+
+# Config short-circuit (v3.3.1): only `token_optimization.read_hook: ledger`
+# actually gates reads; every other value — including the default `off` and an
+# absent key — means "allow". So before paying for an `onebrain` subprocess on
+# EVERY .md read, cheaply resolve the vault's config and skip the CLI entirely
+# on the common off path. Walk up from the doc's directory to the vault root
+# (onebrain.yml, or legacy vault.yml). If the config is found and read_hook is
+# NOT ledger → allow immediately, no subprocess. If no config is found, fall
+# THROUGH to the authoritative `onebrain token check` (never guess when unsure
+# — the CLI is still the source of truth, and it fails open too). The
+# `read_hook:.*ledger` match tolerates quoting/spacing; comment lines (`#
+# read_hook: ...`) don't match the leading-key anchor, so the self-documenting
+# template's comments never false-trigger.
+_rh_dir=$(dirname "${file_path}")
+_rh_cfg=""
+while [ -n "${_rh_dir}" ] && [ "${_rh_dir}" != "/" ] && [ "${_rh_dir}" != "." ]; do
+  if [ -f "${_rh_dir}/onebrain.yml" ]; then _rh_cfg="${_rh_dir}/onebrain.yml"; break; fi
+  if [ -f "${_rh_dir}/vault.yml" ]; then _rh_cfg="${_rh_dir}/vault.yml"; break; fi
+  _rh_dir=$(dirname "${_rh_dir}")
+done
+if [ -n "${_rh_cfg}" ] && ! grep -Eq '^[[:space:]]*read_hook:.*ledger' "${_rh_cfg}"; then
+  exit 0
+fi
 
 if ! command -v onebrain >/dev/null 2>&1; then
   exit 0

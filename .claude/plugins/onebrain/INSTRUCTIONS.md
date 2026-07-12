@@ -347,10 +347,10 @@ The plugin statically registers a PreToolUse hook (`hooks/hooks.json`, matcher `
 
 This hook is separate from the CLI-registered PostToolUse **search-reindex** / Stop **embed** hooks mentioned above — those are dynamically written into the vault's own `.claude/settings.json` by the CLI. The Ledger Gate hook ships statically in this plugin's `hooks/hooks.json` and is always *present* once the plugin loads; what's conditional is its *behavior*, not its registration.
 
-**Default: OFF.** The CLI answers `allow` immediately unless the vault's `onebrain.yml` sets `token_optimization.read_hook: ledger` (default `off`) — no plugin-side config parsing is needed; the CLI is the single source of truth for whether the gate is active.
+**Default: OFF.** The gate is active only when the vault's `onebrain.yml` sets `token_optimization.read_hook: ledger` (default `off`). Since v3.3.1 the hook script itself resolves the config with a cheap grep (walk up to the vault root) and, when `read_hook` is not `ledger`, allows the Read **without spawning `onebrain` at all** — so an off vault pays a grep, not a subprocess, per read. When `ledger` is set (or the config can't be resolved) it falls through to `onebrain token check`, which stays the source of truth for the verdict. (True dynamic registration — not registering the hook when off — is a planned v3.4.11 CLI+plugin follow-up.)
 
 **Three ways it stays harmless:**
-1. **Off by default** — `read_hook: off` in onebrain.yml means every check is an instant allow.
+1. **Off by default** — `read_hook: off` (or absent) means the script short-circuits to an instant allow with no `onebrain` subprocess.
 2. **`ONEBRAIN_HOOK_BYPASS=1`** — set this env var to skip the hook entirely for the session, regardless of onebrain.yml.
 3. **Fail-open** — a missing or too-old `onebrain` CLI, a missing `jq`, a non-`.md` path, malformed hook input, the 5s hook timeout, or any exit code other than 0/2 all resolve to "allow, do nothing." The hook only ever blocks on a genuine repeat-send verdict from the CLI — never on its own trouble.
 
