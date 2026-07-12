@@ -1,6 +1,6 @@
 ---
-latest_version: 3.3.0
-released: 2026-07-11
+latest_version: 3.3.1
+released: 2026-07-12
 ---
 
 # Changelog
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.3.1 — 2026-07-12 — Read-hook: zero-cost when off
+
+- **`read-hook.sh` config short-circuit** — the PreToolUse read-hook previously spawned `onebrain token check` on *every* vault `.md` Read even when the gate was off (the CLI answered `allow` immediately, but the subprocess still cost ~tens of ms per read). It now cheaply resolves the vault's `onebrain.yml` (walk up to the vault root; legacy `vault.yml` too) and, when `token_optimization.read_hook` is **not** `ledger` (the default), allows the Read with **no subprocess at all** — a grep instead of a process spawn. When `ledger` **is** set, or the config can't be resolved, it falls through to `onebrain token check` exactly as before (the CLI stays the source of truth). Fail-open and `ONEBRAIN_HOOK_BYPASS=1` unchanged; `.md`-gating and Windows/`jq` path handling unchanged. (True dynamic registration — not registering the hook at all when off — remains a v3.4.11 CLI+plugin follow-up.)
 
 ## v3.3.0 — 2026-07-11 — Vault-read Ledger Gate hook (v3.4.10 Track 8)
 
