@@ -39,7 +39,7 @@ Distinct from existing skills:
 ## Confidence
 
 Every MCP hit carries a `rerank_score` (0–1). Apply the cascade's bands when composing the answer:
-- **`> 0.60`** — confident; cite directly in the direct answer / decision chain.
+- **`≥ 0.60`** — confident; cite directly in the direct answer / decision chain.
 - **`0.30 – 0.60`** — possible; include only in the Sources list, not folded into the direct-answer synthesis as settled fact.
 - **`< 0.30`** — no strong match; drop it. If, after the cascade's Grep fallback, nothing clears `0.30`, output an honest **no strong match** result instead of stitching noise into an answer (see Output format below).
 

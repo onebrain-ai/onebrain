@@ -142,7 +142,7 @@ Ask using AskUserQuestion:
 
 **If "yes":** For each successfully created note (process one at a time):
 
-1. **Find related vault notes:** Search using the search tools if available, otherwise Grep `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md` for keywords from the imported note's title, tags, and Summary section. Exclude the imported note itself.
+1. **Find related vault notes:** Search using the search tools if available, otherwise Grep `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md` for keywords from the imported note's title, tags, and Summary section (when falling back to Grep, append the `|mcp-miss` alternation to the pattern — see SEARCH.md). For search-tool results, only include candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30. Exclude the imported note itself.
 
 2. **Present suggestions:**
    ```

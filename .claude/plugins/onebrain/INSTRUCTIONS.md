@@ -188,9 +188,9 @@ When a user message clearly maps to a skill, invoke it directly — no `/command
 
 ## Search Strategy
 
-If the search MCP tools are available (`mcp__plugin_onebrain_search__query` in tool list), any vault content search runs the **cascade**: MCP query first, always → judge confidence via `rerank_score` bands (`<0.30` no strong match, `0.30–0.60` possible, `>0.60` confident) → Grep only as fallback (MCP unavailable/error, zero or all-low-confidence hits, or a freshness gap on a just-written file) → if Grep is also empty, an honest "not found." Never narrate which method was used — deliver results only, silently. Reserve Glob/Grep/Read outright for non-content lookups: known file paths, frontmatter field checks, structural/task-line scans, file-existence checks.
+If the search MCP tools are available (`mcp__plugin_onebrain_search__query` in tool list), any vault content search runs the **cascade**: MCP query first, always → judge confidence via `rerank_score` bands (`< 0.30` no strong match, `0.30 – 0.60` possible, `≥ 0.60` confident) → Grep only as fallback (MCP unavailable/error, zero or all-low-confidence hits, or a freshness gap on a just-written file; append an alternation branch `|mcp-miss` to the pattern when falling back legitimately) → if Grep is also empty, an honest "not found." Never narrate which method was used — deliver results only, silently. Reserve Glob/Grep/Read outright for non-content lookups: known file paths, frontmatter field checks, structural/task-line scans, file-existence checks.
 
-Full cascade contract, sub-query types (lex/vec/hyde), the `# mcp-miss` fallback marker, and index maintenance rules: `skills/startup/SEARCH.md`.
+Full cascade contract, sub-query types (lex/vec/hyde), the `|mcp-miss` fallback marker, and index maintenance rules: `skills/startup/SEARCH.md`.
 
 If the search tools are NOT available: use Glob/Grep/Read for all vault searches. No special handling needed.
 
@@ -302,8 +302,8 @@ Note inline: `[Loading memory: filename]`
 When the user asks you to recall something (a decision, preference, fact, or past discussion), search the memory layers in order of permanence:
 
 1. **`[agent_folder]/MEMORY.md`** : already in context; check here first
-2. **`[agent_folder]/memory/`** : MEMORY-INDEX.md is already in context — match query keywords against its Topics column to identify relevant files, then read those files. If no topic match, grep memory/ directly. Use the search tools if available for broader semantic search.
-3. **`[logs_folder]/session/`** : grep session logs at `[logs_folder]/session/**/*-session-*.md` (post-v2.4.0: session logs live under the dedicated `session/` subfolder; checkpoints live flat in `checkpoint/` and update/log entries in their own folders, so the old defensive `*-session-*` filter is no longer strictly necessary but keep it as a defense-in-depth) for past decisions and discussions
+2. **`[agent_folder]/memory/`** : MEMORY-INDEX.md is already in context — match query keywords against its Topics column to identify relevant files, then read those files. If no topic match, run the search cascade (search tools first, per `skills/startup/SEARCH.md`); grep memory/ only per the cascade's fallback triggers.
+3. **`[logs_folder]/session/`** : search session logs via the cascade (search tools first); grep `[logs_folder]/session/**/*-session-*.md` only as the cascade fallback (post-v2.4.0: session logs live under the dedicated `session/` subfolder; checkpoints live flat in `checkpoint/` and update/log entries in their own folders, so the old defensive `*-session-*` filter is no longer strictly necessary but keep it as a defense-in-depth) for past decisions and discussions
 
 Stop as soon as you find a confident answer. If the answer spans multiple layers, synthesize across them.
 
@@ -349,8 +349,21 @@ This hook is separate from the CLI-registered PostToolUse **search-reindex** / S
 
 **Three ways it stays harmless:**
 1. **Off by default** — `read_hook: off` (or absent) means the script short-circuits to an instant allow with no `onebrain` subprocess.
-2. **`ONEBRAIN_HOOK_BYPASS=1`** — set this env var to skip the hook entirely for the session, regardless of onebrain.yml.
+2. **`ONEBRAIN_HOOK_BYPASS=1`** — set this env var to skip the hook entirely for the session, regardless of onebrain.yml. (This variable disables BOTH PreToolUse hooks — this Ledger Gate and the Search Cascade Grep Gate below.)
 3. **Fail-open** — a missing or too-old `onebrain` CLI, a missing `jq`, a non-`.md` path, malformed hook input, the 5s hook timeout, or any exit code other than 0/2 all resolve to "allow, do nothing." The hook only ever blocks on a genuine repeat-send verdict from the CLI — never on its own trouble.
+
+### Search Cascade Grep Gate (PreToolUse Hook)
+
+The plugin statically registers a second PreToolUse hook (`hooks/hooks.json`, matcher `Grep`, script `hooks/grep-gate.sh`, 5s timeout) that enforces the search cascade (see Search Strategy above and `skills/startup/SEARCH.md`): a Grep that looks like a vault CONTENT search — targeting the vault's content folders (inbox/projects/areas/knowledge/resources, resolved from `onebrain.yml` `folders:` when readable, defaults otherwise), sweeping `.md` content, with a non-structural pattern — is blocked with an agent-facing reason (stderr, exit 2) telling the agent to route through `mcp__plugin_onebrain_search__query` first. The block reason is never shown to the user.
+
+**What it never blocks:** structural patterns (task-line scans, frontmatter anchors and `<key>: value` field lookups, YAML list anchors, wikilink scans — literal or escaped, date/checkpoint filename patterns, exact code identifiers), a `path` pointing at a single existing file (known-file greps are blessed by SEARCH.md's decision table), anything outside the content folders, and non-`.md` targets.
+
+**Escape hatch:** after a genuine MCP miss, append the alternation branch `|mcp-miss` to the Grep pattern (per SEARCH.md cascade step 3) — the hook allows it through on a plain substring match.
+
+**Ways it stays harmless:**
+1. **Search-disabled vaults are exempt** — when the resolved `onebrain.yml` has no `search.collection` (and no legacy top-level `qmd_collection`), the search MCP doesn't exist for that vault, so the hook allows everything. Same when no config file can be found at all.
+2. **`ONEBRAIN_HOOK_BYPASS=1`** — the same env var that disables the Ledger Gate also skips this hook entirely for the session.
+3. **Fail-open** — a missing `jq`, malformed hook input, an empty pattern, an unresolvable config, or the 5s hook timeout all resolve to "allow, do nothing." The hook only ever blocks when every gate condition is affirmatively met — never on its own trouble.
 
 ---
 

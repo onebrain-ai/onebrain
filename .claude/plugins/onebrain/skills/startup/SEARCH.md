@@ -9,14 +9,14 @@ Any vault **content** search — topic lookup, "find notes about X", "what did I
 2. **Judge confidence via `rerank_score`** (0–1, per hit):
    - **`< 0.30`** — no strong match. Treat as equivalent to zero hits.
    - **`0.30 – 0.60`** — possible match. Usable, but don't present as settled fact.
-   - **`> 0.60`** — confident match. Safe to cite directly.
+   - **`≥ 0.60`** — confident match. Safe to cite directly.
 
 3. **Fall back to Grep only when one of these holds:**
    - MCP tool is unavailable (not in tool list) or returns an error.
    - Zero hits, or every hit scores `< 0.30`.
    - **Freshness gap** — the file was written or edited this same turn/session and the index hasn't caught up yet. This is the most common legitimate fallback trigger; don't second-guess it.
 
-   When falling back after a genuine MCP miss, include the sentinel substring `mcp-miss` in the Grep `pattern` itself (e.g. append it as a harmless alternation branch: `real-pattern|mcp-miss`) — this is the documented escape hatch the PreToolUse grep-gate hook scans the pattern for, to let the fallback through without treating it as an anti-pattern. Do not add this token speculatively; only after step 1–2 actually produced a miss, and only when the Grep target is otherwise inside the vault's content folders (the hook doesn't gate anything outside them regardless).
+   When falling back after a genuine MCP miss, append the alternation branch `|mcp-miss` to the Grep `pattern` (canonical form: `real-pattern|mcp-miss` — the alternation is regex-harmless, whereas a non-alternated literal append would change the pattern's semantics and silently kill matches). This is the documented escape hatch the PreToolUse grep-gate hook scans the pattern for, to let the fallback through without treating it as an anti-pattern. Do not add this token speculatively; only after step 1–2 actually produced a miss, and only when the Grep target is otherwise inside the vault's content folders (the hook doesn't gate anything outside them regardless).
 
 4. **Grep also comes back empty (or isn't applicable) → honest "not found."** Never pad a low-confidence MCP result into an answer just because Grep didn't help either. Say plainly that nothing matched.
 
