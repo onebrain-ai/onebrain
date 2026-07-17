@@ -70,7 +70,7 @@ created: YYYY-MM-DD
 (Omit this section if no related notes are found)
 ```
 
-Find related notes via the search tools if available; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. Omit `## Related Notes` if nothing relevant found.
+Find related notes via the search tools if available; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. For search-tool results, only include candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30. Omit `## Related Notes` if nothing relevant found (or nothing clears the threshold).
 
 ---
 

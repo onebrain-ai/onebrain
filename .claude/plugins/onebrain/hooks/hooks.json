@@ -1,5 +1,5 @@
 {
-  "description": "OneBrain plugin v3 — SessionStart hook that refuses to load against an incompatible OneBrain CLI (< v3.0.0), pairs with `requires.cli` in plugin.json. PreToolUse hook gates repeat Read calls on vault .md docs already sent this session (token-optimization Ledger Gate, CLI v3.4.10+, design §5b) — off by default (onebrain.yml `token_optimization.read_hook: off`), always fail-open. See INSTRUCTIONS.md \"Vault-read Ledger Gate (PreToolUse Hook)\".",
+  "description": "OneBrain plugin v3 — SessionStart hook that refuses to load against an incompatible OneBrain CLI (< v3.0.0), pairs with `requires.cli` in plugin.json. PreToolUse hooks: (1) gates repeat Read calls on vault .md docs already sent this session (token-optimization Ledger Gate, CLI v3.4.10+, design §5b) — off by default (onebrain.yml `token_optimization.read_hook: off`), always fail-open, see INSTRUCTIONS.md \"Vault-read Ledger Gate (PreToolUse Hook)\"; (2) gates vault-content Grep calls that skip the search cascade's MCP-first step (Track C #221) — always on, always fail-open, see skills/startup/SEARCH.md \"The Cascade\".",
   "hooks": {
     "SessionStart": [
       {
@@ -19,6 +19,16 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/read-hook.sh\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/grep-gate.sh\"",
             "timeout": 5
           }
         ]

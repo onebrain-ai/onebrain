@@ -68,6 +68,6 @@ file_type: <pdf|docx|xlsx|pptx|image|svg|video|script>
 - **Excel (full extraction)**: replaces `## Key Points / Contents` : use `## Summary` (AI-generated) + `## [Sheet Name]` (markdown table per sheet)
 - **Excel (stub)**: `## Summary` : left blank for manual entry
 
-**Scan for related notes:** After creating the note, grep `[resources_folder]/**/*.md` and `[knowledge_folder]/**/*.md` for titles or tags related to the file's topic. Suggest up to 2 wikilinks if found. If no related notes are found, leave the `## Related` section with: `_No related notes found : add links manually._`
+**Scan for related notes:** After creating the note, search for titles or tags related to the file's topic — use the search tools if available (only include candidates with `rerank_score ≥ 0.30`, prefer `≥ 0.60`; drop anything below 0.30), otherwise Glob/Grep `[resources_folder]/**/*.md` and `[knowledge_folder]/**/*.md` (append the `|mcp-miss` alternation to a Grep pattern — see SEARCH.md). Suggest up to 2 wikilinks if found. If no related notes are found (or nothing clears the threshold), leave the `## Related` section with: `_No related notes found : add links manually._`
 
 > **Note on `file_path`:** `file_path` is only included for files imported from an explicit path (kept in place after import). For inbox-staged files, `file_path` is omitted : the staging copy is deleted and the note is the permanent artifact.

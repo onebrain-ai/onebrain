@@ -126,7 +126,7 @@ rating: [1-5 if they want to rate it]
 [[Related Note 2]]
 ```
 
-Populate `## Related` by searching for vault notes related to the book's topic (use the search tools if available, otherwise Glob `[resources_folder]/**/*.md`, `[knowledge_folder]/**/*.md`).
+Populate `## Related` by searching for vault notes related to the book's topic (use the search tools if available, otherwise Glob `[resources_folder]/**/*.md`, `[knowledge_folder]/**/*.md`). For search-tool results, only include candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30 rather than linking a weak match.
 
 ---
 

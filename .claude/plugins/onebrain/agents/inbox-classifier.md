@@ -31,7 +31,7 @@ You receive:
 
 4. **Suggest filename**: Title Case, 2–5 words, no date prefix.
 
-5. **Find 1–2 related notes**: Grep `[knowledge_folder]/**/*.md` and `[resources_folder]/**/*.md` for 2–3 keywords. Skip folders that do not exist. Return top 1–2 file titles as wikilink candidates.
+5. **Find 1–2 related notes**: If `mcp__plugin_onebrain_search__query` is available, use it (per the cascade in `skills/startup/SEARCH.md`) with 2–3 keywords and keep only candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30. Otherwise Grep `[knowledge_folder]/**/*.md` and `[resources_folder]/**/*.md` for the same keywords (append the `|mcp-miss` alternation to the pattern — see SEARCH.md). Skip folders that do not exist. Return top 1–2 file titles as wikilink candidates.
 
 6. **Return** a structured recommendation (plain text, one field per line):
    ```
