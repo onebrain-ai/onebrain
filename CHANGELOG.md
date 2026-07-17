@@ -1,6 +1,6 @@
 ---
-latest_version: 3.3.1
-released: 2026-07-12
+latest_version: 3.4.0
+released: 2026-07-17
 ---
 
 # Changelog
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.0 — 2026-07-17 — Silent search cascade + grep-gate hook
+
+- Strict MCP-first search cascade in `skills/startup/SEARCH.md` + INSTRUCTIONS Search Strategy: reranked MCP query first, grep only as fallback (unavailable / error / all hits below gate / freshness gap), honest "not found", silence rule — the method is never narrated ([#221](https://github.com/onebrain-ai/onebrain/issues/221), [#222](https://github.com/onebrain-ai/onebrain/pull/222))
+- `rerank_score` confidence bands (`< 0.30` / `0.30 – 0.60` / `≥ 0.60`) consumed across `skills/search` + 4 agents (link-suggester, knowledge-linker, tag-suggester, inbox-classifier) + related-note gating in capture/connect/consolidate/distill/reading-notes/braindump/import — weak matches are dropped, not padded in
+- **New PreToolUse `grep-gate.sh` hook** (matcher `Grep`, 5s timeout): gates vault content-folder grep toward the search MCP; structural allowlist (task lines, frontmatter keys, wikilinks incl. escaped, code identifiers, date/checkpoint patterns), single-known-file + non-content-glob exemptions, `|mcp-miss` alternation escape hatch, inert when the vault has no `search.collection`, fail-open on any trouble, `ONEBRAIN_HOOK_BYPASS=1` honored (shared with the read-hook)
+- Self-healing freshness gap: a legitimate grep fallback silently kicks `onebrain search reindex --pending-only` so the next query hits the index
+- "Recalling Information" procedure inverted to search-first; new `### Search Cascade Grep Gate` doc section beside the Ledger Gate
 
 ## v3.3.1 — 2026-07-12 — Read-hook: zero-cost when off
 
