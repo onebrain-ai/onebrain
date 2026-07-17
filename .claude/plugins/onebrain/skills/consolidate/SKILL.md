@@ -54,7 +54,7 @@ For each item:
 ### 3a. Analyze
 Read the file fully. Use the pre-classification from Step 2.5 as the starting point. Confirm or adjust based on your own reading:
 - What type of knowledge this is (insight, reference, idea, project note, area)
-- What existing notes it relates to (search via the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`)
+- What existing notes it relates to (search via the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`). For search-tool results, only keep candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30.
 - Whether it deserves its own note or should be merged into an existing one
 
 ### 3b. Decide Destination
@@ -106,7 +106,7 @@ Based on the routing decision above:
 - **New note**: Create `[destination-folder]/[subfolder]/[Topic Name].md` with proper frontmatter
 - **Archive**: If the item is outdated or irrelevant, move to `[archive_folder]/YYYY/MM/`
 
-Always add wikilinks connecting to at least one related note.
+Add wikilinks connecting to at least one related note found in 3a that cleared the `rerank_score ≥ 0.30` threshold (Grep-fallback candidates are unaffected). If none cleared it, omit `## Related` rather than linking a weak match.
 
 ---
 

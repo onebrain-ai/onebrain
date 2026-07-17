@@ -24,7 +24,7 @@ You receive:
 
 3. **Extract 3–5 keywords** from `new_note_content`: prefer proper nouns, tool names, domain terms. Avoid generic words ("note", "session", "use"). If fewer than 2 distinctive keywords, stop.
 
-4. **Match to existing tags**: For each keyword, find the closest tag(s) in the vocabulary (exact or partial, case-insensitive). Prefer existing tags over new ones. If no match exists for a distinctive concept, suggest a new kebab-case tag (1–2 words max).
+4. **Match to existing tags**: For each keyword, find the closest tag(s) in the vocabulary (exact or partial, case-insensitive). Prefer existing tags over new ones. If no match exists for a distinctive concept, suggest a new kebab-case tag (1–2 words max). When multiple tags are plausible for a keyword and `mcp__plugin_onebrain_search__query` is available, use it to confirm which tag's notes are actually relevant (`rerank_score ≥ 0.30`, prefer `≥ 0.60`) rather than guessing from string similarity alone — drop a candidate tag whose supporting notes all score below 0.30.
 
 5. **Skip tags already in the note**. Keep up to 3 candidates, prioritising existing vocabulary.
 

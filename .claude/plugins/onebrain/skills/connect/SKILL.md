@@ -27,7 +27,7 @@ AskUserQuestion:
 
 ## Step 2: Scan Notes
 
-Use the search tools if available for semantic search across notes; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. For each note, extract:
+Use the search tools if available for semantic search across notes; fallback: Glob `[projects_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`. For search-tool results, only carry forward candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) into Step 3 — drop anything below 0.30 rather than proposing a weak connection. For each note, extract:
 - Title
 - Tags (from frontmatter)
 - Key concepts mentioned (first 200 words)

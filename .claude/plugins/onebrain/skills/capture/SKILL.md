@@ -37,7 +37,7 @@ Classify the content : do not ask, infer from context:
 
 ## Step 3: Find and Link Related Notes
 
-Search for related notes (use the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[projects_folder]/**/*.md`). Exclude the destination file. Include top 1–3 as wikilinks automatically. Omit `## Related` if nothing relevant found.
+Search for related notes (use the search tools if available, otherwise Glob `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, `[projects_folder]/**/*.md`). Exclude the destination file. For search-tool results, only include candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30. Include top 1–3 as wikilinks automatically. Omit `## Related` if nothing relevant found (or nothing clears the threshold).
 
 ---
 

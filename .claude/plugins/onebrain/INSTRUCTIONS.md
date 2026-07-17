@@ -188,11 +188,9 @@ When a user message clearly maps to a skill, invoke it directly — no `/command
 
 ## Search Strategy
 
-If the search MCP tools are available (`mcp__plugin_onebrain_search__query` in tool list):
+If the search MCP tools are available (`mcp__plugin_onebrain_search__query` in tool list), any vault content search runs the **cascade**: MCP query first, always → judge confidence via `rerank_score` bands (`<0.30` no strong match, `0.30–0.60` possible, `>0.60` confident) → Grep only as fallback (MCP unavailable/error, zero or all-low-confidence hits, or a freshness gap on a just-written file) → if Grep is also empty, an honest "not found." Never narrate which method was used — deliver results only, silently. Reserve Glob/Grep/Read outright for non-content lookups: known file paths, frontmatter field checks, structural/task-line scans, file-existence checks.
 
-- **Default to the search tools for any vault content search.** Topic lookup, concept search, "find notes about X", "what did I write about Y", related-notes discovery — these all go through `mcp__plugin_onebrain_search__query`. Do not reach for Grep first.
-- **Reserve Glob/Grep/Read for non-content lookups only:** known file paths, frontmatter field checks, exact regex/structural matches inside a known file, task-line scans, file-existence checks. If you find yourself grepping vault `.md` files for a topic or keyword, switch to the search tools.
-- See `skills/startup/SEARCH.md` for full search strategy, sub-query types (lex/vec/hyde), and index maintenance rules.
+Full cascade contract, sub-query types (lex/vec/hyde), the `# mcp-miss` fallback marker, and index maintenance rules: `skills/startup/SEARCH.md`.
 
 If the search tools are NOT available: use Glob/Grep/Read for all vault searches. No special handling needed.
 

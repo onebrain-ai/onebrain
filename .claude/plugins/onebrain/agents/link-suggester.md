@@ -20,9 +20,9 @@ You receive:
 
 1. **Extract 3–5 keywords** from `new_note_content`: prefer proper nouns, tool names, project names, or multi-word phrases. Avoid generic words like "use", "note", "session". If fewer than 2 distinctive keywords can be extracted, stop (do nothing).
 
-2. **Search for related notes**: Use Grep to search `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, and `[projects_folder]/**/*.md` for those keywords (case-insensitive). Skip any folder that does not exist. Collect files with ≥2 keyword hits. Exclude `new_note_path` itself.
+2. **Search for related notes**: If `mcp__plugin_onebrain_search__query` is available, use it (per the cascade in `skills/startup/SEARCH.md`) with the extracted keywords; otherwise Grep `[knowledge_folder]/**/*.md`, `[resources_folder]/**/*.md`, `[areas_folder]/**/*.md`, and `[projects_folder]/**/*.md` for those keywords (case-insensitive). Skip any folder that does not exist. Exclude `new_note_path` itself.
 
-3. **Filter to top 3**: Rank by number of keyword hits. If tied, prefer knowledge/ over resources/ over others.
+3. **Filter to top 3**: For MCP results, keep only candidates with `rerank_score ≥ 0.30`, preferring `≥ 0.60`; drop anything below 0.30 rather than including it for lack of a better option. For Grep results, collect files with ≥2 keyword hits and rank by hit count. If tied, prefer knowledge/ over resources/ over others.
 
 4. **Check for existing links**: Read `new_note_content`. Skip any candidate already wikilinked in the note.
 

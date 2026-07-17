@@ -26,6 +26,8 @@ You receive:
    - Notes where one provides context for another
    - Notes that form a natural sequence or hierarchy
 
+   If `mcp__plugin_onebrain_search__query` is available, use it to corroborate a candidate connection before proposing it: only propose a connection whose supporting hit scores `rerank_score ≥ 0.30` (prefer `≥ 0.60`). Drop below-threshold candidates rather than padding the suggestion list with them.
+
 4. **Suggest wikilinks**: For each connection found, propose:
    - Which note to add the link in
    - Where in the note to add it (quote the surrounding text)

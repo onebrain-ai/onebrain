@@ -25,7 +25,7 @@ If not, ask:
 
 Search across the vault for notes related to the topic. Use 2–3 specific keywords or phrases from the topic (prefer proper nouns and multi-word phrases over generic single words):
 
-Use the search tools if available for content searches; Grep/Glob as fallback.
+Use the search tools if available for content searches; Grep/Glob as fallback. For the `## Related` links in the final digest (Step 5), only carry forward search-tool candidates with `rerank_score ≥ 0.30` (prefer `≥ 0.60`) — drop anything below 0.30 rather than linking a weak match.
 
 1. **Session logs**: Search `[logs_folder]/session/**/*-session-*.md` for topic keywords — extract matching `## Key Decisions`, `## Action Items`, `## Open Questions` sections. (Post-v2.4.0: session logs live under `session/` only; the `-session-` infix is now defense-in-depth.)
 2. **Inbox**: Search `[inbox_folder]/*.md` for related content

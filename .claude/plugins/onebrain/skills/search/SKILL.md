@@ -32,9 +32,16 @@ Distinct from existing skills:
 
 ## Tools used
 
-- **Search tools lex+vec+hyde** if `search.collection` is configured in onebrain.yml (legacy top-level `qmd_collection` still honored) (preferred)
-- **Glob + Grep fallback** if the search tools are unavailable
+- **Search tools lex+vec+hyde** if `search.collection` is configured in onebrain.yml (legacy top-level `qmd_collection` still honored) (preferred) — follows the cascade in `skills/startup/SEARCH.md`
+- **Glob + Grep fallback** per the cascade's fallback triggers, or unconditionally if the search tools are unavailable
 - **Heuristic question-type detection**: matches `^why\b` (or the agent's bilingual intent inference on non-English equivalents) → "why mode"; else → "what mode"
+
+## Confidence
+
+Every MCP hit carries a `rerank_score` (0–1). Apply the cascade's bands when composing the answer:
+- **`> 0.60`** — confident; cite directly in the direct answer / decision chain.
+- **`0.30 – 0.60`** — possible; include only in the Sources list, not folded into the direct-answer synthesis as settled fact.
+- **`< 0.30`** — no strong match; drop it. If, after the cascade's Grep fallback, nothing clears `0.30`, output an honest **no strong match** result instead of stitching noise into an answer (see Output format below).
 
 ## Output format — what mode
 
@@ -46,6 +53,12 @@ For "what is X" / "what's the current state of X" questions, synthesize a direct
 📚 Sources (top 5 by relevance):
   1. <file path>:<heading> — <1-line excerpt>
   2. ...
+```
+
+**No strong match** (all candidates scored below 0.30 and the cascade's Grep fallback found nothing either):
+
+```
+🔴 No strong match for "<query>" — nothing in the vault clears the confidence bar.
 ```
 
 ## Output format — why mode
@@ -64,8 +77,8 @@ For "why did X" / "why is X" questions, reconstruct chronological decision chain
 ## Skill flow
 
 1. Detect question type from input (`why` keyword or default to `what`)
-2. Run search query (lex+vec+hyde) OR grep fallback
-3. Score results by question type (why → emphasize sessions + decisions logs; what → emphasize knowledge + project notes)
+2. Run the cascade: search query (lex+vec+hyde) first, Grep only on a cascade fallback trigger
+3. Score results by question type (why → emphasize sessions + decisions logs; what → emphasize knowledge + project notes), applying the confidence bands above
 4. Top-K cap: 5 results by default; `--all` flag returns full ranked list
 5. Format per mode above
 
