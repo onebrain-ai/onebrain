@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.0
-released: 2026-07-17
+latest_version: 3.4.1
+released: 2026-07-21
 ---
 
 # Changelog
@@ -10,6 +10,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.1 — 2026-07-21 — /wrapup: the recovery marker no longer authorises deleting unrecovered checkpoints
+
+Three defects in `skills/wrapup` orphan recovery, all found while running `/wrapup` on a live cross-midnight session. Each could silently lose checkpoint history.
+
+- **The already-recovered short-circuit deleted checkpoints it had never read.** Step 1b(a) treated an anchored `<!-- recovery-of: {token}:{date} -->` marker as proof that *these* checkpoint files were preserved, then deleted them. The marker proves only that **a** recovery happened for that token and date — a session that keeps running afterwards writes **more** checkpoints under the same token and the same date, and the check false-positived on every one. Observed live: a recovered log written at 16:38 carried the marker while the owning session went on to write checkpoints 04-07 at 16:40 / 17:15 / 19:08 / 22:36, none of whose content was in that log; following the rule would have deleted an entire release epic's history. The marker now carries a boundary - `<!-- recovery-of: {token}:{date}:through-NN -->`, where `NN` is the highest checkpoint number that recovery consumed - and the group is partitioned into `preserved` (`NN` <= boundary, safe to delete) and `unpreserved` (`NN` > boundary, **never** deleted on the marker's strength; recovered into a new log instead). Legacy markers state no boundary, so the whole group is treated as unpreserved and re-recovered: one duplicated log, once, then step (g) deletes the group - duplication is an inconvenience, deletion is unrecoverable.
+- **The boundary is the checkpoint number, deliberately not a timestamp.** An mtime comparison is unsound here: `/recap` edits session logs after the fact (it adds `recapped:`) and file sync rewrites mtimes on its own, and either pushes the log's mtime *forward* - silently reclassifying un-recovered checkpoints as preserved and deleting them, reintroducing the very bug. A checkpoint's `NN` is in its filename, assigned once, and nothing rewrites it.
+- **Partial recovery no longer trips the concurrency guard.** The narrowed set is a new `recover_files`; `group_files` stays the full group, because step (g) diffs a fresh re-glob against it and narrowing it would make the still-present `preserved` files look like paths that appeared mid-recovery, aborting every partial recovery with a false `concurrent_during_recovery`.
+- **Step 1 stranded checkpoints older than yesterday.** It globbed only today + yesterday for the current token, while Step 1b excludes the current token by design - so a session running three days or more had day-3 checkpoints that neither path read into a log and neither path deleted, invisible from both sides forever. Step 1 now matches on the token with no date filter; `checkpoint/` is ephemeral and every file carries its owning token, so the cross-midnight special case disappears.
+- **Corrected a false safety claim.** The Active-Session Guard's rationale said a false-positive was "non-destructive: nothing was read, written, or deleted". That holds only for judging a *dead* group *active*. Judging a *live but idle* group *dead* falls through to Auto-Recover, which reads, writes into another session's log, and **deletes** - no content is lost but it is relocated, and the owning session's own log ends up missing that stretch. The doc now states both directions so `checkpoint.minutes` can be tuned against the real trade.
+- Step (e) writes the boundary, step (f) verifies it re-reads at the right value, and a repeat marker for the same `token:date` is documented as expected (it raises the boundary) rather than something to deduplicate.
 
 ## v3.4.0 — 2026-07-17 — Silent search cascade + grep-gate hook
 
