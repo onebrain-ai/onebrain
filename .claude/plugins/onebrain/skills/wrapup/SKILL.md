@@ -203,20 +203,31 @@ Step (e) writes it; this step reads it. The marker locates the log; the list is 
 > different files hash *equal* under a reused filename, which is the one combination that authorises a
 > delete.
 
-**Partition `group_files`.** For each checkpoint still on disk, compute its hash as defined above.
+**Partition `group_files`. This is the ONE place that decides which bucket a checkpoint lands in — no rule
+elsewhere in this skill adds, removes, or overrides a bucket assignment.** Take each checkpoint still on
+disk in turn, try to compute its hash as defined above, and assign it to exactly one of three buckets:
 
-- **`preserved` — some recovered log's `consumed:` list holds an entry whose `file` AND `sha256` both match
-  this checkpoint.** Its content is in that log. Record
-  `{path, age_minutes: <original group age>, reason: "already_recovered"}` in `skipped_active` and **do not
-  delete it here** — leave it for step (g) (see the ⚠️ note below).
-- **`unpreserved` — everything else.** This deliberately includes a checkpoint whose *name* matches an entry
-  but whose *hash* does not: that is a number reused after a delete — a different file that no log contains.
-  **Never delete these.** If `unpreserved` is non-empty, set `recover_files = unpreserved` and fall through
-  to step (b) to recover exactly those into a new session log, leaving the preserved ones out of it so the
-  vault gains no duplicate content.
-- **If `unpreserved` is empty**, there is nothing to recover and steps (b)–(g) will not run for this group.
-  Only in this case does step (a) delete `preserved` itself: attempt each delete, recording `delete_failed`
-  per file on failure and continuing, identical to step (g)'s rule. Then continue with the next group.
+| Bucket | Condition | What happens to it |
+|---|---|---|
+| **`preserved`** | its hash was computed, and some recovered log's `consumed:` list holds an entry matching **both** `file` and `sha256` | its content is in that log · record `already_recovered` · **do not delete it here** — the sweep rule below decides which single site deletes it |
+| **`excluded`** | its hash **could not be computed** (tool missing or blocked, I/O error, malformed digest) | record `{path, age_minutes, reason: "unread"}` · **never enters `recover_files`, never enters `consumed:`, is never deleted** |
+| **`unpreserved`** | anything else — no matching entry, or a matching `file` with a **different** `sha256` (a number reused after a delete: a different file no log contains) | **never delete on the marker's strength** · these are what a new recovery log is for |
+
+Then:
+
+- **If `unpreserved` is non-empty**, set `recover_files = unpreserved` and fall through to step (b), leaving
+  `preserved` and `excluded` out of the new log so the vault gains no duplicate content.
+- **If `unpreserved` is empty**, there is nothing to recover: steps (b)–(h) will not run for this group.
+  Step (a) sweeps `preserved` itself here (attempt each delete, recording `delete_failed` per file on
+  failure), leaves `excluded` on disk, and continues with the next group.
+
+> **Why `excluded` is its own bucket and not "unpreserved".** An un-hashable checkpoint can never gain a
+> `consumed:` entry, so it can never become deletable; putting it in `unpreserved` sends it into a recovery
+> that writes a log it can never be credited to, and the next run repeats that verbatim — one duplicate
+> session log per group, per run, without bound. Excluding it terminates the loop: it is reported, kept, and
+> retried only if something about it changes. The realistic trigger is not one odd file — if `shasum` /
+> `sha256sum` is missing or blocked by a permission layer, hashing fails for **every** group in the vault at
+> once.
 
 **Logs with no `consumed:` list.** Every log written before this rule — including all those carrying only a
 bare `<!-- recovery-of: {token}:{date} -->` marker, and any that carried the interim `:through-NN` form —
@@ -243,56 +254,60 @@ Duplication is an inconvenience; deletion is unrecoverable.
 > later by (g), after (f) has confirmed the new log) and buys atomicity: if recovery of `unpreserved`
 > aborts, `preserved` is still on disk and the group can be retried whole.
 >
-> **The rule: `preserved` is swept by step (g) — unless the exit is a FIXED POINT, in which case that exit
-> sweeps instead. Exactly one site, never two.** An exit is a fixed point when the next run would
-> re-partition the same group and reach the same exit again, so waiting for (g) means waiting forever.
-> There are exactly two, and both are permanent properties of the files themselves:
+> **The rule: exactly one site sweeps `preserved` for a given group, and it is step (g) — unless step (g)
+> will not run in THIS run, in which case the step that ends the group sweeps instead.** That is the whole
+> test, and it is decidable on the spot: look at where control leaves the group.
 >
-> - step (a)'s **`unpreserved`-is-empty** branch — everything is already in a prior log, and always will be;
-> - step (b)'s **read cut-off** — a checkpoint that cannot be read will not become readable by retrying.
+> Two exits end the group without reaching (g), so they sweep:
 >
-> **Every other early exit must NOT sweep**, because it is transient: step (f)'s abort and step (g)'s
-> concurrency abort are both retried whole by the next run, which re-partitions, re-recovers `unpreserved`,
-> and lets (g) sweep normally. Sweeping there would destroy the property stated just above — that an aborted
-> recovery leaves `preserved` on disk so the group can be retried whole — and step (g)'s concurrency abort
-> is the worst possible moment to delete anything, since it fires precisely when the guard has just proved
-> the owning session is alive.
+> - step (a)'s **`unpreserved`-is-empty** branch — nothing to recover, so (b)–(h) never run;
+> - step (b)'s **read cut-off** — nothing could be read, so (c)–(h) never run.
 >
-> So do not generalise this to "whichever step exits owns the sweep". Apply the fixed-point test, and if you
-> add a new early exit, decide which kind it is.
+> Two exits abort the group *and hand it to the next run intact*, so they must **NOT** sweep: step (f)'s
+> abort and step (g)'s concurrency abort. The next run re-partitions, re-recovers `unpreserved`, and lets
+> (g) sweep normally — so sweeping here would destroy the property stated just above, that an aborted
+> recovery leaves `preserved` on disk and the group can be retried whole. Step (g)'s concurrency abort is
+> the worst possible moment to delete anything: it fires precisely when the guard has just proved the owning
+> session is alive.
 >
-> The two fixed-point sweeps delete without a pre-delete re-stat, unlike (g). Acceptable *only* there,
-> because every file they touch is provably in a prior log, so a stale age check cannot cost content — the
-> guarantee comes from `consumed:`, not from the timing check. Never extend that exemption to another site,
-> nor to a file that is not `preserved`.
+> Do not generalise to "whichever step exits owns the sweep" — half the exits must not. And do not reason
+> about whether the *condition* will recur (an unsynced placeholder may well sync later, so "will this
+> happen again?" is not decidable here and gives the wrong answer for the read cut-off). The only question
+> is whether **(g) runs for this group in this run**.
+>
+> The two sweeping exits delete without a pre-delete re-stat and without (g)'s token-only re-glob. Acceptable
+> *only* there, because every file they touch is proved by a `consumed:` entry to be in a prior log, so
+> neither a stale age check nor an unseen concurrent write can cost content — the guarantee comes from
+> `consumed:`, not from the timing check. One consequence to accept knowingly: `concurrent_during_recovery`
+> can never be reported on those two paths. Never extend the exemption to another site, nor to a file that
+> is not `preserved`.
 
-**Fail-safe.** If a checkpoint's hash cannot be computed, a `consumed:` list cannot be parsed, an entry is
-missing either `file` or `sha256`, or any comparison is ambiguous, treat the **whole group as
-`unpreserved`**: delete nothing, set `recover_files = group_files` (so `preserved` is **empty** on this
-path — there is nothing for any sweep to delete), and fall through to step (b). Duplicated content is an
+**Fail-safe.** A checkpoint whose hash cannot be computed is handled by the `excluded` bucket above and by
+nothing else — do not re-decide it here. For every *other* ambiguity — a `consumed:` list that cannot be
+parsed, an entry missing `file` or `sha256`, or any comparison you cannot resolve — treat the **whole group
+as `unpreserved`**: delete nothing, set `recover_files = group_files`, and fall through to step (b). On this
+path `preserved` is empty by construction, so no sweep has anything to delete. Duplicated content is an
 inconvenience; a deleted checkpoint is unrecoverable, so ambiguity must always resolve toward keeping the
 file.
-
-> **Hash failure is a fixed point too — treat it like an unreadable file, not like a retry.** A checkpoint
-> that cannot be hashed cannot get a `consumed:` entry in step (e), so step (f)'s re-hash check fails, the
-> recovery aborts, the group is kept — and the next run does exactly the same thing, leaving one more
-> duplicate log and one more `orphaned_recovered_logs` entry every time. So: **a checkpoint whose hash
-> cannot be computed is excluded from `recover_files` and recorded `unread`**, and if that leaves
-> `recover_files` empty, step (b)'s cut-off applies and no log is written at all. The realistic trigger is
-> not one odd file — if `shasum`/`sha256sum` is missing or blocked, hashing fails for every group in the
-> vault, and without this rule every /wrapup writes a duplicate log for every orphan group indefinitely.
 
 > **Why marker, not frontmatter:** the marker names the specific `token:date` pair recovered, which frontmatter doesn't. A multi-group recovery log can therefore short-circuit per group rather than as a whole, and the marker is harness-/version-independent (frontmatter keys have drifted across releases). See `skills/startup/references/session-formats.md` → *Recovered from checkpoints* for the canonical marker spec.
 
 **b. Read all checkpoint files** in **`recover_files`** (which equals `group_files` unless step (a)
 narrowed it). Extract content from each.
 
-> **Cut-off — if nothing could be read, write no log.** If every read in `recover_files` failed, there is
-> nothing to put in a log, so **skip steps (c)–(g) and continue with the next group**, exactly as step (a)'s
-> `unpreserved`-is-empty branch does. Do the sweep described below *inside this step* before moving on —
-> (g) must not run, or it would rebuild `deletable` from a `consumed:` list step (e) never wrote and try to
-> delete the same `preserved` files a second time, turning each into a spurious `delete_failed` whose
-> remedy names a file this run already removed. Append `{path, age_minutes, reason: "unread"}` for each
+> **Cut-off — if nothing could be read, write no log.** Trigger: **no read in `recover_files` succeeded** —
+> which includes the case where `recover_files` is **empty**, so there was nothing to read at all. (State it
+> that way, not as "every read failed": over an empty set that phrasing is a vacuous-truth judgement an
+> executor can resolve either way, and resolving it *false* falls through to (c)–(h), which then writes a
+> contentless log with zero markers and an empty `consumed:` list — and step (f) passes it, because zero
+> markers over zero dates is vacuously satisfied and an empty list is explicitly not a failure.)
+>
+> There is nothing to put in a log, so **skip steps (c)–(h) and continue with the next group**, exactly as
+> step (a)'s `unpreserved`-is-empty branch does. Do the sweep described below *inside this step* before
+> moving on — (g) must not run, or it would rebuild `deletable` from a `consumed:` list step (e) never wrote
+> and try to delete the same `preserved` files a second time, turning each into a spurious `delete_failed`
+> whose remedy names a file this run already removed; and (h) must not run, or the report claims a recovered
+> session for a log that was never written. Append `{path, age_minutes, reason: "unread"}` for each
 > file **in `recover_files`** — never for `group_files`, because a `preserved` file was not read here for
 > the good reason that it was never meant to be, and tagging it `unread` would outrank its truthful
 > `already_recovered` record in the Step 7 precedence.
@@ -354,7 +369,7 @@ Re-hashing catches a **copied or stale** entry — one naming a file whose conte
 > `consumed:` from what was actually read. Treat that rule as load-bearing, not advisory: when unsure
 > whether a checkpoint's content really reached the body, omit the entry.
 
-If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete), and for each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`.
+If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete) **and do NOT run step (h)** (no `recovered_sessions` entry — this recovery did not happen, and claiming it would put a line in the report for a log that was stripped or removed). For each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`.
 
 > **Neutralise the bad log before returning — and report only what you left behind.** Aborting alone is not
 > enough: the log stays on disk, step (a) reads the union of every matching log's list, and a wrong entry
@@ -642,7 +657,7 @@ Skipped {A} checkpoint file(s) ({reason_summary}):
   - all records have `reason: "already_recovered"` → `already preserved in a prior recovered log`
   - all records have `reason: "marker_write_failed"` → `recovered log saved but recovery-of marker missing — see "Resolving marker_write_failed" below`
   - all records have `reason: "log_removed"` → `recovered log could not be written correctly and was removed — checkpoints kept, next /wrapup retries`
-  - all records have `reason: "unread"` → `not proved preserved — kept on disk, next /wrapup retries`
+  - all records have `reason: "unread"` → `not proved preserved — kept on disk` (do not promise a retry: a file excluded for an uncomputable hash is retried only if that changes)
   - multiple distinct reasons → `mixed: ` + comma-joined sorted unique reason values (e.g. `mixed: active, delete_failed`)
   - **fallback (catch-all):** all records share a single `reason` value not listed above → `skipped (reason: {reason})` — render the raw enum value verbatim. This row exists to prevent silent rendering drift when a new `reason` value is added to the enum without a matching table entry; the surface signal is generic on purpose so a missing row is visible to the user (and prompts a contributor to add the proper mapping above).
 
@@ -690,7 +705,7 @@ Render this subsection in the Step 7 report **only when `orphaned_recovered_logs
 
 - **Orphan checkpoints from a different token.** Rare case: if the vault was used before CLI v2.0.10 (which fixed the token mismatch between `session-init` and the stop hook), checkpoint files may exist under a different token than the current session. If Step 1 finds no checkpoints but you expect some, look for date-matching checkpoint files in the folder with any token and offer to synthesize them manually.
 
-- **Cross-month midnight sessions (post-v2.4.0).** Checkpoints live flat in `[logs_folder]/checkpoint/`, so cross-midnight wrapup is now driven entirely by date prefix in the filename — no folder math required. Step 1 no longer globs by date at all — it matches on the **token** with no date filter, so a session spanning any number of days (or a month/year boundary) needs no date arithmetic whatsoever. The previous `YYYY_PREV/MM_PREV` folder math, and the yesterday-glob that replaced it, are both obsolete: a date-bounded scan silently stranded the checkpoints of any session that ran longer than two days.
+- **Cross-month midnight sessions (post-v2.4.0).** Checkpoints live flat in `[logs_folder]/checkpoint/`, so no folder math is required — and Step 1 no longer globs by date at all — it matches on the **token** with no date filter, so a session spanning any number of days (or a month/year boundary) needs no date arithmetic whatsoever. The previous `YYYY_PREV/MM_PREV` folder math, and the yesterday-glob that replaced it, are both obsolete: a date-bounded scan silently stranded the checkpoints of any session that ran longer than two days.
 
 - **Pre-v2.2.0 checkpoint files with `merged:` field.** Older vaults may contain checkpoint files that have a `merged: false` or `merged: true` frontmatter field from earlier wrapup runs. The new flow ignores this field entirely — any checkpoint file that exists at /wrapup time is treated as unmerged, regardless of the field's value. The 14-day-old check in /doctor catches any stragglers regardless of the field.
 
