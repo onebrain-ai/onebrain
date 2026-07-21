@@ -257,13 +257,23 @@ keeping the file.
 **b. Read all checkpoint files** in **`recover_files`** (which equals `group_files` unless step (a)
 narrowed it). Extract content from each.
 
-> **Cut-off — if nothing could be read, write no log.** If every read in `recover_files` failed, skip steps
-> (c)–(g) entirely for this group: append `{path, age_minutes, reason: "unread"}` for each file, then
-> continue with the next group. Without this, an unreadable checkpoint (a permanently unsynced cloud
-> placeholder is the realistic case) makes every /wrapup write a fresh session log containing no content,
-> forever — the group can never empty, because step (g) deletes only what `consumed:` proves preserved. One
-> junk log per run, accumulating without bound. The files are not lost, only retried, and the repeated
-> `unread` line is the signal that a human needs to look.
+> **Cut-off — if nothing could be read, write no log.** If every read in `recover_files` failed, there is
+> nothing to put in a log, so skip steps (c)–(f): append `{path, age_minutes, reason: "unread"}` for each
+> file **in `recover_files`** — never for `group_files`, because a `preserved` file was not read here for
+> the good reason that it was never meant to be, and tagging it `unread` would outrank its truthful
+> `already_recovered` record in the Step 7 precedence.
+>
+> **Still sweep `preserved` before moving on.** Delete the `preserved` files exactly as the
+> `unpreserved`-is-empty branch of step (a) does, recording `delete_failed` per file on failure. Their
+> content is in a prior log, and step (g) — the site that would normally sweep them — is not going to run.
+> Skipping the sweep as well would strand them permanently: every later /wrapup would re-partition the same
+> group, re-report the same files, and resolve nothing.
+>
+> Without this cut-off, an unreadable checkpoint (a permanently unsynced cloud placeholder is the realistic
+> case) makes every /wrapup write a fresh session log containing no content, forever — the group can never
+> empty, because step (g) deletes only what `consumed:` proves preserved. One junk log per run, accumulating
+> without bound. The unreadable files themselves are not lost, only retried, and the repeated `unread` line
+> is the signal that a human needs to look.
 
 **c. Determine the session date** from the filename (`YYYY-MM-DD` prefix of the files in `recover_files`). If they have different date prefixes (cross-midnight session), use the earliest date.
 
@@ -301,7 +311,7 @@ Apply the **Preservation rule** from Step 4 below: deduplication only, no summar
 - an anchored `<!-- recovery-of: {token}:{date} -->` line exists for **every** distinct date in `recover_files`, before the `# Session Summary :` heading; and
 - the `consumed:` list parses, and **every entry's `sha256` still matches a re-hash of the named file on disk**. A list that is **absent or empty** is not a failure here — step (b)'s cut-off guarantees a log is only written when something was read, and an entry may legitimately have been omitted for a file whose read failed.
 
-Re-hashing catches a **copied or stale** entry — one naming a file whose content has since changed, or lifted from another log.
+Re-hashing catches a **copied or stale** entry — one naming a file whose content has since changed, or lifted from another log. An entry naming a file that is *absent* from disk is fine (another run may have swept it); an entry whose file is present with a *different* hash is not.
 
 > **What re-hashing does NOT prove, stated plainly.** It verifies entry against disk, never log-body against
 > entry. An entry for a file that really is on disk and really does hash correctly passes this check even if
@@ -309,8 +319,6 @@ Re-hashing catches a **copied or stale** entry — one naming a file whose conte
 > mechanical check in this skill closes that gap; the only thing standing in it is step (e)'s rule to write
 > `consumed:` from what was actually read. Treat that rule as load-bearing, not advisory: when unsure
 > whether a checkpoint's content really reached the body, omit the entry.
-
- An entry naming a file that is *absent* from disk is fine (another run may have swept it) — an entry whose file is present with a *different* hash is not.
 
 If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete), and for each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`.
 
