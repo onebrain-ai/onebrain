@@ -201,7 +201,7 @@ consumed:
 ---
 ```
 
-`consumed:` is **required for this case** and is the only thing that authorises /wrapup to delete a checkpoint. One entry per checkpoint whose content this log actually contains, and none for any other. See *Body marker* below for why it is content-addressed rather than numbered.
+`consumed:` is **required for this case** and is the only thing that authorises /wrapup to delete a checkpoint. One entry per checkpoint whose content this log actually contains, and none for any other. "Required" means the key must be present and must be written from what was actually read — **not** that it must be non-empty: a log whose entries were all legitimately omitted carries an empty list, and /wrapup treats that as "this log preserves nothing", never as a defect. Omitting an entry costs a re-recovery; inventing one destroys a checkpoint. See *Body marker* below for why it is content-addressed rather than numbered.
 
 > **Normative hash definition — every producer and consumer of `sha256` MUST use exactly this.** Hash the
 > **raw bytes of the checkpoint file on disk**, whole and unmodified: not the extracted content, not the
