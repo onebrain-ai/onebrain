@@ -137,7 +137,7 @@ The threshold gives the owning session a buffer of two full checkpoint windows (
 
 For each orphan group (process in chronological order by date in filename):
 
-**a. Already-recovered short-circuit.** Before reading checkpoint files, glob `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-*.md` for the group's date (using the orphan date's YYYY/MM). For each match, search the file for the standardised recovery marker. The marker is `<!-- recovery-of: {token}:{date} -->` where `{token}` is the orphan group's session token and `{date}` is the group's date.
+**a. Already-recovered short-circuit.** Before reading checkpoint files, glob `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-*.md` for the group's date (using the orphan date's YYYY/MM). For each match, search the file for the standardised recovery marker. Its current form is `<!-- recovery-of: {token}:{date}:through-NN -->`, where `{token}` is the orphan group's session token, `{date}` is the group's date, and `NN` is the boundary described below. **Detection must accept the legacy boundary-less form `<!-- recovery-of: {token}:{date} -->` too** — an older log still identifies which group it recovered, it just states no boundary.
 
 > **Anchored match required (security):** match the marker **only when it appears at the start of a line** — i.e., either the literal string `\n<!-- recovery-of: {token}:{date} -->` or the file beginning with `<!-- recovery-of: {token}:{date} -->`. A bare substring match would false-positive on session logs whose body quotes the marker as documentation (e.g., a meta-note about how the recovery flow works). The destructive consequence of a false-positive is checkpoint deletion based on a documentation quote — not acceptable. Use `rg -n -F` with `--multiline` and a `(?m)^` anchor, or grep the file line-by-line. **Strip trailing `\r` from each line before the `startswith` check** — Windows-edited logs use CRLF endings; without this the line literal `<!-- recovery-of: ... -->\r` won't match the bare prefix and a legitimate already-recovered marker is silently missed. After CRLF strip, check `line.startswith('<!-- recovery-of: ')` followed by a token/date check.
 
@@ -205,7 +205,7 @@ narrowed it to the checkpoints written after a prior recovery). Extract content 
 **c. Determine the session date** from the filename (`YYYY-MM-DD` prefix of the files in `recover_files`). If they have different date prefixes (cross-midnight session), use the earliest date.
 
 > **A repeat marker for the same `token:date` is expected, not a defect.** When step (a) narrowed the
-> group, the log written in step (e) carries the *same* `<!-- recovery-of: {token}:{date} -->` marker as
+> group, the log written in step (e) carries the same `<!-- recovery-of: {token}:{date}:through-NN -->` marker as
 > the earlier one, but with a **higher `NN`**. That is correct and load-bearing: it raises
 > `recovered_through`, so the next /wrapup measures against this recovery rather than the older one. Do not
 > "deduplicate" these markers.
@@ -493,9 +493,9 @@ Good session! See you next time.
 
 Render this subsection in the Step 7 report **only when the report contains a `marker_write_failed` record**. The text is a numbered list (more robust against LLM paraphrase pressure than long single-liners) and disambiguates token sourcing — date is in the recovered-log filename, token is in the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block.
 
-> A `marker_write_failed` record means a recovered session log exists on disk but is missing its `<!-- recovery-of: {token}:{date} -->` marker line. Without intervention, every subsequent /wrapup will re-recover the same checkpoints and grow this list. Pick **one** of the following — both are correct and final:
+> A `marker_write_failed` record means a recovered session log exists on disk but is missing its `<!-- recovery-of: {token}:{date}:through-NN -->` marker line, or carries one whose `NN` is wrong. Without intervention, every subsequent /wrapup will re-recover the same checkpoints and grow this list. Pick **one** of the following — both are correct and final:
 >
-> 1. **Repair in place.** Open the recovered log path listed in `Orphaned recovered log(s) needing manual cleanup` and add `<!-- recovery-of: {token}:{date} -->` as the very first body line, before the `# Session Summary :` heading. Source `{date}` from the recovered-log filename's date prefix; source `{token}` from the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block above (pattern: `YYYY-MM-DD-{token}-checkpoint-NN.md`).
+> 1. **Repair in place.** Open the recovered log path listed in `Orphaned recovered log(s) needing manual cleanup` and add `<!-- recovery-of: {token}:{date}:through-NN -->` as the very first body line, before the `# Session Summary :` heading. Source `{date}` from the recovered-log filename's date prefix; source `{token}` from the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block above (pattern: `YYYY-MM-DD-{token}-checkpoint-NN.md`). **Set `NN` by reading the log** — the highest checkpoint number whose content it actually contains — **not by taking the highest number on disk.** Writing a boundary the log does not cover is the one repair that loses data.
 >
 > 2. **Discard and let the next /wrapup re-recover.** Delete BOTH the recovered log AND its associated checkpoint files together. Next /wrapup's orphan recovery will re-process the checkpoints from scratch; the (hopefully) successful re-write will include the marker. Only choose this when you trust the next recovery to capture the same content.
 
