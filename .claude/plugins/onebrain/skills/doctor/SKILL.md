@@ -41,10 +41,15 @@ Run `onebrain doctor --json` (or `onebrain doctor --fix --json` if `--fix` is ac
   "ok": true|false,
   "summary": {"total": N, "errors": N, "warnings": N, "passing": N},
   "checks": [
-    {"check": "<name>", "status": "ok|warn|error", "message": "...", "details": ["..."], "hint": "...", "fix": {...}}
+    {"check": "<name>", "status": "ok|warn|error", "message": "...", "details": ["..."], "hint": "..."}
+  ],
+  "fix": [
+    {"check": "<name>", "outcome": "fixed|partial|failed|manual", "message": "..."}
   ]
 }
 ```
+
+`fix` is a **top-level array**, a sibling of `checks` — not a field inside each check object. It is present only when `--fix --json` was invoked, and its entries are matched back to checks by the `check` name.
 
 Status → render emoji: `ok` → ✅, `warn` → 🟡, `error` → 🔴.
 
@@ -56,7 +61,16 @@ Status → render emoji: `ok` → ✅, `warn` → 🟡, `error` → 🔴.
 
 3. **Defensive field handling.** Treat `details` as optional — it may be absent, `null`, or an empty array; render nothing in those cases. `hint` is also optional. `fix` is present only when `--fix --json` was invoked.
 
-When `--fix --json` returned `fix[]`, render each fix's outcome under the matching check ("✓ fixed", "✕ failed", or "skip"); the post-fix `checks[]` reflects state after the fix attempts.
+When `--fix --json` returned `fix[]`, render each entry's `outcome` under the matching check; the post-fix `checks[]` reflects state after the fix attempts. The CLI emits exactly four outcomes:
+
+| `outcome` | Render | Meaning |
+|---|---|---|
+| `fixed` | ✓ fixed | Recipe ran cleanly; the issue should be resolved. |
+| `partial` | 🟡 partially fixed | Recipe made real progress but part of the issue remains. `message` itemises both halves — show it. |
+| `failed` | ✕ failed | Recipe was attempted and did not finish. `message` explains why. |
+| `manual` | → manual | No automated recipe exists. `message` is the command for the user to run. **Not a failure** — do not render it as one. |
+
+**`manual` is common, not exceptional.** On a vault with a warm daemon — the normal configuration — the CLI's `lex-index` check reports "could not verify" as a warning with no automated repair, so `manual` appears on nearly every `--fix` run. Treat any outcome string outside this table as unknown: render it verbatim and carry on. Never treat an unrecognised outcome as an error — that would report a healthy vault as broken.
 
 > **Why pass `--json`:** WebFetch / shell text parsing of `onebrain doctor`'s human format is fragile. `--json` is the stable contract (frozen for v3.x — see CLI CHANGELOG).
 
@@ -187,7 +201,7 @@ For each finding, prefer the CLI's `message` verbatim when it's from `onebrain d
 
 Two-stream fix:
 
-1. **CLI fixes** — already executed by `onebrain doctor --fix --json` in Step 2a. The JSON `fix[]` array reports outcomes (`fixed`, `failed`, `skip`). Render under each affected check.
+1. **CLI fixes** — already executed by `onebrain doctor --fix --json` in Step 2a. The top-level JSON `fix[]` array reports outcomes (`fixed`, `partial`, `failed`, `manual` — see the outcome table in Step 2a). Render under each affected check.
 
 2. **Skill fixes** — Read `references/autofix-procedures.md` and run Pass A, B, C, D, E in order. Each pass confirms with the user before writing. After all passes, run `onebrain search reindex` as the Final step. Pass E de-links the 🔴 auto-memory mislinks detected in Step 2b (the 🟡 missing-note bucket is never auto-fixed).
 
