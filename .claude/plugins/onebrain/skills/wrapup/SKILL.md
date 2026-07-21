@@ -203,8 +203,9 @@ Step (e) writes it; this step reads it. The marker locates the log; the list is 
 > different files hash *equal* under a reused filename, which is the one combination that authorises a
 > delete.
 
-**Partition `group_files`. This is the ONE place that decides which bucket a checkpoint lands in — no rule
-elsewhere in this skill adds, removes, or overrides a bucket assignment.** Take each checkpoint still on
+**Partition `group_files`. This is the ONE place that decides which bucket a checkpoint lands in, with a
+single stated exception: the Fail-safe below, which on its own triggers re-buckets the whole group.** No
+other rule in this skill adds, removes, or overrides a bucket assignment. Take each checkpoint still on
 disk in turn, try to compute its hash as defined above, and assign it to exactly one of three buckets:
 
 | Bucket | Condition | What happens to it |
@@ -245,9 +246,11 @@ Duplication is an inconvenience; deletion is unrecoverable.
 > appeared mid-recovery and would abort every partial recovery with a false `concurrent_during_recovery`.
 > Steps (b) and (e) read `recover_files`; step (g) uses `group_files` as the concurrency-diff baseline, and
 > derives its delete set from the `consumed:` union (never from `group_files` itself). **`recover_files` is
-> set by the partition table above and nowhere else** — when no candidate log exists, every checkpoint that
-> hashed simply lands in `unpreserved`, which is what `recover_files` becomes. Do not restate it as a
-> default of `group_files`: that phrasing readmits `excluded`.
+> set in exactly two places: the partition above, and the Fail-safe below when it fires** — nowhere else,
+> and the Fail-safe's assignment wins, because it fires precisely when the partition's inputs cannot be
+> trusted. When no candidate log exists, every checkpoint that hashed simply lands in `unpreserved`, which
+> is what `recover_files` becomes. Do not restate it as a default of `group_files`: that phrasing readmits
+> `excluded`.
 >
 > **One deletion site whenever recovery proceeds.** Step (a) leaves `preserved` on disk in the
 > fall-through case: two deletion sites for one group would make step (g) sweep files (a) had already
@@ -287,9 +290,18 @@ Duplication is an inconvenience; deletion is unrecoverable.
 nothing else — do not re-decide it here. For every *other* ambiguity — a `consumed:` list that cannot be
 parsed, an entry missing `file` or `sha256`, or any comparison you cannot resolve — treat the **whole group
 as `unpreserved`**: delete nothing, set **`recover_files = group_files` minus `excluded`**, and fall through
-to step (b). The subtraction is not optional — `group_files` contains the un-hashable files, and putting
-them back into the recovery set is exactly the re-decision this paragraph just promised not to make. On this
-path `preserved` is empty by construction, so no sweep has anything to delete. Duplicated content is an
+to step (b). **This assignment overrides the partition's** — it is the one exception named there, and it
+wins because the Fail-safe fires exactly when the evidence the partition relied on is untrustworthy. The
+subtraction of `excluded` is not optional: `group_files` contains the un-hashable files, and they can never
+be credited in `consumed:` no matter which log is written.
+
+> **Discard any `preserved` the partition had already assigned, and its `already_recovered` records with
+> it.** `preserved` is NOT empty by construction here: the Fail-safe's triggers — an unparseable list, an
+> entry missing a key — are discovered *while* walking candidate logs, so an earlier valid log may already
+> have proved some files. Those proofs came from the same scan that turned out to be unreliable, so they
+> must not survive it: re-recover those files instead. They gain a fresh `consumed:` entry in the new log
+> and step (g) deletes them correctly. Keeping them `preserved` would let a malformed list authorise a
+> delete, which is the one thing this whole path exists to prevent. Duplicated content is an
 inconvenience; a deleted checkpoint is unrecoverable, so ambiguity must always resolve toward keeping the
 file.
 
@@ -361,7 +373,14 @@ Apply the **Preservation rule** from Step 4 below: deduplication only, no summar
 **f. Verify the session log** exists and is non-empty before continuing. **Re-read check (required):** re-read the file from disk and confirm both:
 
 - an anchored `<!-- recovery-of: {token}:{date} -->` line exists for **every** distinct date in `recover_files`, before the `# Session Summary :` heading; and
-- the `consumed:` list parses, and **every entry's `sha256` still matches a re-hash of the named file on disk**. A list that is **absent or empty** is not a failure here — step (b)'s cut-off guarantees a log is only written when something was read, and an entry may legitimately have been omitted for a file whose read failed.
+- the `consumed:` list parses, **every entry's `sha256` still matches a re-hash of the named file on disk**, and the list holds **at least one entry**. A *shorter* list than `recover_files` is legitimate — an entry may rightly have been omitted for a file whose read failed. An **absent or empty** one is not: step (b)'s cut-off guarantees this step is only reached when at least one read succeeded, so a log with no entries contradicts its own precondition, and it is the same executor-omission-on-write failure the marker arm of this check exists to catch. Treat it as a failure.
+
+> **Why an empty list must fail rather than pass quietly.** It passes both arms otherwise — markers are
+> present, and "no entries" trivially satisfies "every entry re-hashes". Step (g) then finds `deletable`
+> empty, deletes nothing, and reports every file `unread`; the next run sees the new log contribute no
+> entries, re-recovers the same group, and writes another log. One junk session log per run, forever, with
+> no error surfaced — the loop class the `excluded` bucket was introduced to terminate, arriving through the
+> commonest configuration of all (no prior log).
 
 Re-hashing catches a **copied or stale** entry — one naming a file whose content has since changed, or lifted from another log. An entry naming a file that is *absent* from disk is fine (another run may have swept it); an entry whose file is present with a *different* hash is not.
 
@@ -372,7 +391,7 @@ Re-hashing catches a **copied or stale** entry — one naming a file whose conte
 > `consumed:` from what was actually read. Treat that rule as load-bearing, not advisory: when unsure
 > whether a checkpoint's content really reached the body, omit the entry.
 
-If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete) **and do NOT run step (h)** (no `recovered_sessions` entry — this recovery did not happen, and claiming it would put a line in the report for a log that was stripped or removed). For each file in **`group_files` minus `excluded`** append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active` — an `excluded` file was never read, never written, and had nothing to do with the log that failed, so tagging it here would outrank its truthful `unread` record and send the user to the resolution subsection below, whose repair asks them to run the very hash that cannot run on that file.
+If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete) **and do NOT run step (h)** (no `recovered_sessions` entry — this recovery did not happen, and claiming it would put a line in the report for a log that was stripped or removed). For each file in **`recover_files`** append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active` — and for no other file. A `preserved` or `excluded` file was never read this run, never written into the failed log, and had nothing to do with it; tagging it here outranks its truthful record and sends the user to the resolution subsection below to repair a log that has nothing to do with that file (and, for an `excluded` file, to run the very hash that cannot run on it).
 
 > **Neutralise the bad log before returning — and report only what you left behind.** Aborting alone is not
 > enough: the log stays on disk, step (a) reads the union of every matching log's list, and a wrong entry
@@ -396,7 +415,7 @@ If either check fails, **abort recovery for this group**: do NOT proceed to step
    - **Pre-delete re-stat (concurrency guard) — runs ONCE before any deletes:** re-stat every file in `group_files` (stored in *Identify Orphans* step 3) AND re-glob **`*-{token}-checkpoint-*.md`** under `[logs_folder]/checkpoint/` (flat) — token-only, **no date component**, matching how *Identify Orphans* keys the group. A date-bounded pattern would be blind to the single most likely proof that the owning session is alive: it waking up and writing a checkpoint under **tomorrow's** date. The mtime arm cannot cover that either — an existing file's mtime does not change when a *new* file appears — so a date-scoped re-glob leaves the guard unable to fire at all in that case, and step (g) deletes a live session's history. The owning session became active during recovery if **either** of these holds:
        - any file's mtime has changed since the Active-Session Guard's stat above, OR
        - the re-glob result contains a path NOT present in `group_files` (set difference: `re_glob_files \ group_files` is non-empty).
-   - **If concurrent activity is detected:** **abort the delete entirely for this group.** Then attempt to delete the recovered session log written in step (e) so it does not leak duplicate content into the vault. For each file in **`group_files` minus `excluded`**, append `{path, age_minutes, reason: "concurrent_during_recovery"}` to `skipped_active` (use the original `age_minutes` from the Active-Session Guard) — same reason as step (f)'s abort: an `excluded` file took no part in this recovery and keeps its own `unread` record. If the recovered-log delete itself fails, append the recovered-log path to `orphaned_recovered_logs` (a separate list initialized at the top of Step 1b) so the user sees it under its own Step 7 block — these are session-log files, not checkpoint files, and conflate poorly with the checkpoint-file heading. Continue with the next group.
+   - **If concurrent activity is detected:** **abort the delete entirely for this group.** Then attempt to delete the recovered session log written in step (e) so it does not leak duplicate content into the vault. For each file in **`recover_files`**, append `{path, age_minutes, reason: "concurrent_during_recovery"}` to `skipped_active` (use the original `age_minutes` from the Active-Session Guard) — and for no other file, for the same reason as step (f)'s abort: `preserved` and `excluded` files took no part in this recovery and keep their own records. If the recovered-log delete itself fails, append the recovered-log path to `orphaned_recovered_logs` (a separate list initialized at the top of Step 1b) so the user sees it under its own Step 7 block — these are session-log files, not checkpoint files, and conflate poorly with the checkpoint-file heading. Continue with the next group.
    - **If no concurrent activity:** build the delete set — **`deletable` = every file in `group_files` that some `consumed:` entry proves preserved**, taking the union of the prior logs' lists read in step (a) AND the list step (e) just wrote, matching on filename plus hash as in step (a). **Delete `deletable`, never `group_files`.**
 
      > **🔴 `group_files` is the concurrency baseline, NOT the delete set.** Step (e) may legitimately omit a
