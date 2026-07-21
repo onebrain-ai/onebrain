@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.1
+latest_version: 3.4.2
 released: 2026-07-21
 ---
 
@@ -10,6 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.2 — 2026-07-21 — /doctor: correct the `fix[]` outcome vocabulary and JSON envelope
+
+- **Fixed: the skill documented outcomes the CLI never emits, and omitted two it does.** `fix[]` was described as `fixed | failed | skip`; the CLI emits `fixed | partial | failed | manual` and has never emitted `skip` (`onebrain-cli` `doctor.rs:207-210`). Two of the four real values were undocumented and the one documented fallback does not exist.
+- **`manual` is now common, not exceptional.** Since CLI v3.4.16 the JSON path honours the same fix plan as the text path, so a check with no automated recipe reports `manual` instead of running a recipe. On a vault with a warm daemon — the normal configuration — the `lex-index` check reports "could not verify" with no automated repair, so `manual` appears on nearly every `--fix` run. Verified live on an isolated scratch vault: a first `--fix --json` returns 7 entries spanning `fixed` and `manual`, and no `skip`.
+- **Corrected the envelope shape.** `fix` was drawn as a field inside each `checks[]` object; it is a top-level array, sibling of `checks`, present only under `--fix --json`, matched back to checks by the `check` name. Confirmed against the live CLI: check objects carry only `check`/`status`/`message`/`hint`/`details`.
+- **An unrecognised outcome now renders verbatim and is never treated as an error** — so a future CLI-side addition cannot make the skill report a healthy vault as broken.
 
 ## v3.4.1 — 2026-07-21 — /wrapup: the recovery marker no longer authorises deleting unrecovered checkpoints
 
