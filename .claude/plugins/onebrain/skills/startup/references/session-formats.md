@@ -203,6 +203,16 @@ consumed:
 
 `consumed:` is **required for this case** and is the only thing that authorises /wrapup to delete a checkpoint. One entry per checkpoint whose content this log actually contains, and none for any other. See *Body marker* below for why it is content-addressed rather than numbered.
 
+> **Normative hash definition — every producer and consumer of `sha256` MUST use exactly this.** Hash the
+> **raw bytes of the checkpoint file on disk**, whole and unmodified: not the extracted content, not the
+> body with frontmatter stripped, not a normalised or re-encoded form. Take the **first 16 characters of
+> the lowercase hex digest** (`shasum -a 256 <file>` / `sha256sum <file>`, discarding the trailing filename
+> field the tool prints). A value of any other length, or in uppercase, is a malformed entry. This is the
+> same definition /wrapup Step 1b step (a) applies when reading the list back; the two must agree exactly or
+> every comparison silently fails — and a form that strips the frontmatter date, token or `NN` can make two
+> genuinely different files hash *equal* under a reused filename, the one combination that authorises a
+> delete.
+
 **Thread wrapup — pause snapshots incorporated** (used by: `/wrapup` Thread Wrapup Branch when user confirms `y` on the active-thread prompt):
 ```yaml
 ---

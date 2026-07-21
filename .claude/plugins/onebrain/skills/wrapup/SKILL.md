@@ -85,8 +85,8 @@ If none found: continue normally.
 After Step 1, scan for unmerged checkpoints belonging to **other** sessions (orphans).
 
 **Variable scope (used throughout this step):** Initialize two lists at the top of Step 1b and keep them alive until Step 7 reads them at the end of /wrapup:
-- `skipped_active = []` — `{path, age_minutes, reason}` records, where `reason` ∈ `{"active", "age_unknown", "concurrent_during_recovery", "delete_failed", "already_recovered", "marker_write_failed", "unread"}`. Both the *Active-Session Guard* and *Auto-Recover Each Orphan Group* append to this list. **When adding a new value to this enum, also add a corresponding row to the `{reason_summary}` rendering table in Step 7** (search this file for `{reason_summary}` rendering); unmapped values render via the catch-all fallback row but the user-facing string is generic, so an explicit row is required for new values.
-- `orphaned_recovered_logs = []` — paths of recovered session logs left on disk by an aborted recovery. Two abort sources feed this list: (1) **concurrency abort** in step (g) when the owning session writes a new checkpoint mid-recovery and the recovered-log delete itself also fails; (2) **marker re-read failure** in step (f) when the recovery marker is missing from the just-written log (LLM omission, partial write, encoding glitch). Both produce a recovered log without a deleted checkpoint group; the user must manually reconcile. Listed in its own Step 7 block (these are not checkpoint files, so they don't fit the checkpoint-file heading).
+- `skipped_active = []` — `{path, age_minutes, reason}` records, where `reason` ∈ `{"active", "age_unknown", "concurrent_during_recovery", "delete_failed", "already_recovered", "marker_write_failed", "log_removed", "unread"}`. Both the *Active-Session Guard* and *Auto-Recover Each Orphan Group* append to this list. **When adding a new value to this enum, also add a corresponding row to the `{reason_summary}` rendering table in Step 7** (search this file for `{reason_summary}` rendering); unmapped values render via the catch-all fallback row but the user-facing string is generic, so an explicit row is required for new values.
+- `orphaned_recovered_logs = []` — paths of recovered session logs left on disk by an aborted recovery. Two abort sources feed this list: (1) **concurrency abort** in step (g) when the owning session writes a new checkpoint mid-recovery and the recovered-log delete itself also fails; (2) **re-read failure** in step (f) — the recovery marker missing from the just-written log (LLM omission, partial write, encoding glitch), or a `consumed:` entry failing its re-hash — **where the log was successfully stripped of its bad entries rather than removed**. Both produce a recovered log left on disk without a deleted checkpoint group; the user must manually reconcile. When step (f) has to remove the log entirely, nothing is appended here (the path no longer exists) and the group is recorded `log_removed` instead. Listed in its own Step 7 block (these are not checkpoint files, so they don't fit the checkpoint-file heading).
 
 ### Scan Scope
 
@@ -223,7 +223,10 @@ bare `<!-- recovery-of: {token}:{date} -->` marker, and any that carried the int
 says nothing about *which files* it preserved. **Do not guess, do not fall back to mtime, and do not read a
 `through-NN` as a boundary.** They contribute no entries, so their checkpoints land in `unpreserved` and are
 recovered. The cost is one duplicated log, once — step (g) then deletes the group, so it cannot recur or
-accumulate. Duplication is an inconvenience; deletion is unrecoverable.
+accumulate — bounded by the re-recovery writing a proper `consumed:` list, which is what lets step (g)
+delete those files at all. (Step (g) sweeps only what `consumed:` proves preserved, so a file that can never
+be read is never deleted; step (b)'s cut-off is what stops that case from producing a log every run.)
+Duplication is an inconvenience; deletion is unrecoverable.
 
 > ⚠️ **Set `recover_files`, do NOT overwrite `group_files`.** `group_files` stays the full group as
 > captured in *Identify Orphans* step 3, because step (g)'s concurrency guard diffs a fresh re-glob
@@ -252,7 +255,15 @@ keeping the file.
 > **Why marker, not frontmatter:** the marker names the specific `token:date` pair recovered, which frontmatter doesn't. A multi-group recovery log can therefore short-circuit per group rather than as a whole, and the marker is harness-/version-independent (frontmatter keys have drifted across releases). See `skills/startup/references/session-formats.md` → *Recovered from checkpoints* for the canonical marker spec.
 
 **b. Read all checkpoint files** in **`recover_files`** (which equals `group_files` unless step (a)
-narrowed it to the checkpoints written after a prior recovery). Extract content from each.
+narrowed it). Extract content from each.
+
+> **Cut-off — if nothing could be read, write no log.** If every read in `recover_files` failed, skip steps
+> (c)–(g) entirely for this group: append `{path, age_minutes, reason: "unread"}` for each file, then
+> continue with the next group. Without this, an unreadable checkpoint (a permanently unsynced cloud
+> placeholder is the realistic case) makes every /wrapup write a fresh session log containing no content,
+> forever — the group can never empty, because step (g) deletes only what `consumed:` proves preserved. One
+> junk log per run, accumulating without bound. The files are not lost, only retried, and the repeated
+> `unread` line is the signal that a human needs to look.
 
 **c. Determine the session date** from the filename (`YYYY-MM-DD` prefix of the files in `recover_files`). If they have different date prefixes (cross-midnight session), use the earliest date.
 
@@ -288,9 +299,18 @@ Apply the **Preservation rule** from Step 4 below: deduplication only, no summar
 **f. Verify the session log** exists and is non-empty before continuing. **Re-read check (required):** re-read the file from disk and confirm both:
 
 - an anchored `<!-- recovery-of: {token}:{date} -->` line exists for **every** distinct date in `recover_files`, before the `# Session Summary :` heading; and
-- the `consumed:` list parses, and **every entry's `sha256` still matches a re-hash of the named file on disk**.
+- the `consumed:` list parses, and **every entry's `sha256` still matches a re-hash of the named file on disk**. A list that is **absent or empty** is not a failure here — step (b)'s cut-off guarantees a log is only written when something was read, and an entry may legitimately have been omitted for a file whose read failed.
 
-Re-hashing is the whole point of this check: it is the one step that can catch a fabricated, copied, or stale entry before that entry is allowed to authorise a delete. An entry naming a file that is *absent* from disk is fine (another run may have swept it) — an entry whose file is present with a *different* hash is not.
+Re-hashing catches a **copied or stale** entry — one naming a file whose content has since changed, or lifted from another log.
+
+> **What re-hashing does NOT prove, stated plainly.** It verifies entry against disk, never log-body against
+> entry. An entry for a file that really is on disk and really does hash correctly passes this check even if
+> its content was never written into the log body — and it then authorises step (g) to delete that file. No
+> mechanical check in this skill closes that gap; the only thing standing in it is step (e)'s rule to write
+> `consumed:` from what was actually read. Treat that rule as load-bearing, not advisory: when unsure
+> whether a checkpoint's content really reached the body, omit the entry.
+
+ An entry naming a file that is *absent* from disk is fine (another run may have swept it) — an entry whose file is present with a *different* hash is not.
 
 If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete), and for each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`.
 
@@ -302,9 +322,12 @@ If either check fails, **abort recovery for this group**: do NOT proceed to step
 > - **Strip the `consumed:` list** to only the entries that re-hashed correctly (dropping the list entirely
 >   if none did), then **append the log path to `orphaned_recovered_logs`** so Step 7 points the user at a
 >   file that genuinely exists and can be repaired in place.
-> - **Only if the strip itself cannot be performed**, delete the log — and then do **NOT** append it to
->   `orphaned_recovered_logs`. Reporting a path this run destroyed sends the user hunting a file that is
->   gone, which is the same defect this release fixed for `already_recovered` records.
+> - **Only if the log cannot be rewritten at all** (a write error — not merely an awkward edit), delete it.
+>   Then do **NOT** append it to `orphaned_recovered_logs`, and record the group's files with
+>   `reason: "log_removed"` instead of `marker_write_failed`. Reporting a path this run destroyed sends the
+>   user hunting a file that is gone — the same defect this release fixed for `already_recovered` records —
+>   and `marker_write_failed`'s summary string and resolution subsection both assert a log that still
+>   exists, so reusing it here would state the opposite of what happened.
 >
 > No content is lost either way: the checkpoints were not deleted, so the next run recovers them afresh.
 
@@ -326,7 +349,7 @@ If either check fails, **abort recovery for this group**: do NOT proceed to step
 
      **Per-file failure rule:** if an individual `rm` fails (EACCES, NFS hiccup, etc.), do NOT abort the whole group — append `{path, age_minutes, reason: "delete_failed"}` to `skipped_active` (reuse the original `age_minutes` from the Active-Session Guard, never `0`) and continue with the next file. The recovered session log is already written; the next /wrapup's short-circuit (step a) will match its hash and clean it up.
 
-   - **Files in `group_files` but not in `deletable`** were never preserved, so they stay on disk and the next /wrapup retries them. Append `{path, age_minutes, reason: "unread"}` to `skipped_active` for each, so the omission reaches the user instead of looking like a successful sweep. If the same path is reported `unread` on repeated runs the file is permanently unreadable and needs manual attention — the Step 7 line is the only place that surfaces it.
+     **Files in `group_files` but not in `deletable`** — still inside this no-concurrency branch, because `deletable` is built here and exists nowhere else — were not proved preserved, so they stay on disk and the next /wrapup retries them. Append `{path, age_minutes, reason: "unread"}` to `skipped_active` for each, so the omission reaches the user instead of looking like a successful sweep. If the same path is reported `unread` on repeated runs the file cannot be read at all and needs manual attention — the Step 7 line is the only place that surfaces it.
    - **Stage discipline (do not conflate the two rules above):** the concurrency check runs ONCE at the top of step (g). After it passes, individual `rm` failures are NEVER interpreted as concurrency — they record `delete_failed` per-file and the loop continues. Do not re-run the concurrency check between per-file deletes; do not promote a per-file `delete_failed` to `concurrent_during_recovery`. The only group-level abort path is the pre-delete concurrency check.
    - Guard: only delete AFTER step f is confirmed AND the re-stat shows no concurrent activity. Never delete before.
 
@@ -565,9 +588,9 @@ Auto-recovered {S} orphan session(s):
 
 Skipped {A} checkpoint file(s) ({reason_summary}):
   · `YYYY-MM-DD-{token}-checkpoint-NN.md` (age: {age_minutes}m, reason: {reason})
-(**Required output — do NOT omit when skipped_active is non-empty.** This block is the user's only signal about checkpoint files this run did not recover into a log of its own. **Drop every `already_recovered` record whose file step (g) went on to delete** — those files are neither left on disk nor unaccounted for, and listing them sends a user investigating a suspected data loss to look for files this run destroyed on purpose. Keep an `already_recovered` record only when the file is genuinely still on disk (its delete failed, or the group aborted before step (g)).
+(**Required output — do NOT omit when skipped_active is non-empty.** This block is the user's only signal about checkpoint files this run did not recover into a log of its own. **Drop every `already_recovered` record whose file THIS RUN deleted — at either deletion site: step (a)'s `unpreserved`-is-empty branch, or step (g).** Those files are neither left on disk nor unaccounted for, and listing them sends a user investigating a suspected data loss to look for files this run destroyed on purpose. The test is "is it still on disk when the report renders", never "which step ran" — step (a)'s branch is the ordinary path for any group a prior log already covers, so scoping the test to step (g) mis-reports the commonest case of all. Keep an `already_recovered` record only when the file genuinely survived this run (its delete failed, or the group aborted before any delete).
 
-**Then collapse to one record per path.** A single file routinely collects several records — a `preserved` file gets `already_recovered` in step (a) and then `marker_write_failed` or `concurrent_during_recovery` if the group later aborts, or `delete_failed` if its `rm` fails. Keep the **most specific** one and drop the rest, by this precedence (highest wins): `delete_failed` › `concurrent_during_recovery` › `marker_write_failed` › `unread` › `already_recovered` › `age_unknown` › `active`. Without this, one file is listed several times, `{A}` overstates what is on disk, and `{reason_summary}` renders a spurious `mixed:` for what is a single file in a single state. `{A}` is the count after the drops and the collapse. List one line per `{path, age_minutes, reason}` record. Render `age_minutes` as a non-negative integer; if `-1` (sentinel), render as `age: unknown`. Render `reason` verbatim from the record. If `{A}` > 5, list the first 5 and add a final line `· (+{A-5} more)`. Omit this block ONLY when `skipped_active` is empty.
+**Then collapse to one record per path.** A single file routinely collects several records — a `preserved` file gets `already_recovered` in step (a) and then `marker_write_failed` or `concurrent_during_recovery` if the group later aborts, or `delete_failed` if its `rm` fails. Keep the **most specific** one and drop the rest, by this precedence (highest wins): `delete_failed` › `concurrent_during_recovery` › `marker_write_failed` › `log_removed` › `unread` › `already_recovered` › `age_unknown` › `active`. Without this, one file is listed several times, `{A}` overstates what is on disk, and `{reason_summary}` renders a spurious `mixed:` for what is a single file in a single state. `{A}` is the count after the drops and the collapse. List one line per `{path, age_minutes, reason}` record. Render `age_minutes` as a non-negative integer; if `-1` (sentinel), render as `age: unknown`. Render `reason` verbatim from the record. If `{A}` > 5, list the first 5 and add a final line `· (+{A-5} more)`. Omit this block ONLY when `skipped_active` is empty.
 
 **`{reason_summary}` rendering — use the table below VERBATIM, do not paraphrase. Enum values are defined at the top of Step 1b alongside `skipped_active`; if you add a new value there, add its row here too:**
   - all records have `reason: "active"` → `another harness still running`
@@ -576,13 +599,14 @@ Skipped {A} checkpoint file(s) ({reason_summary}):
   - all records have `reason: "delete_failed"` → `checkpoint delete failed`
   - all records have `reason: "already_recovered"` → `already preserved in a prior recovered log`
   - all records have `reason: "marker_write_failed"` → `recovered log saved but recovery-of marker missing — see "Resolving marker_write_failed" below`
-  - all records have `reason: "unread"` → `could not be read — kept on disk, next /wrapup retries`
+  - all records have `reason: "log_removed"` → `recovered log could not be written correctly and was removed — checkpoints kept, next /wrapup retries`
+  - all records have `reason: "unread"` → `not proved preserved — kept on disk, next /wrapup retries`
   - multiple distinct reasons → `mixed: ` + comma-joined sorted unique reason values (e.g. `mixed: active, delete_failed`)
   - **fallback (catch-all):** all records share a single `reason` value not listed above → `skipped (reason: {reason})` — render the raw enum value verbatim. This row exists to prevent silent rendering drift when a new `reason` value is added to the enum without a matching table entry; the surface signal is generic on purpose so a missing row is visible to the user (and prompts a contributor to add the proper mapping above).
 
 Orphaned recovered log(s) needing manual cleanup ({L}):
   · `session/YYYY/MM/YYYY-MM-DD-session-NN.md`
-(**Required output — do NOT omit when orphaned_recovered_logs is non-empty.** These are session-log files written by an aborted recovery — either (a) the owning session became active mid-recovery and the cleanup delete of the recovered log itself also failed (`concurrent_during_recovery`), or (b) the post-write marker re-read found the `<!-- recovery-of: ... -->` marker missing (`marker_write_failed`). In both cases the file persisted but its checkpoint group was NOT deleted. Cross-reference with the `Skipped {A} checkpoint file(s)` block above to identify which group each entry belongs to and the actionable fix per `reason`. `{L}` is `len(orphaned_recovered_logs)`. List one line per path. Omit this block ONLY when `orphaned_recovered_logs` is empty.)
+(**Required output — do NOT omit when orphaned_recovered_logs is non-empty.** These are session-log files written by an aborted recovery — either (a) the owning session became active mid-recovery and the cleanup delete of the recovered log itself also failed (`concurrent_during_recovery`), or (b) step (f)'s re-read found the `<!-- recovery-of: ... -->` marker missing or a `consumed:` entry failing its re-hash, and the log was stripped rather than removed (`marker_write_failed`). In both cases the file persisted but its checkpoint group was NOT deleted. A log that step (f) had to remove outright never appears here — its group carries `log_removed` in the block above. Cross-reference with the `Skipped {A} checkpoint file(s)` block above to identify which group each entry belongs to and the actionable fix per `reason`. `{L}` is `len(orphaned_recovered_logs)`. List one line per path. Omit this block ONLY when `orphaned_recovered_logs` is empty.)
 
 {Recap reminder message from Step 6}
 
@@ -590,7 +614,7 @@ Good session! See you next time.
 
 ### Resolving `marker_write_failed`
 
-Render this subsection in the Step 7 report **only when the report contains a `marker_write_failed` record**. The text is a numbered list (more robust against LLM paraphrase pressure than long single-liners) and disambiguates token sourcing — date is in the recovered-log filename, token is in the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block.
+Render this subsection in the Step 7 report **only when `orphaned_recovered_logs` is non-empty AND the report contains a `marker_write_failed` record** — both, because every remedy below operates on a log file that still exists. Never render it for a `log_removed` group: there is no path to open, and both remedies would be impossible. The text is a numbered list (more robust against LLM paraphrase pressure than long single-liners) and disambiguates token sourcing — date is in the recovered-log filename, token is in the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block.
 
 > A `marker_write_failed` record means a recovered session log exists on disk but is missing a `<!-- recovery-of: {token}:{date} -->` marker line, or its `consumed:` list is unparseable or failed the re-hash check. The checkpoints were NOT deleted. Without intervention, every subsequent /wrapup re-recovers them and grows this list. Pick **one** — both are correct and final:
 >
