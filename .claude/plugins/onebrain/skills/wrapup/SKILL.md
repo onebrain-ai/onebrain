@@ -241,10 +241,19 @@ Duplication is an inconvenience; deletion is unrecoverable.
 > removed, turning each into a spurious `delete_failed` whose recorded remedy — "the next /wrapup will clean
 > it up" — names a file that no longer exists. Deferring costs nothing (the same files are deleted moments
 > later by (g), after (f) has confirmed the new log) and buys atomicity: if recovery of `unpreserved`
-> aborts, `preserved` is still on disk and the group can be retried whole. **The single exception is the
-> `unpreserved`-is-empty branch above**, where steps (b)–(g) never run and (a) is the only site left that
-> can sweep the group. Note that branch deletes without a pre-delete re-stat — acceptable only because
-> every file it touches is provably in a prior log, so a stale age check cannot cost content.
+> aborts, `preserved` is still on disk and the group can be retried whole.
+>
+> **The rule, stated so it survives future edits: `preserved` is swept by the LAST site that will actually
+> run for this group — and by exactly one site.** Normally that is step (g). Whenever the flow exits before
+> (g), the step that exits owns the sweep instead: today that is the `unpreserved`-is-empty branch of step
+> (a), and step (b)'s read cut-off. Do not count the exceptions — ask which site runs last, and if you add
+> another early exit, give it the sweep too. An early exit that skips the sweep strands `preserved` on disk
+> permanently, because every later run re-partitions the same group and reaches the same exit.
+>
+> Both early-exit sweeps delete without a pre-delete re-stat, unlike (g). That is acceptable *only* because
+> every file they touch is provably in a prior log, so a stale age check cannot cost content — the guarantee
+> comes from `consumed:`, not from the timing check. Never extend the exemption to a file that is not
+> `preserved`.
 
 **Fail-safe.** If a checkpoint's hash cannot be computed, a `consumed:` list cannot be parsed, an entry is
 missing either `file` or `sha256`, or any comparison is ambiguous, treat the **whole group as
