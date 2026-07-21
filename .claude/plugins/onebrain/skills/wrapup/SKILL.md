@@ -137,51 +137,84 @@ The threshold gives the owning session a buffer of two full checkpoint windows (
 
 For each orphan group (process in chronological order by date in filename):
 
-**a. Already-recovered short-circuit.** Before reading checkpoint files, glob `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-*.md` for the group's date (using the orphan date's YYYY/MM). For each match, search the file for the standardised recovery marker. Its current form is `<!-- recovery-of: {token}:{date}:through-NN -->`, where `{token}` is the orphan group's session token, `{date}` is the group's date, and `NN` is the boundary described below. **Detection must accept the legacy boundary-less form `<!-- recovery-of: {token}:{date} -->` too** — an older log still identifies which group it recovered, it just states no boundary.
+**a. Already-recovered short-circuit.** Before reading checkpoint files, find every session log that already
+recovered any part of this group. **Locate those logs by content, never by filename**: search
+`[logs_folder]/session/` recursively for lines beginning `<!-- recovery-of: {token}:`, where `{token}` is the
+orphan group's session token. A recovered log is named for the *earliest* date it covered (step d), so a
+group spanning midnight — or a month boundary — files its later dates' markers inside a log whose name, and
+whose `YYYY/MM` directory, belong to an earlier date. A filename glob cannot reach them; a content search
+can.
 
-> **Anchored match required (security):** match the marker **only when it appears at the start of a line** — i.e., either the literal string `\n<!-- recovery-of: {token}:{date} -->` or the file beginning with `<!-- recovery-of: {token}:{date} -->`. A bare substring match would false-positive on session logs whose body quotes the marker as documentation (e.g., a meta-note about how the recovery flow works). The destructive consequence of a false-positive is checkpoint deletion based on a documentation quote — not acceptable. Use `rg -n -F` with `--multiline` and a `(?m)^` anchor, or grep the file line-by-line. **Strip trailing `\r` from each line before the `startswith` check** — Windows-edited logs use CRLF endings; without this the line literal `<!-- recovery-of: ... -->\r` won't match the bare prefix and a legitimate already-recovered marker is silently missed. After CRLF strip, check `line.startswith('<!-- recovery-of: ')` followed by a token/date check.
+> **Anchored match required:** match the marker **only when it appears at the start of a line** — either
+> `\n<!-- recovery-of: {token}:` or the file beginning with `<!-- recovery-of: {token}:`. A bare substring
+> match false-positives on session logs that quote the marker as documentation (this file's own examples,
+> for one). Use `rg -n -F` with `--multiline` and a `(?m)^` anchor, or grep line-by-line. **Strip a trailing
+> `\r` before the `startswith` check** — Windows-edited logs use CRLF endings, and without the strip a
+> legitimate marker is silently missed. After the strip, check `line.startswith('<!-- recovery-of: ')`
+> followed by a token check.
 
-> **🔴 A marker alone is NOT sufficient to delete. The marker proves that A recovery happened for this
-> `token:date` — it does NOT prove that THESE checkpoint files are preserved.** A session that keeps
-> running after its checkpoints were recovered writes *more* checkpoints under the same token and the same
-> date, and a marker-only check false-positives on every one of them. Deleting on that basis destroys
-> history that exists nowhere else. (Observed 2026-07-21: `2026-07-20-session-04.md` was written at 16:38
-> carrying the marker; the owning session then wrote checkpoints 04–07 at 16:40 / 17:15 / 19:08 / 22:36,
-> none of whose content appears in that log. A marker-only short-circuit would have deleted an entire
-> epic's history.) So the short-circuit is gated on **how far the recovery actually got**, not on the
-> marker's mere existence.
+> **🔴 A marker NEVER authorises a delete. It proves only that A recovery happened for this `token:date`
+> — never that THESE checkpoint files are preserved.** A session that keeps running after its checkpoints
+> were recovered writes *more* checkpoints under the same token and the same date, and a marker-only check
+> false-positives on every one of them. (Observed 2026-07-21: `2026-07-20-session-04.md` was written at
+> 16:38 carrying the marker; the owning session then wrote checkpoints 04–07 at 16:40 / 17:15 / 19:08 /
+> 22:36, none of whose content appears in that log. A marker-only short-circuit would have deleted an entire
+> epic's history.) The marker's only job is to **find candidate logs cheaply**; every delete decision is
+> made against the `consumed:` hashes below. This is also why a false-positive match is now merely wasteful
+> rather than destructive: a documentation quote carries no `consumed:` list, so nothing matches and every
+> checkpoint falls to `unpreserved`.
 
-**The marker carries the boundary.** Its full form is
-`<!-- recovery-of: {token}:{date}:through-NN -->`, where `NN` is the **highest checkpoint number** that
-recovery consumed (zero-padded, matching the `-checkpoint-NN` in the filenames). Step (e) writes it.
+**What authorises a delete is the `consumed:` list, not the marker.** Every recovered log carries, in its
+frontmatter, one entry per checkpoint whose content step (b) actually read and step (e) actually wrote into
+that log:
 
-> **Why the checkpoint number and NOT a timestamp.** An earlier version of this rule compared each
-> checkpoint's mtime against the recovered log's mtime. That is unsound: `/recap` edits session logs after
-> the fact (it adds `recapped:`), and file sync can rewrite mtimes on its own. Either pushes the log's
-> mtime *forward*, which silently reclassifies un-recovered checkpoints as preserved and **deletes them** —
-> the exact failure this whole step exists to prevent. A checkpoint's `NN` lives in its filename, is
-> assigned once, and nothing rewrites it.
+```yaml
+consumed:
+  - file: YYYY-MM-DD-{token}-checkpoint-NN.md
+    sha256: <first 16 hex characters of that file's SHA-256>
+```
 
-**If one or more anchored matches are found**, resolve `recovered_through` = the **highest** `NN` across
-*all* logs carrying this `token:date` marker (a token+date may legitimately be recovered more than once;
-the furthest recovery is what bounds preservation). Parse each checkpoint's own `NN` from its filename and
-partition `group_files`:
+Step (e) writes it; this step reads it. The marker locates the log; the list is what proves preservation.
 
-- **`preserved` — `NN` ≤ `recovered_through`.** Their content is in a prior recovered log. For each,
-  append `{path, age_minutes: <original group age>, reason: "already_recovered"}` to `skipped_active`,
-  then attempt to delete. Per-file delete failures record `delete_failed` and continue, identical to
-  step (g)'s rule.
-- **`unpreserved` — `NN` > `recovered_through`.** The owning session wrote these *after* the recovery, so
-  no log contains them. **Never delete these on the strength of the marker.** If `unpreserved` is empty,
-  continue with the next group — do not proceed to step (b). If it is non-empty, **set
-  `recover_files = unpreserved` and fall through to step (b)** to recover exactly those into a new session
-  log, leaving the already-preserved ones out of it so the vault gains no duplicate content.
+> **🔴 Why content hashes and NOT the checkpoint number.** `NN` is not stable, and the thing that
+> destabilises it is *this step's own delete*. The CLI derives the next number by scanning the checkpoint
+> directory — `max_checkpoint_nn` in `onebrain-cli`'s `crates/onebrain-cache/src/checkpoint.rs`, under the
+> comment "Derive NN from disk"; `last_stop_nn` is written to the state file but never read back for
+> numbering. So once step (g) empties a `{date}-{token}` group, a session that resumes **on the same day**
+> starts again at `01`. A numeric boundary of `through-10` would then read the fresh `01`–`03` as
+> `NN ≤ 10`, call them preserved, and delete them unread — the exact failure this step exists to prevent,
+> re-entered through the renumbering the step itself causes. (Observed 2026-07-21 in this vault: token
+> `4e57aeee` reached checkpoint `09`; /wrapup deleted the group, and the very next Stop hook reported
+> `01 since start` — the CLI emits "since start" only when its directory scan finds nothing.) A filename is
+> no safer: the reused name collides *exactly*. Only the content identifies the file.
 
-**Legacy markers (no `:through-NN`).** Logs written before this rule carry the bare
-`<!-- recovery-of: {token}:{date} -->` and state no boundary. **Do not guess one, and do not fall back to
-mtime.** Treat the whole group as `unpreserved` and recover it. The cost is one duplicated log, once —
-step (g) then deletes the group, so this cannot recur or accumulate. Duplication is an inconvenience;
-deletion is unrecoverable.
+> **Why not a timestamp either.** An earlier version of this rule compared each checkpoint's mtime against
+> the recovered log's mtime. `/recap` edits session logs after the fact (it adds `recapped:`) and file sync
+> rewrites mtimes on its own; either pushes the log's mtime *forward* and silently reclassifies
+> un-recovered checkpoints as preserved. A content hash changes only when the content changes.
+
+**Partition `group_files`.** For each checkpoint still on disk, compute its SHA-256 and take the first 16
+hex characters (`shasum -a 256 <file>` / `sha256sum <file>`).
+
+- **`preserved` — some recovered log's `consumed:` list holds an entry whose `file` AND `sha256` both match
+  this checkpoint.** Its content is in that log. Record
+  `{path, age_minutes: <original group age>, reason: "already_recovered"}` in `skipped_active` and **do not
+  delete it here** — leave it for step (g) (see the ⚠️ note below).
+- **`unpreserved` — everything else.** This deliberately includes a checkpoint whose *name* matches an entry
+  but whose *hash* does not: that is a number reused after a delete — a different file that no log contains.
+  **Never delete these.** If `unpreserved` is non-empty, set `recover_files = unpreserved` and fall through
+  to step (b) to recover exactly those into a new session log, leaving the preserved ones out of it so the
+  vault gains no duplicate content.
+- **If `unpreserved` is empty**, there is nothing to recover and steps (b)–(g) will not run for this group.
+  Only in this case does step (a) delete `preserved` itself: attempt each delete, recording `delete_failed`
+  per file on failure and continuing, identical to step (g)'s rule. Then continue with the next group.
+
+**Logs with no `consumed:` list.** Every log written before this rule — including all those carrying only a
+bare `<!-- recovery-of: {token}:{date} -->` marker, and any that carried the interim `:through-NN` form —
+says nothing about *which files* it preserved. **Do not guess, do not fall back to mtime, and do not read a
+`through-NN` as a boundary.** They contribute no entries, so their checkpoints land in `unpreserved` and are
+recovered. The cost is one duplicated log, once — step (g) then deletes the group, so it cannot recur or
+accumulate. Duplication is an inconvenience; deletion is unrecoverable.
 
 > ⚠️ **Set `recover_files`, do NOT overwrite `group_files`.** `group_files` stays the full group as
 > captured in *Identify Orphans* step 3, because step (g)'s concurrency guard diffs a fresh re-glob
@@ -190,12 +223,19 @@ deletion is unrecoverable.
 > Steps (b) and (e) read `recover_files`; step (g) keeps using `group_files` for both the concurrency diff
 > and the delete sweep. **When this step does not run (the ordinary case — no marker found),
 > `recover_files` defaults to `group_files`.**
+>
+> **One deletion site, not two.** This is also why step (a) leaves `preserved` on disk whenever it falls
+> through: two deletion sites for one group would make step (g) sweep files (a) had already removed,
+> turning every one of them into a spurious `delete_failed` whose recorded remedy — "the next /wrapup will
+> clean it up" — refers to a file that no longer exists. Deferring costs nothing (the same files are
+> deleted moments later, by (g), after (f) has confirmed the new log) and buys atomicity: if recovery of
+> `unpreserved` aborts, `preserved` is still on disk and the group can be retried whole.
 
-**Fail-safe.** If `recovered_through` cannot be determined, or any checkpoint's own `NN` cannot be parsed
-from its filename, or any comparison is ambiguous, treat the **whole group as `unpreserved`**: delete
-nothing, set `recover_files = group_files`, and fall through to step (b). Duplicated content is an
-inconvenience; a deleted checkpoint is unrecoverable, so ambiguity must always resolve toward keeping the
-file.
+**Fail-safe.** If a checkpoint's hash cannot be computed, a `consumed:` list cannot be parsed, an entry is
+missing either `file` or `sha256`, or any comparison is ambiguous, treat the **whole group as
+`unpreserved`**: delete nothing, set `recover_files = group_files`, and fall through to step (b). Duplicated
+content is an inconvenience; a deleted checkpoint is unrecoverable, so ambiguity must always resolve toward
+keeping the file.
 
 > **Why marker, not frontmatter:** the marker names the specific `token:date` pair recovered, which frontmatter doesn't. A multi-group recovery log can therefore short-circuit per group rather than as a whole, and the marker is harness-/version-independent (frontmatter keys have drifted across releases). See `skills/startup/references/session-formats.md` → *Recovered from checkpoints* for the canonical marker spec.
 
@@ -205,28 +245,53 @@ narrowed it to the checkpoints written after a prior recovery). Extract content 
 **c. Determine the session date** from the filename (`YYYY-MM-DD` prefix of the files in `recover_files`). If they have different date prefixes (cross-midnight session), use the earliest date.
 
 > **A repeat marker for the same `token:date` is expected, not a defect.** When step (a) narrowed the
-> group, the log written in step (e) carries the same `<!-- recovery-of: {token}:{date}:through-NN -->` marker as
-> the earlier one, but with a **higher `NN`**. That is correct and load-bearing: it raises
-> `recovered_through`, so the next /wrapup measures against this recovery rather than the older one. Do not
-> "deduplicate" these markers.
+> group, the log written in step (e) carries the same `<!-- recovery-of: {token}:{date} -->` marker as the
+> earlier one. That is correct: the two logs hold disjoint `consumed:` entries and step (a) reads the union
+> of every matching log's list. Do not "deduplicate" these markers, and never merge or prune the lists.
 
 **d. Determine the session file name** for that date:
    - List files in `[logs_folder]/session/YYYY/MM/` matching `YYYY-MM-DD-session-*.md` (using the orphan date's YYYY/MM)
    - Next session number = count of matches + 1 (zero-padded to 2 digits)
    - Verify the slot is free; increment NN until free
 
-**e. Write the recovered session log** at `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md`. Create the directory `[logs_folder]/session/YYYY/MM/` (using the orphan date's YYYY/MM) if it does not already exist. Use the Session Log Format from `skills/startup/references/session-formats.md` (case: **Recovered from checkpoints**) — this includes the required `<!-- recovery-of: {token}:{date}:through-NN -->` body marker as the first body line, where **`NN` is the highest checkpoint number in `recover_files`**. That number is what step (a) reads on the next run to decide which checkpoints are already preserved, so **a marker written without it forces the next /wrapup to re-recover the whole group.** The marker must appear once per group recovered into this log; if a single recovery pass aggregates multiple groups (rare — date-grouping usually yields one group per date), emit one marker line per group on consecutive lines before the `# Session Summary` heading. Apply the **Preservation rule** from Step 4 below: deduplication only, no summarization. Every unique decision, action item, open question, learning, and topic from every checkpoint **in `recover_files`** must appear in the recovered session log.
+**e. Write the recovered session log** at `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md`. Create the directory `[logs_folder]/session/YYYY/MM/` (using the orphan date's YYYY/MM) if it does not already exist. Use the Session Log Format from `skills/startup/references/session-formats.md` (case: **Recovered from checkpoints**). Two things are required and load-bearing:
+
+1. **The body marker** `<!-- recovery-of: {token}:{date} -->` as the first body line, before the `# Session Summary` heading — one line per distinct date present in `recover_files`, on consecutive lines. It is the locator step (a) greps for.
+2. **The `consumed:` frontmatter list** — one `{file, sha256}` entry for **every checkpoint whose content this log actually contains**, and for no other. Compute each `sha256` from the file you read, taking the first 16 hex characters.
+
+> **🔴 Write `consumed:` from what you READ, never from what you FOUND.** If a read in step (b) failed for
+> any reason — permissions, an unsynced cloud placeholder, a decode error, or simply dropping one file from
+> a long batch — that checkpoint must NOT get an entry, no matter that it sits in `recover_files`. An entry
+> is a promise that this log holds that file's content; a false promise makes step (a) delete the file on
+> the next run, and no fail-safe can catch it because the entry parses perfectly. When in doubt, omit the
+> entry: the cost is re-recovering one checkpoint, versus destroying it.
+
+Apply the **Preservation rule** from Step 4 below: deduplication only, no summarization. Every unique decision, action item, open question, learning, and topic from every checkpoint **in `recover_files`** must appear in the recovered session log — except a checkpoint that could not be read, which appears in neither the body nor `consumed:`, and is therefore left on disk for the next run to retry. Name any such file in the log body so the omission is visible rather than silent.
 
 > **If step (a) narrowed the group, say so in the log body.** Add a short blockquote under the heading
-> naming the earlier recovered log, the mtime boundary used, and which checkpoint numbers this one covers.
+> naming the earlier recovered log and which checkpoint files this one covers.
 > A reader who later finds two logs for one `token:date` needs to know they are consecutive slices rather
 > than duplicates — and the note is also the evidence that the narrowing was deliberate.
 
-**f. Verify the session log** exists and is non-empty before continuing. **Marker re-read check (required):** re-read the file from disk and confirm the `<!-- recovery-of: {token}:{date}:through-NN -->` marker line is present at the start of a line, before the `# Session Summary :` heading — **and that its `NN` equals the highest checkpoint number in `recover_files`.** A marker whose `NN` is absent or wrong is as dangerous as no marker at all: too low re-recovers work already saved (harmless duplication), too high tells the next run that checkpoints nothing preserved are safe to delete. Treat an absent or mismatched `NN` exactly like a missing marker below. If the marker is missing (LLM omission, partial write, encoding glitch), the next /wrapup's already-recovered short-circuit will fail to detect this log and could re-recover the same checkpoints into a duplicate session log. To prevent that destructive path, treat a missing-marker as **abort recovery for this group**: do NOT proceed to step (g) (no delete), append the session log path to `orphaned_recovered_logs`, and for each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`. The user sees both blocks in Step 7 and can investigate the recovered log + the still-present checkpoints together.
+**f. Verify the session log** exists and is non-empty before continuing. **Re-read check (required):** re-read the file from disk and confirm both:
+
+- an anchored `<!-- recovery-of: {token}:{date} -->` line exists for **every** distinct date in `recover_files`, before the `# Session Summary :` heading; and
+- the `consumed:` list parses, and **every entry's `sha256` still matches a re-hash of the named file on disk**.
+
+Re-hashing is the whole point of this check: it is the one step that can catch a fabricated, copied, or stale entry before that entry is allowed to authorise a delete. An entry naming a file that is *absent* from disk is fine (another run may have swept it) — an entry whose file is present with a *different* hash is not.
+
+If either check fails, **abort recovery for this group**: do NOT proceed to step (g) (no delete), append the session log path to `orphaned_recovered_logs`, and for each file in `group_files` append `{path, age_minutes, reason: "marker_write_failed"}` to `skipped_active`.
+
+> **Then neutralise the bad log before returning.** Delete the just-written log, or strip its `consumed:`
+> list to only the entries that re-hashed correctly. Aborting alone is not enough: the log stays on disk,
+> step (a) reads the union of every matching log's list, and a wrong entry would be trusted forever by runs
+> that never saw this failure — including unattended `onebrain skill run` invocations with nobody to read
+> Step 7. **An abort must never leave behind a claim it just proved false.** (The content is not lost by
+> deleting the log: the checkpoints were not deleted, so the next run recovers them from scratch.)
 
 **g. Delete checkpoint files** for this group after confirming step f succeeded.
 
-   - **Pre-delete re-stat (concurrency guard) — runs ONCE before any deletes:** re-stat every file in `group_files` (stored in *Identify Orphans* step 3) AND re-glob the group's filename pattern (`YYYY-MM-DD-{token}-checkpoint-*.md`) under `[logs_folder]/checkpoint/` (flat). The owning session became active during recovery if **either** of these holds:
+   - **Pre-delete re-stat (concurrency guard) — runs ONCE before any deletes:** re-stat every file in `group_files` (stored in *Identify Orphans* step 3) AND re-glob **`*-{token}-checkpoint-*.md`** under `[logs_folder]/checkpoint/` (flat) — token-only, **no date component**, matching how *Identify Orphans* keys the group. A date-bounded pattern would be blind to the single most likely proof that the owning session is alive: it waking up and writing a checkpoint under **tomorrow's** date. The mtime arm cannot cover that either — an existing file's mtime does not change when a *new* file appears — so a date-scoped re-glob leaves the guard unable to fire at all in that case, and step (g) deletes a live session's history. The owning session became active during recovery if **either** of these holds:
        - any file's mtime has changed since the Active-Session Guard's stat above, OR
        - the re-glob result contains a path NOT present in `group_files` (set difference: `re_glob_files \ group_files` is non-empty).
    - **If concurrent activity is detected:** **abort the delete entirely for this group.** Then attempt to delete the recovered session log written in step (e) so it does not leak duplicate content into the vault. For each file in `group_files`, append `{path, age_minutes, reason: "concurrent_during_recovery"}` to `skipped_active` (use the original `age_minutes` from the Active-Session Guard). If the recovered-log delete itself fails, append the recovered-log path to `orphaned_recovered_logs` (a separate list initialized at the top of Step 1b) so the user sees it under its own Step 7 block — these are session-log files, not checkpoint files, and conflate poorly with the checkpoint-file heading. Continue with the next group.
@@ -234,7 +299,7 @@ narrowed it to the checkpoints written after a prior recovery). Extract content 
    - **Stage discipline (do not conflate the two rules above):** the concurrency check runs ONCE at the top of step (g). After it passes, individual `rm` failures are NEVER interpreted as concurrency — they record `delete_failed` per-file and the loop continues. Do not re-run the concurrency check between per-file deletes; do not promote a per-file `delete_failed` to `concurrent_during_recovery`. The only group-level abort path is the pre-delete concurrency check.
    - Guard: only delete AFTER step f is confirmed AND the re-stat shows no concurrent activity. Never delete before.
 
-**h. Track recovered sessions:** append `{date} → session-NN.md ({C} checkpoints)` to a `recovered_sessions` list for the final report, where `{C}` is the number of checkpoint files recovered for this group.
+**h. Track recovered sessions:** append `{date} → session-NN.md ({C} checkpoints)` to a `recovered_sessions` list for the final report, where `{C}` is `len(consumed:)` for the log just written — the files this log actually preserved, which after a step (a) narrowing is smaller than the group.
 
 ---
 
@@ -469,7 +534,7 @@ Auto-recovered {S} orphan session(s):
 
 Skipped {A} checkpoint file(s) ({reason_summary}):
   · `YYYY-MM-DD-{token}-checkpoint-NN.md` (age: {age_minutes}m, reason: {reason})
-(**Required output — do NOT omit when skipped_active is non-empty.** This block is the user's only signal that checkpoint files were intentionally left on disk. `{A}` is the file count, equal to `len(skipped_active)`. List one line per `{path, age_minutes, reason}` record. Render `age_minutes` as a non-negative integer; if `-1` (sentinel), render as `age: unknown`. Render `reason` verbatim from the record. If `{A}` > 5, list the first 5 and add a final line `· (+{A-5} more)`. Omit this block ONLY when `skipped_active` is empty.
+(**Required output — do NOT omit when skipped_active is non-empty.** This block is the user's only signal about checkpoint files this run did not recover into a log of its own. **Drop every `already_recovered` record whose file step (g) went on to delete** — those files are neither left on disk nor unaccounted for, and listing them sends a user investigating a suspected data loss to look for files this run destroyed on purpose. Keep an `already_recovered` record only when the file is genuinely still on disk (its delete failed, or the group aborted before step (g)); if that same path also collected a `delete_failed` record, keep only the `delete_failed` one so a single file is never counted or rendered twice. `{A}` is the file count after those drops, equal to `len(skipped_active)`. List one line per `{path, age_minutes, reason}` record. Render `age_minutes` as a non-negative integer; if `-1` (sentinel), render as `age: unknown`. Render `reason` verbatim from the record. If `{A}` > 5, list the first 5 and add a final line `· (+{A-5} more)`. Omit this block ONLY when `skipped_active` is empty.
 
 **`{reason_summary}` rendering — use the table below VERBATIM, do not paraphrase. Enum values are defined at the top of Step 1b alongside `skipped_active`; if you add a new value there, add its row here too:**
   - all records have `reason: "active"` → `another harness still running`
@@ -493,11 +558,11 @@ Good session! See you next time.
 
 Render this subsection in the Step 7 report **only when the report contains a `marker_write_failed` record**. The text is a numbered list (more robust against LLM paraphrase pressure than long single-liners) and disambiguates token sourcing — date is in the recovered-log filename, token is in the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block.
 
-> A `marker_write_failed` record means a recovered session log exists on disk but is missing its `<!-- recovery-of: {token}:{date}:through-NN -->` marker line, or carries one whose `NN` is wrong. Without intervention, every subsequent /wrapup will re-recover the same checkpoints and grow this list. Pick **one** of the following — both are correct and final:
+> A `marker_write_failed` record means a recovered session log exists on disk but is missing a `<!-- recovery-of: {token}:{date} -->` marker line, or its `consumed:` list is unparseable or failed the re-hash check. The checkpoints were NOT deleted. Without intervention, every subsequent /wrapup re-recovers them and grows this list. Pick **one** — both are correct and final:
 >
-> 1. **Repair in place.** Open the recovered log path listed in `Orphaned recovered log(s) needing manual cleanup` and add `<!-- recovery-of: {token}:{date}:through-NN -->` as the very first body line, before the `# Session Summary :` heading. Source `{date}` from the recovered-log filename's date prefix; source `{token}` from the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block above (pattern: `YYYY-MM-DD-{token}-checkpoint-NN.md`). **Set `NN` by reading the log** — the highest checkpoint number whose content it actually contains — **not by taking the highest number on disk.** Writing a boundary the log does not cover is the one repair that loses data.
+> 1. **Repair in place.** Open the recovered log path listed in `Orphaned recovered log(s) needing manual cleanup`. Add `<!-- recovery-of: {token}:{date} -->` as the first body line, before the `# Session Summary :` heading — one line per date the log covers. Source `{token}` from the still-present checkpoint filenames in the `Skipped {A} checkpoint file(s)` block above (pattern: `YYYY-MM-DD-{token}-checkpoint-NN.md`). Then fix `consumed:` so it lists **exactly** the checkpoints whose content the log actually contains, each with the first 16 hex characters of `shasum -a 256 <checkpoint>`. **Derive the list by reading the log, never by listing the directory.** An entry for content the log does not hold is the one repair that loses data.
 >
-> 2. **Discard and let the next /wrapup re-recover.** Delete BOTH the recovered log AND its associated checkpoint files together. Next /wrapup's orphan recovery will re-process the checkpoints from scratch; the (hopefully) successful re-write will include the marker. Only choose this when you trust the next recovery to capture the same content.
+> 2. **Discard and let the next /wrapup re-recover.** Delete **the recovered log only, and keep every checkpoint file.** The next /wrapup re-processes those checkpoints from scratch and writes a fresh log. ⚠️ **Never delete the checkpoints as part of this option** — the log and the checkpoints are the only two copies of that history, and once the checkpoints are gone there is nothing left for the "re-recover" to read.
 
 ---
 

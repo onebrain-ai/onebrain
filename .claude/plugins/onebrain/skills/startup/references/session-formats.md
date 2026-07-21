@@ -195,8 +195,13 @@ session_token: <token>
 session: NN
 synthesized_from_checkpoints: true
 auto-recovered: true
+consumed:
+  - file: YYYY-MM-DD-<token>-checkpoint-NN.md
+    sha256: <first 16 hex chars of SHA-256>
 ---
 ```
+
+`consumed:` is **required for this case** and is the only thing that authorises /wrapup to delete a checkpoint. One entry per checkpoint whose content this log actually contains, and none for any other. See *Body marker* below for why it is content-addressed rather than numbered.
 
 **Thread wrapup — pause snapshots incorporated** (used by: `/wrapup` Thread Wrapup Branch when user confirms `y` on the active-thread prompt):
 ```yaml
@@ -216,21 +221,29 @@ pause_slug: <kebab-case-slug>
 
 **Body marker (required for this case):** the very first body line — placed before `# Session Summary :` — must be the recovery-of marker:
 ```markdown
-<!-- recovery-of: {token}:{YYYY-MM-DD}:through-NN -->
+<!-- recovery-of: {token}:{YYYY-MM-DD} -->
 ```
 
-Where `{token}` is the recovered group's session token (parsed from the checkpoint filenames), `{YYYY-MM-DD}` is the recovered session's date (the checkpoint files' date prefix, not today), and **`NN` is the highest checkpoint number this log actually consumed** (zero-padded, matching the `-checkpoint-NN` in the filenames). Emit one marker line per recovered group; if a single recovery pass aggregates multiple groups, write one marker per group on consecutive lines. **The marker must occupy a full line on its own** — do not embed it inline within prose, do not append text after the closing `-->`. The /wrapup `already-recovered` short-circuit anchors its detection to start-of-line so a session log that quotes the marker as documentation in mid-paragraph cannot trigger a false short-circuit.
+Where `{token}` is the recovered group's session token (parsed from the checkpoint filenames) and `{YYYY-MM-DD}` is the recovered session's date (the checkpoint files' date prefix, not today). **Emit one marker line per distinct date this log recovered**, on consecutive lines — a group is keyed by token alone, so a session running past midnight puts several dates in one log. **The marker must occupy a full line on its own** — do not embed it inline within prose, do not append text after the closing `-->`. The /wrapup `already-recovered` short-circuit anchors its detection to start-of-line so a session log that quotes the marker as documentation in mid-paragraph cannot trigger a false short-circuit.
 
 **Why a body marker, not just frontmatter:** /wrapup's `already-recovered` short-circuit (Step 1b → Auto-Recover step a) needs a stable, version-independent signal that a given group was already preserved in a prior recovered log. Frontmatter shape has drifted across releases (`auto-recovered: true` here, `case: recovered` in older drafts, `synthesized_from_checkpoints: true` shared with manual wrapups). The body marker is the only signal that:
 1. Names the specific token + date pair recovered (frontmatter doesn't), so multi-group recovery logs short-circuit per group rather than as a whole,
 2. Survives any future frontmatter-key rename without breaking existing recovered logs,
 3. Is greppable by a fast `rg`/`grep` before any YAML parse.
 
-> **🔴 `through-NN` is load-bearing, not decorative.** The `{token}:{date}` half proves only that **a**
-> recovery happened — it does **not** prove that any particular checkpoint file was preserved. A session
-> that keeps running after its checkpoints were recovered writes **more** checkpoints under the same token
-> and the same date, and a boundary-less marker cannot tell those apart from the ones already saved. `NN`
-> is what makes the distinction: /wrapup deletes only checkpoints at or below it and recovers everything
-> above it. **Write it from the group you actually consumed, never from the group you found.**
+> **🔴 The marker NEVER authorises a delete — `consumed:` does.** The `{token}:{date}` pair proves only
+> that **a** recovery happened; it does **not** prove that any particular checkpoint file was preserved. A
+> session that keeps running after its checkpoints were recovered writes **more** checkpoints under the same
+> token and the same date, and the marker cannot tell those apart from the ones already saved. /wrapup
+> therefore deletes a checkpoint only when a `consumed:` entry matches both its filename **and** a re-hash
+> of its content.
 
-Recovered logs written by older /wrapup versions (predating the marker, or predating `through-NN`) state no boundary. /wrapup treats them as covering **nothing**, so their group is re-recovered into a duplicate session log — acceptable and self-limiting: the duplicate carries a proper boundary, the group is then deleted, and it cannot recur. The asymmetry is deliberate — omitting the boundary costs one duplicate log, whereas overstating it deletes history that exists nowhere else.
+> **🔴 Why the entry is content-addressed and not a checkpoint number.** A boundary like "everything
+> through `NN`" is unsound, because `NN` is not stable: the CLI derives the next number by scanning the
+> checkpoint directory (`max_checkpoint_nn` in `onebrain-cli`'s `crates/onebrain-cache/src/checkpoint.rs`,
+> under the comment "Derive NN from disk"), so **once /wrapup deletes a group, a session resuming the same
+> day restarts at `01`.** A stored boundary of `10` would then swallow the fresh `01`–`03` and delete them
+> unread. A bare filename fails the same way — the reused name collides exactly. Only the content
+> distinguishes a new checkpoint from a recovered one, so `sha256` is what the entry carries.
+
+Recovered logs written by older /wrapup versions — those with no marker, those with a bare marker, and those carrying the interim `:through-NN` form — have **no `consumed:` list**, so they preserve nothing as far as /wrapup is concerned and their checkpoints are re-recovered into a duplicate session log. Acceptable and self-limiting: the duplicate carries a proper `consumed:` list, the group is then deleted, and it cannot recur. The asymmetry is deliberate — an omitted entry costs one duplicate log, whereas a wrong entry deletes history that exists nowhere else.
