@@ -101,7 +101,7 @@ def run(mode, *args):
                 )
         except Exception:
             return
-    elif proc.stdout.strip():
+    elif mode == "checkpoint" and proc.stdout.strip():
         sys.stdout.write(proc.stdout)
 
 

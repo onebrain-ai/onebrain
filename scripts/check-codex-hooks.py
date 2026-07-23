@@ -72,6 +72,17 @@ with tempfile.TemporaryDirectory() as tmp:
     ):
         raise SystemExit(f"Codex session binding failed: {outputs!r}")
 
+    proc = subprocess.run(
+        [sys.executable, str(hook), "pending"],
+        input=json.dumps({"session_id": "quiet-background-hook"}),
+        text=True,
+        capture_output=True,
+        env=env,
+        check=True,
+    )
+    if proc.stdout:
+        raise SystemExit(f"Codex background hook leaked non-protocol output: {proc.stdout!r}")
+
     fake.write_text(
         "#!/bin/sh\n"
         "if [ \"$1\" = \"--version\" ]; then\n"
