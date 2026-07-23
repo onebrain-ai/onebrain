@@ -1,0 +1,6 @@
+interface:
+  display_name: "OneBrain Memory Review"
+  short_description: "Interactively review OneBrain memory files"
+  default_prompt: "Use $onebrain:memory-review to review stored memory."
+policy:
+  allow_implicit_invocation: false

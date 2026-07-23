@@ -33,3 +33,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: python3 scripts/check-skill-count.py
+
+  codex-hooks:
+    name: codex hook session binding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/check-codex-hooks.py

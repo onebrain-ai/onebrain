@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.2
-released: 2026-07-21
+latest_version: 3.4.3
+released: 2026-07-23
 ---
 
 # Changelog
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.3 — 2026-07-23 — Native Codex plugin surface
+
+- Share all 30 skill bodies with Codex through a native manifest and `$onebrain:*` namespace.
+- Add Codex SessionStart, PostToolUse, and Stop hooks plus the native OneBrain search MCP.
+- Add Codex invocation, managed install, scheduling, and manual-only skill policy documentation.
 
 ## v3.4.2 — 2026-07-21 — /doctor: correct the `fix[]` outcome vocabulary and JSON envelope
 

@@ -1,0 +1,6 @@
+interface:
+  display_name: "OneBrain Reorganize"
+  short_description: "Migrate the OneBrain vault structure"
+  default_prompt: "Use $onebrain:reorganize to migrate this vault structure."
+policy:
+  allow_implicit_invocation: false

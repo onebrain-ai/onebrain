@@ -1,0 +1,6 @@
+interface:
+  display_name: "OneBrain Clone"
+  short_description: "Package portable OneBrain agent context"
+  default_prompt: "Use $onebrain:clone to package this agent context."
+policy:
+  allow_implicit_invocation: false

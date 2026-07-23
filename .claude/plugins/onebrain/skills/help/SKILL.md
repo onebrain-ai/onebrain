@@ -8,6 +8,8 @@ schedulable: false
 
 Skills are organized by workflow phase — Input → Process → Recall → Maintain.
 
+Command syntax is `/skill` on Claude/Gemini and `$onebrain:skill` on Codex. Natural-language auto-triggering remains available except for manual-only skills.
+
 ## 📥 INPUT — Capture & ingest
 
 | Command | Purpose |

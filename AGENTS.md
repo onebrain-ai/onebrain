@@ -13,6 +13,13 @@ how to dispatch sub-agents for skills that require parallel execution.
 
 @.claude/plugins/onebrain/references/codex-tools.md
 
+Read `.claude/plugins/onebrain/references/codex-tools.md` completely before
+using any OneBrain workflow. The `@` line above is documentation, not a
+guarantee that the Codex host expands file imports.
+
 ## Agent Instructions
 
 @.claude/plugins/onebrain/INSTRUCTIONS.md
+
+Then read `.claude/plugins/onebrain/INSTRUCTIONS.md` completely and apply its
+vault configuration and session rules. Do not rely on `@file` expansion alone.
