@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.3
+latest_version: 3.4.4
 released: 2026-07-23
 ---
 
@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.4 — 2026-07-23 — Codex hook executable path
+
+- Inject the resolved `ONEBRAIN_BIN` executable path into Codex startup context so later CLI calls use the managed binary without relying on a literal environment-variable reference.
+- Extend the Codex hook regression check to verify the resolved POSIX and PowerShell command forms.
 
 ## v3.4.3 — 2026-07-23 — Native Codex plugin surface
 

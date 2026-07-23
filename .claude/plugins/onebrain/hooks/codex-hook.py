@@ -7,6 +7,7 @@ unavailable.
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 
@@ -15,6 +16,16 @@ MIN_CLI = (3, 4, 18)
 
 def onebrain_command():
     return os.environ.get("ONEBRAIN_BIN", "onebrain")
+
+
+def command_examples(token):
+    command = onebrain_command()
+    posix_command = shlex.quote(command)
+    powershell_command = "'" + command.replace("'", "''") + "'"
+    return (
+        f"POSIX `{posix_command} session init --json --session-token {token}`; "
+        f"Windows PowerShell `& {powershell_command} session init --json --session-token {token}`."
+    )
 
 
 def additional_context(message):
@@ -93,11 +104,10 @@ def run(mode, *args):
                 additional_context(
                     f"OneBrain Codex session_token: {token}. Preserve this token for "
                     "checkpoint and wrapup isolation in this chat. During startup, "
-                    "invoke the executable in ONEBRAIN_BIN (never a bare `onebrain`): "
-                    f"POSIX `\"$ONEBRAIN_BIN\" session init --json --session-token {token}`; "
-                    f"Windows PowerShell `& $env:ONEBRAIN_BIN session init --json --session-token {token}`. "
-                    "Use ONEBRAIN_BIN for every later OneBrain CLI call in this chat so "
-                    "metadata collection cannot replace the hook-derived identity."
+                    "invoke this exact executable path (never a bare `onebrain`): "
+                    f"{command_examples(token)} "
+                    "Use the same executable path for every later OneBrain CLI call in this chat "
+                    "so metadata collection cannot replace the hook-derived identity."
                 )
         except Exception:
             return
