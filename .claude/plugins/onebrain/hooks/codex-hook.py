@@ -53,6 +53,7 @@ def cli_is_compatible(env):
 
 def run(mode, *args):
     env = os.environ.copy()
+    command_timeout = 2 if mode in ("lex", "pending") else 7
     try:
         payload = json.load(sys.stdin)
     except Exception:
@@ -76,7 +77,7 @@ def run(mode, *args):
             capture_output=True,
             text=True,
             check=False,
-            timeout=7,
+            timeout=command_timeout,
         )
     except (OSError, subprocess.TimeoutExpired):
         return
