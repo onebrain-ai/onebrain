@@ -36,6 +36,7 @@ with tempfile.TemporaryDirectory() as tmp:
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
     env = os.environ.copy()
     env["PATH"] = f"{tmp}{os.pathsep}{env.get('PATH', '')}"
+    env["ONEBRAIN_BIN"] = str(fake)
 
     outputs = []
     for session_id in ("same-prefix-chat-a", "same-prefix-chat-b"):

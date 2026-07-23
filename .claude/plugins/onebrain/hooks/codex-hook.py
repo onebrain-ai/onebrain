@@ -13,6 +13,10 @@ import sys
 MIN_CLI = (3, 4, 18)
 
 
+def onebrain_command():
+    return os.environ.get("ONEBRAIN_BIN", "onebrain")
+
+
 def additional_context(message):
     json.dump(
         {
@@ -28,7 +32,7 @@ def additional_context(message):
 def cli_is_compatible(env):
     try:
         proc = subprocess.run(
-            ["onebrain", "--version"],
+            [onebrain_command(), "--version"],
             env=env,
             capture_output=True,
             text=True,
@@ -66,7 +70,11 @@ def run(mode, *args):
             return
     try:
         proc = subprocess.run(
-            ["onebrain", *args], env=env, capture_output=True, text=True, check=False
+            [onebrain_command(), *args],
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
         )
     except OSError:
         return
