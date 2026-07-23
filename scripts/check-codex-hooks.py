@@ -12,6 +12,14 @@ import tempfile
 
 root = pathlib.Path(__file__).resolve().parents[1]
 hook = root / ".claude/plugins/onebrain/hooks/codex-hook.py"
+hooks_config = root / ".claude/plugins/onebrain/hooks/codex-hooks.json"
+
+hooks_text = hooks_config.read_text(encoding="utf-8")
+if "CODEX_PLUGIN_ROOT" in hooks_text or "CLAUDE_PLUGIN_ROOT" not in hooks_text:
+    raise SystemExit(
+        "Codex hooks must use CLAUDE_PLUGIN_ROOT, the plugin-root variable "
+        "provided by the Codex plugin runtime"
+    )
 
 with tempfile.TemporaryDirectory() as tmp:
     tmp = pathlib.Path(tmp)
