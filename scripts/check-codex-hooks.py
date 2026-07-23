@@ -20,6 +20,16 @@ if "CODEX_PLUGIN_ROOT" in hooks_text or "CLAUDE_PLUGIN_ROOT" not in hooks_text:
         "Codex hooks must use CLAUDE_PLUGIN_ROOT, the plugin-root variable "
         "provided by the Codex plugin runtime"
     )
+hooks_json = json.loads(hooks_text)
+for event, groups in hooks_json["hooks"].items():
+    for group in groups:
+        for command in group["hooks"]:
+            if "commandWindows" not in command:
+                raise SystemExit(f"{event} hook is missing commandWindows")
+            if "${CLAUDE_PLUGIN_ROOT}" not in command["command"]:
+                raise SystemExit(f"{event} POSIX hook has no portable plugin root")
+            if "%CLAUDE_PLUGIN_ROOT%\\" not in command["commandWindows"]:
+                raise SystemExit(f"{event} Windows hook has no portable plugin root")
 
 with tempfile.TemporaryDirectory() as tmp:
     tmp = pathlib.Path(tmp)
@@ -54,8 +64,10 @@ with tempfile.TemporaryDirectory() as tmp:
     if not (
         "same-prefix-chat-a" in outputs[0]
         and "same-prefix-chat-b" in outputs[1]
-        and "--session-token same-prefix-chat-a" in outputs[0]
-        and "--session-token same-prefix-chat-b" in outputs[1]
+        and '"$ONEBRAIN_BIN" session init --json --session-token same-prefix-chat-a'
+        in outputs[0]
+        and "$env:ONEBRAIN_BIN session init --json --session-token same-prefix-chat-b"
+        in outputs[1]
         and outputs[0] != outputs[1]
     ):
         raise SystemExit(f"Codex session binding failed: {outputs!r}")

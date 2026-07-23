@@ -37,8 +37,9 @@ def cli_is_compatible(env):
             capture_output=True,
             text=True,
             check=False,
+            timeout=3,
         )
-    except OSError:
+    except (OSError, subprocess.TimeoutExpired):
         return None
     if proc.returncode != 0:
         return None
@@ -75,8 +76,9 @@ def run(mode, *args):
             capture_output=True,
             text=True,
             check=False,
+            timeout=7,
         )
-    except OSError:
+    except (OSError, subprocess.TimeoutExpired):
         return
     if proc.returncode != 0:
         return
@@ -90,7 +92,10 @@ def run(mode, *args):
                 additional_context(
                     f"OneBrain Codex session_token: {token}. Preserve this token for "
                     "checkpoint and wrapup isolation in this chat. During startup, "
-                    f"run `onebrain session init --json --session-token {token}` so "
+                    "invoke the executable in ONEBRAIN_BIN (never a bare `onebrain`): "
+                    f"POSIX `\"$ONEBRAIN_BIN\" session init --json --session-token {token}`; "
+                    f"Windows PowerShell `& $env:ONEBRAIN_BIN session init --json --session-token {token}`. "
+                    "Use ONEBRAIN_BIN for every later OneBrain CLI call in this chat so "
                     "metadata collection cannot replace the hook-derived identity."
                 )
         except Exception:
