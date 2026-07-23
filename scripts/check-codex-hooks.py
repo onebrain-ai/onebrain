@@ -64,9 +64,9 @@ with tempfile.TemporaryDirectory() as tmp:
     if not (
         "same-prefix-chat-a" in outputs[0]
         and "same-prefix-chat-b" in outputs[1]
-        and '"$ONEBRAIN_BIN" session init --json --session-token same-prefix-chat-a'
+        and f'`{fake} session init --json --session-token same-prefix-chat-a`'
         in outputs[0]
-        and "$env:ONEBRAIN_BIN session init --json --session-token same-prefix-chat-b"
+        and f'& \'{fake}\' session init --json --session-token same-prefix-chat-b`'
         in outputs[1]
         and outputs[0] != outputs[1]
     ):
