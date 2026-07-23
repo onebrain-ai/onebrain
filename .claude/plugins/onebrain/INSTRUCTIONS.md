@@ -182,7 +182,7 @@ These agents live in `.claude/plugins/onebrain/agents/` and are dispatched autom
 
 ## Skill Routing
 
-When a user message clearly maps to a skill, invoke it directly — no `/command` needed. If intent is ambiguous, use AskUserQuestion to confirm before invoking. When trigger conditions overlap, prefer the lighter-weight skill (e.g. `/capture` over `/braindump`, `/bookmark` over `/summarize`). Skills marked "manual only" require explicit `/command` always.
+When a user message clearly maps to a skill, invoke it directly — no command syntax needed. If intent is ambiguous, use AskUserQuestion to confirm before invoking. When trigger conditions overlap, prefer the lighter-weight skill (e.g. `/capture` over `/braindump`, `/bookmark` over `/summarize`). Skills marked "manual only" require an explicit command: `/skill` on Claude/Gemini or `$onebrain:skill` on Codex.
 
 **/pause vs /capture vs /wrapup:** Use `/pause` only when work in progress will continue across multiple sessions. `/capture` is for a single idea unrelated to ongoing work. `/wrapup` is terminal — when the work is done. If unsure between `/pause` and `/capture`, prefer `/capture` (lighter weight). Routing keywords for `/pause`: "pause", "step away", "ทิ้งงานไว้", "ค่อยมาทำต่อ", "long task". Routing keywords for `/resume`: "resume", "continue", "pick up", "ทำต่อ", "ที่ค้างไว้".
 
@@ -214,7 +214,10 @@ Run before responding to any user message.
 **Step 1 — Critical path (greeting blocks on these):** Run in parallel:
 - Read `onebrain.yml` → load Configuration variables; override defaults once resolved. If `onebrain.yml` is missing, fall back to legacy `vault.yml` (v3.0 name) — same schema; surface a one-line deprecation note in the startup status so the user knows to run `onebrain doctor --fix` to migrate.
 - Read `[agent_folder]/MEMORY.md` → load identity, personality, active projects
-- Run `onebrain session init --json` (from vault root) → parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), `search_unembedded`, and `headless` in context. **Read `search_unembedded` (canonical, CLI v3.4.5+); if that key is absent, fall back to the legacy `qmd_unembedded` key** — older CLIs emit only `qmd_unembedded`, while v3.4.5 emits both keys with the same value during the transition. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","search_unembedded":N|null,"qmd_unembedded":N|null,"headless":true|false}`. The value is a count `N`, or **`null`** when the search probe couldn't determine it (index missing / timed out / unparseable) — treat `null` as **unknown**, distinct from a genuine `0` (a real index with nothing pending). **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`, treating `session_token` as `99999`, `search_unembedded` as `0`, and `headless` as `false`. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
+- Run session initialization from the vault root:
+  - **Codex with a SessionStart-injected token:** use the executable path from `ONEBRAIN_BIN` for every CLI call in this chat (never bare `onebrain`; POSIX: `"$ONEBRAIN_BIN" ...`, Windows PowerShell: `& $env:ONEBRAIN_BIN ...`). Run `"$ONEBRAIN_BIN" session init --json --session-token {injected_session_token}` on POSIX or `& $env:ONEBRAIN_BIN session init --json --session-token {injected_session_token}` on Windows. Store the returned `session_token` and verify it exactly equals the injected token. If it differs or the flag is unavailable, preserve the injected token and disable checkpoint/wrapup writes for this chat rather than falling back to terminal/process identity.
+  - **Claude/Gemini:** run `onebrain session init --json`.
+  Parse JSON output; store `DATETIME` (for greeting), `session_token` (for checkpoints), `search_unembedded`, and `headless` in context. **Read `search_unembedded` (canonical, CLI v3.4.5+); if that key is absent, fall back to the legacy `qmd_unembedded` key** — older CLIs emit only `qmd_unembedded`, while v3.4.5 emits both keys with the same value during the transition. JSON shape: `{"datetime":"Ddd · DD Mon YYYY · HH:MM","session_token":"XXXXX","search_unembedded":N|null,"qmd_unembedded":N|null,"headless":true|false}`. The value is a count `N`, or **`null`** when the search probe couldn't determine it (index missing / timed out / unparseable) — treat `null` as **unknown**, distinct from a genuine `0` (a real index with nothing pending). **CLI v3.1+ requires `--json` because the default output flipped to text.** The v3.0 alias `onebrain session-init` still works and now auto-rewrites to include `--json` when `onebrain plugin update` runs. If the command fails or is unavailable, fall back to running `date '+%a · %d %b %Y · %H:%M'` for `DATETIME`; on Claude/Gemini only, treat `session_token` as `99999`, `search_unembedded` as `0`, and `headless` as `false`. Codex must never invent or replace its injected chat token. If JSON output contains `{"decision":"block","reason":"onebrain-vault-not-found"}` (CLI v3.1+) or `"reason":"onebrain-init-required"` (CLI v3.0 back-compat), skip Steps 2–4; instead output a single message: "OneBrain vault not initialized. Run `/onboarding` to set up your vault."
   - **If `headless` is `true`** (CLI v3.2.6+, set by `onebrain skill run`): this is an unattended one-shot run, so **skip Steps 2–4 entirely** — no greeting, no startup status, and none of Step 3's memory/inbox/task/orphan/pause scans — and proceed directly to the invoked skill. The `headless` field is absent on older CLIs; treat absent as `false` (normal interactive startup).
 
 **Step 2 — Send greeting immediately:**
@@ -321,7 +324,7 @@ If the user closes the session without any end-of-session signal, AUTO-SUMMARY d
 
 ### Auto Checkpoint (Hook-Triggered)
 
-> **What is session_token?** A session-unique identifier resolved by `onebrain session init` at startup and kept in context. Priority: `$CLAUDE_CODE_SESSION_ID` (Claude Code's per-session UUID — set on every host including the Obsidian terminal, Claude Desktop, and agent-teams, and unique per session even when several sessions share one terminal; CLI v3.2.5+) → `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → day-scoped cache → `process.ppid` → PowerShell parent PID → day-scoped random cache. The token contains only `[a-zA-Z0-9]` characters. If session_token is not in context (e.g. after compact), re-run `onebrain session init` to recover it — it returns the same token for the same Claude Code session (or, on the legacy fallback layers, the same token within the same day). If `onebrain session init` fails, abort checkpoint silently — do not guess the token.
+> **What is session_token?** A chat-unique identifier resolved by `onebrain session init` at startup and kept in context. Codex SessionStart passes the hook payload's complete `session_id` through `CODEX_SESSION_ID`; CLI v3.4.18 hashes the full value into a stable 16-character token, so each Codex chat owns its checkpoints and wrapup even when several chats use one vault. Claude uses `$CLAUDE_CODE_SESSION_ID`; Gemini and older hosts fall through to `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → process/day fallbacks. On Codex, if the injected token is missing after compact, do not use a terminal fallback because that could mix chats — stop checkpoint/wrapup and surface the missing hook context. If token resolution fails on any harness, abort checkpoint silently; never guess.
 
 When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
 
@@ -435,8 +438,10 @@ For manual config: edit `onebrain.yml` `schedule:` block + run `onebrain schedul
 
 `onebrain.yml` `schedule:` entries support two coexisting modes:
 
-- **Skill mode** (`skill: /daily`) — invokes a OneBrain skill via headless Claude Code. Args use map form: `args: { key: value }` (emitted as `--key=value` flags). Requires the skill's frontmatter to declare `schedulable: true` (or `schedulable_with_args: true` with `required_args`).
+- **Skill mode** (`skill: /daily`) — invokes a OneBrain skill via the selected headless harness. Optional `harness: claude|gemini|codex` selects it per entry; omission remains `claude` for compatibility. Args use map form: `args: { key: value }` (emitted as `--key=value` flags). Requires the skill's frontmatter to declare `schedulable: true` (or `schedulable_with_args: true` with `required_args`).
 - **Command mode** (`command: onebrain`) — invokes any CLI binary directly using the same `command + args[]` shape as Claude Code hooks (`settings.json`). Args use string array: `args: [arg1, arg2]` (positional argv). No frontmatter validation; trust model matches hooks.
+
+`harness` is invalid on command-mode entries.
 
 Example:
 
@@ -444,6 +449,7 @@ Example:
 schedule:
   - cron: "0 9 * * *"
     skill: /daily
+    harness: codex
   - cron: "0 9 * * *"
     skill: /distill
     args:
@@ -477,13 +483,13 @@ Users with a populated `schedule:` block never see the preset prompt — preset 
 
 ## Headless invocation
 
-Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily [--arg key=value ...]`, which internally spawns `claude -p "/daily [args]" --add-dir {VAULT}` with `cwd={VAULT}`. The vault's `.claude/plugins/onebrain/` is auto-discovered by Claude Code, and the SessionStart hook fires as normal. PreToolUse, PostToolUse, and Stop hooks fire as normal. PreCompact / PostCompact do not fire (sessions are too short).
+Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily --harness {HARNESS} [--arg key=value ...]`. Claude/Gemini receive slash-style prompts; Codex receives `$onebrain:daily [args]` through `codex exec`. SessionStart, edit reindex, and Stop hooks run for the selected harness.
 
-The plist emitted by `onebrain schedule register` always points at the local `onebrain` binary (resolved at register time via `process.argv[1]`), so launchd does not need `claude` on its restricted PATH — the binary lookup happens inside the running `onebrain` process where the full user environment is available. Override with `CLAUDE_BIN=/path/to/claude` if your install lives outside the default probe list (`~/.local/bin/claude`, `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`).
+The plist emitted by `onebrain schedule register` always points at the local `onebrain` binary. Harness binaries are resolved inside that process; override with `CLAUDE_BIN`, `GEMINI_BIN`, or `CODEX_BIN` when needed.
 
 Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
 
-Skill arguments declared in `onebrain.yml` (`args: { topic: this-week }`) are appended to the slash-command prompt as `key=value` tokens — the skill receives them via Claude Code's standard ARGUMENTS slot.
+Skill arguments declared in `onebrain.yml` (`args: { topic: this-week }`) are appended as `key=value` prompt tokens for all harnesses.
 
 Permissions: scheduler runs with pre-allowed tools in `.claude/settings.json` `permissions.allow`. Avoid `--dangerously-skip-permissions` except for verified-safe contexts.
 

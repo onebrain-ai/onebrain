@@ -4,7 +4,10 @@ OneBrain ships 30 skills (plus `/help` to list them in-session) — grouped belo
 
 > Part of [OneBrain docs](README.md)
 
-Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (avoids collisions with Gemini built-in commands like `/help` and `/tasks`). Seven newer skills are not yet available as Gemini slash commands: /pause, /resume, /search, and the four /schedule-* wizards.
+Skills are organized by workflow phase. Claude Code uses `/braindump`, Gemini
+CLI uses `/onebrain:braindump`, and Codex uses `$onebrain:braindump`. Natural
+language may auto-trigger non-manual skills on Codex; onboarding, update,
+reorganize, clone, memory review, and wrapup require explicit invocation.
 
 ## 📥 INPUT — Capture & ingest
 

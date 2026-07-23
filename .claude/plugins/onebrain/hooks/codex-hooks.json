@@ -1,0 +1,48 @@
+{
+  "description": "Native Codex lifecycle hooks for OneBrain. Every hook is fail-open.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" session-start",
+            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" session-start",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" lex",
+            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" lex",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" checkpoint",
+            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" checkpoint",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" pending",
+            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" pending",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

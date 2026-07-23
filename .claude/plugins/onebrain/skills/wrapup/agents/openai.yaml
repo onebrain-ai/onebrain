@@ -1,0 +1,6 @@
+interface:
+  display_name: "OneBrain Wrapup"
+  short_description: "Save the current session summary"
+  default_prompt: "Use $onebrain:wrapup to save this session."
+policy:
+  allow_implicit_invocation: false

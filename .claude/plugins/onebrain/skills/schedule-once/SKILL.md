@@ -36,6 +36,10 @@ Show via `AskUserQuestion`:
 
 Store: `chosen_skill` (the slash-command name, e.g. `/daily`).
 
+### Step 1b: Pick harness
+
+Ask which harness should execute the skill: Claude (default/backward compatible), Gemini, or Codex. Store `chosen_harness`. Codex entries keep the shared YAML skill name (`/daily`); the scheduler translates it to `$onebrain:daily`.
+
 ### Step 2: Pick date
 
 Prompt for `YYYY-MM-DD` via plain conversational text:
@@ -86,6 +90,7 @@ Preview block:
 
 ```
 {chosen_skill} will run once at {run_date} {run_time}.
+Harness: {chosen_harness}
 After firing, the schedule auto-uninstalls.
 Output → vault (07-logs/scheduler/{YYYY}/{MM}/{run_date}-{skill-name}.md)
 Confirm?
@@ -120,6 +125,7 @@ If Cancel, stop.
 ```yaml
 - at: "YYYY-MM-DD HH:MM"
   skill: /skill-name
+  harness: codex    # omit for Claude; include gemini/codex when selected
   args:           # omit entire args key if no args
     key: value
 ```

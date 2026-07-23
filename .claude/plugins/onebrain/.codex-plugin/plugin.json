@@ -1,0 +1,16 @@
+{
+  "name": "onebrain",
+  "version": "3.4.3",
+  "description": "OneBrain — Your AI Thinking Partner",
+  "namespace": "onebrain",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/codex-hooks.json",
+  "branding": {
+    "displayName": "OneBrain",
+    "tagline": "Your AI Thinking Partner"
+  },
+  "requires": {
+    "cli": ">=3.4.18"
+  }
+}

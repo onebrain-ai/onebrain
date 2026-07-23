@@ -60,7 +60,9 @@ After Step 0b, continue to Step 1.
 ## Step 1: Gather Checkpoint Context
 
 1. Get today's date as `YYYY-MM-DD`. Extract `YYYY` and `MM`.
-2. Use `session_token` from context if already loaded (set by `onebrain session init` at startup); if absent, run `onebrain session init --json` and use the `SESSION_TOKEN` value.
+2. Use `session_token` from context if already loaded (set by `onebrain session init` at startup).
+   - **Codex:** SessionStart injects a token derived from the complete hook `session_id`. It is the chat identity for both Stop checkpoints and this wrapup. If that injected token is absent, stop and report that Codex hook context is missing; do **not** fall back to a terminal- or process-derived token because that could merge another chat's checkpoints.
+   - **Claude/Gemini:** if absent, run `onebrain session init --json` and use the `SESSION_TOKEN` value.
 3. Glob checkpoint files (post-v2.4.0: checkpoints live in flat `[logs_folder]/checkpoint/` regardless of date):
    - **Match on the token, with NO date filter:** `[logs_folder]/checkpoint/*-{session_token}-checkpoint-*.md`
 

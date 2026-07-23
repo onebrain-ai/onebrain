@@ -88,4 +88,6 @@ Checkpoints are concurrent-session safe: each session writes under its own isola
 
 **The practical result:** Just say "bye" and OneBrain remembers what's promoted. If the session ends unexpectedly, you lose at most 15 messages — the last checkpoint recovers the rest.
 
-> Auto Checkpoint runs on Claude Code (`Stop` hook) and Gemini CLI (`AfterAgent` hook), and uses the `onebrain` CLI binary. Install via Homebrew (`brew install onebrain-ai/onebrain/onebrain`) or npm (`npm install -g @onebrain-ai/cli`) — see [Install](install.md). Auto Session Summary works with any agent that follows INSTRUCTIONS.md.
+> Auto Checkpoint runs on Claude Code (`Stop`), Gemini CLI (`AfterAgent`), and
+> Codex (`Stop`) using the `onebrain` CLI binary. Codex thread identity keeps
+> concurrent checkpoint streams isolated. See [Install](install.md).

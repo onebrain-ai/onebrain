@@ -59,6 +59,10 @@ Show via `AskUserQuestion`:
 
 Store: `chosen_skill` (the slash-command name, e.g. `/daily`).
 
+### Step 1b: Pick harness
+
+Ask which harness should execute the skill: Claude (default/backward compatible), Gemini, or Codex. Store `chosen_harness`. Codex entries still keep `skill: /daily` in YAML; only the runtime prompt changes to `$onebrain:daily`.
+
 ### Step 2: Collect args (if needed)
 
 If `chosen_skill` has `schedulable_with_args: true`, prompt for required arguments.
@@ -133,6 +137,7 @@ Show a preview in plain text and ask via `AskUserQuestion`:
 
 ```
 {chosen_skill} will run {frequency_description} at {HH:MM}.
+Harness: {chosen_harness}
 Cron: {cron_expression}
 Output → vault (07-logs/scheduler/YYYY/MM/YYYY-MM-DD-{skill-name}.md)
 Confirm?
@@ -152,6 +157,7 @@ Build the new schedule entry:
 ```yaml
 - skill: /daily
   cron: "0 9 * * *"
+  harness: codex    # omit for Claude; include gemini/codex when selected
   args: ""          # omit if no args
 ```
 

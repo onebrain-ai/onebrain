@@ -10,11 +10,16 @@ OneBrain skills can run automatically on a schedule via your OS scheduler (macOS
 schedule:
   - cron: "0 9 * * *"      # daily 9am
     skill: /daily
+    harness: codex
   - cron: "0 18 * * 5"     # Friday 6pm
     skill: /weekly
   - cron: "0 12 * * 0"     # Sunday noon
     skill: /recap
 ```
+
+`harness` is optional on skill entries and accepts `claude`, `gemini`, or
+`codex`; omission remains `claude`. It is invalid on command-mode entries.
+The scheduler forwards it to `onebrain skill run --harness ...`.
 
 For a one-shot firing, use `at:` instead of `cron:` — e.g. run the daily briefing once at a specific datetime:
 

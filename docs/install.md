@@ -12,10 +12,16 @@ Each harness reads OneBrain's instruction file automatically. Install it, run it
 |---|---|---|---|
 | **Claude Code** *(recommended)* | `npm install -g @anthropic-ai/claude-code` | `claude` | `CLAUDE.md` |
 | **Gemini CLI** | `npm install -g @google/gemini-cli` | `gemini` | `GEMINI.md` |
-| **OpenAI Codex** | `npm install -g @openai/codex` | `codex` | `AGENTS.md` |
+| **OpenAI Codex** | `npm install -g @openai/codex`, then `onebrain plugin install --harness codex` | `codex` | `AGENTS.md` |
 | **Qwen Code** | `npm install -g @qwen-code/qwen-code` | `qwen` | `AGENTS.md` |
 
-> Auto-checkpoint and stop-hook coverage ship for Claude Code (`Stop` + optional `PostToolUse` search-indexing) and Gemini CLI (`AfterAgent` + optional `AfterTool` search-indexing) out of the box. Slash commands are namespaced on Gemini (`/onebrain:braindump`) to avoid collisions with built-ins; on Claude they invoke directly (`/braindump`). Other harnesses gain hook coverage as upstream support lands. Seven newer skills are not yet available as Gemini slash commands: /pause, /resume, /search, and the four /schedule-* wizards.
+> Auto-checkpoint and incremental search hooks ship for Claude Code, Gemini
+> CLI, and Codex. Claude invokes `/braindump`, Gemini invokes
+> `/onebrain:braindump`, and Codex invokes `$onebrain:braindump`. Codex
+> installation is an explicit managed opt-in. `onebrain plugin update`
+> refreshes Codex only after that opt-in marker exists. To remove the managed
+> installation, run `onebrain plugin uninstall --harness codex`; user Codex
+> settings remain intact.
 
 ### 1. Install the OneBrain CLI
 
@@ -53,7 +59,7 @@ File → Open Folder as Vault → select this folder
 
 ### 4. Personalize your vault
 
-In your harness: `/onboarding`
+In Claude/Gemini: `/onboarding`. In Codex: `$onebrain:onboarding`.
 
 > **Adding OneBrain to an existing vault?** `cd` into it and run `onebrain init`
 

@@ -16,6 +16,9 @@ except ModuleNotFoundError:  # pragma: no cover
 
 REQUIRED = {
     ".claude/plugins/onebrain/.claude-plugin/plugin.json": ["name", "version", "description"],
+    ".claude/plugins/onebrain/.codex-plugin/plugin.json": [
+        "name", "version", "description", "skills", "mcpServers", "hooks"
+    ],
     ".claude-plugin/marketplace.json": ["name", "plugins"],
 }
 
@@ -40,6 +43,20 @@ def main():
         for key in REQUIRED.get(path, []):
             if key not in data:
                 errors.append(f"{path}: missing required key '{key}'")
+
+    manifests = [
+        ".claude/plugins/onebrain/.claude-plugin/plugin.json",
+        ".claude/plugins/onebrain/.codex-plugin/plugin.json",
+    ]
+    versions = []
+    for path in manifests:
+        try:
+            with open(path, encoding="utf-8") as fh:
+                versions.append(json.load(fh)["version"])
+        except (OSError, KeyError, json.JSONDecodeError) as exc:
+            errors.append(f"{path}: cannot compare manifest version — {exc}")
+    if len(set(versions)) > 1:
+        errors.append(f"manifest versions differ: {versions}")
 
     toml_files = tracked("*.toml")
     if toml_files:

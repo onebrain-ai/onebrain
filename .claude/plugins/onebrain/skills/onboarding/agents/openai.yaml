@@ -1,0 +1,6 @@
+interface:
+  display_name: "OneBrain Onboarding"
+  short_description: "Initialize and personalize a OneBrain vault"
+  default_prompt: "Use $onebrain:onboarding to initialize this vault."
+policy:
+  allow_implicit_invocation: false

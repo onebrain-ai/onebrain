@@ -392,7 +392,7 @@ Run from vault root (the CLI defaults the vault path to the current working dire
 onebrain plugin update
 ```
 
-This pins the plugin to the vault directory and clears the plugin cache in one step. Tell the user: "Start a new Claude Code session — the plugin will now load from the vault directory."
+This pins the shared plugin root to the vault directory and clears the plugin cache in one step. Claude users start a new Claude Code session. Codex users explicitly opt in once with `onebrain plugin install --harness codex`, then start a new Codex chat; this installs `onebrain@onebrain`, enables hooks/multi-agent additively, and binds that chat's `session_id`.
 
 ---
 
@@ -520,4 +520,4 @@ Say:
 
 - **Re-run on an already-configured vault.** The skill's re-run check (top of file) fires when both `.claude/plugins/onebrain/` and `onebrain.yml` exist. It presents the specific prompt "Running onboarding again will update your identity and preferences : your notes and vault structure will not change." Do not skip this guard or replace it with a more alarming message — the skill is designed to be re-runnable safely.
 
-- **Plugin hooks require a Claude Code session restart to activate.** The Stop hook registered during onboarding takes effect on the NEXT session start. If the user runs /wrapup immediately after onboarding and no checkpoint appears, remind them to restart the session.
+- **Plugin hooks require a new harness session to activate.** Claude starts a new Claude Code session; Codex starts a new chat after `onebrain plugin install --harness codex`. If wrapup runs immediately after onboarding and no checkpoint appears, remind the user to restart the active harness.

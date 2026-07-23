@@ -172,7 +172,9 @@ The more you use it, the smarter it gets — and the more it understands you.
 
 ## Commands
 
-Skills are organized by workflow phase. **Gemini CLI users:** prepend the `onebrain:` namespace, e.g. `/onebrain:braindump` instead of `/braindump` (a few newer skills are Claude Code-only for now — see [docs/skills.md](docs/skills.md)).
+Skills are organized by workflow phase. **Gemini CLI users:** invoke
+`/onebrain:braindump`. **Codex users:** invoke `$onebrain:braindump`. Claude
+Code keeps the short `/braindump` form. See [docs/skills.md](docs/skills.md).
 
 | Command | What it does |
 |---------|-------------|
