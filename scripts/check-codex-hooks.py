@@ -45,6 +45,8 @@ with tempfile.TemporaryDirectory() as tmp:
     if not (
         "same-prefix-chat-a" in outputs[0]
         and "same-prefix-chat-b" in outputs[1]
+        and "--session-token same-prefix-chat-a" in outputs[0]
+        and "--session-token same-prefix-chat-b" in outputs[1]
         and outputs[0] != outputs[1]
     ):
         raise SystemExit(f"Codex session binding failed: {outputs!r}")

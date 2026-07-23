@@ -80,8 +80,10 @@ def run(mode, *args):
                 token = data["data"].get("session_token")
             if isinstance(token, str) and token:
                 additional_context(
-                    f"OneBrain session_token: {token}. Keep this token for "
-                    "checkpoint and wrapup isolation in this Codex chat."
+                    f"OneBrain Codex session_token: {token}. Preserve this token for "
+                    "checkpoint and wrapup isolation in this chat. During startup, "
+                    f"run `onebrain session init --json --session-token {token}` so "
+                    "metadata collection cannot replace the hook-derived identity."
                 )
         except Exception:
             return
