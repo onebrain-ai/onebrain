@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.4
-released: 2026-07-23
+latest_version: 3.4.5
+released: 2026-07-29
 ---
 
 # Changelog
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.5 — 2026-07-29 — /doctor goes cross-platform with the CLI's v3.4.20 scheduler backends
+
+- **/doctor scheduler health now asks the CLI, not the filesystem** ([#229](https://github.com/onebrain-ai/onebrain/issues/229)): entry state reads `onebrain schedule list`'s truthful ✓/⚠/✗ (backed by `launchctl print` / `schtasks /Query` / `systemctl --user is-active`), so the four checks that silently no-opped on Windows/Linux now work on all three platforms. Label derivation stays in the CLI — the skill's old `labelSafe` recipe predated the v3.4.16 command-mode discriminator and would mis-derive artifact names.
+- **Per-host orphan-artifact listings**: launchd plist glob on macOS, `schtasks /Query /FO CSV` under `\OneBrain\` on Windows, systemd user-unit glob (with a missing-sibling check) on Linux. Hosts with no scheduler backend get an explicit `⏭ skipped` line instead of a silent no-op.
+- **New: last-run outcome check** ([#230](https://github.com/onebrain-ai/onebrain/issues/230)) — the detection gap behind the 2026 silent-failure incident (a schedule firing exit 78 for months with no signal). Doctor queries — never fires — each installed entry's most recent result: `launchctl print`'s `last exit code`, `systemctl show ExecMainStatus`, `schtasks` `Last Result` (267011 = never ran).
+- **Startup surfaces scheduler failures**: session startup globs `[logs_folder]/scheduler/**/*.err.md` from the last 24 h (filesystem only — no OS-scheduler probes on the startup path) and shows one status line pointing at /doctor.
+- Removed the Bun-era stale-plist content-shape check per its own sunset note (Bun CLI deprecated 2026-06-30); plist wording swept to "schedule artifact" across doctor, schedule-list/remove/once and INSTRUCTIONS.md, with schedule-list's legend updated to the three-state semantics.
 
 ## v3.4.4 — 2026-07-23 — Codex hook executable path
 
