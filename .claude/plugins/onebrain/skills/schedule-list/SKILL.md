@@ -37,11 +37,11 @@ Optionally run from the vault root:
 onebrain schedule register --status
 ```
 
-This emits plain text (not JSON). Each line is one entry with the `[cron]` or `[once]` tag, the cron/at value, and either `skill: /name (k=v, k2=v2)` (skill mode with optional args) or `cmd: binary arg1 arg2` (command mode with positional argv). The `✓` / `✗` prefix indicates whether the plist file exists on disk.
+This emits plain text (not JSON). Each line is one entry with the `[cron]` or `[once]` tag, the cron/at value, and either `skill: /name (k=v, k2=v2)` (skill mode with optional args) or `cmd: binary arg1 arg2` (command mode with positional argv). The status prefix reports what the OS scheduler says (CLI v3.4.20+, all platforms): `✓` = installed and active, `⚠` = artifact present but the scheduler is not running it, `✗` = not installed. (Pre-v3.4.20 CLIs reported file existence only.)
 
 The CLI does not track last-run, next-run, or last-status — that detail is in `[logs_folder]/scheduler/YYYY/MM/`.
 
-If `onebrain schedule register --status` is unavailable or fails: fall back to checking launchd plist existence in `~/Library/LaunchAgents/` for each entry. Compute the plist filename as `com.onebrain.<labelSafe>.plist` where `labelSafe` is the binary name (for command mode) or the skill name with leading slash stripped (for skill mode), with non-alphanumeric, non-hyphen characters replaced by `-`.
+If `onebrain schedule register --status` is unavailable or fails (pre-v3.4.20 CLI): fall back to a **macOS-only** plist-existence check in `~/Library/LaunchAgents/` — filename `com.onebrain.<labelSafe>.plist`, `labelSafe` = binary name (command mode) or skill name with the leading slash stripped, non-`[a-zA-Z0-9-]` replaced by `-`. Note the caveats in the report: command-mode labels on current CLIs carry an args/cron/at discriminator this fallback cannot compute, and file existence is not activation — recommend upgrading the CLI.
 
 ### Step 3: Format output
 
@@ -57,24 +57,24 @@ Print the schedule table:
   ✓ [cron] 0 3 * * 0      cmd: onebrain search reindex
   ✓ [cron] 0 5 * * *      cmd: rsync -av /vault /backup
   ✓ [once] 2026-05-13 14:30  skill: /reminder
-  ✗ [cron] 0 18 * * 5     skill: /weekly (plist missing — re-run /schedule-add)
+  ✗ [cron] 0 18 * * 5     skill: /weekly (not installed — re-run /schedule-add)
 ```
 
 Column layout:
-- Installed icon: `✓` = plist on disk, `✗` = plist missing
+- Installed icon: `✓` = active in the OS scheduler, `⚠` = present but inactive, `✗` = not installed
 - Tag: `[cron]` (recurring) or `[once]` (one-shot at fires once then auto-deletes)
 - Cron or at expression (left-padded to align across the table)
 - Entry target:
   - **Skill mode:** `skill: <skill-name>` with optional `(key=value, key2=value2)` when `args:` is a map
   - **Command mode:** `cmd: <binary> <arg1> <arg2>` with positional argv joined by spaces
-- Installed status note when `✗` (plist missing)
+- Installed status note when `✗` (not installed) or `⚠` (inactive)
 
 Detailed run history (stdout, stderr, error files) lives in `[logs_folder]/scheduler/YYYY/MM/`.
 
 ### Step 4: Surface errors
 
 If `✗` entries are found:
-- Append a hint line below the table: `→ Run /schedule-add to re-register missing entries` (or for command-mode entries, `→ Re-run onebrain schedule register to re-emit plists`)
+- Append a hint line below the table: `→ Run /schedule-add to re-register missing entries` (or for command-mode entries, `→ Re-run onebrain schedule register to re-emit the scheduler artifacts`)
 
 For error log detail:
 - Append: `→ See [logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{label}.err.md for failure details` where `{label}` is the skill name or command binary name.
