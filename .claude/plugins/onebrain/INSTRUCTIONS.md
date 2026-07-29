@@ -257,12 +257,13 @@ On weekends: lighter, less task-focused tone. **No-repeat rule:** don't ask abou
   `output_mode: "content"` — combine, keep dates ≤ today. (Fallback still shows fenced demo
   lines; upgrade the CLI to remove them.)
 - Run `onebrain checkpoint orphans "[logs_folder]" "[session_token]" --json` (from vault root) → parse JSON output; read `orphan_count` field. JSON shape: `{"orphan_count":N}`. **CLI v3.1+ requires `--json`** (default is now text). The v3.0 alias `onebrain orphan-scan` still works and is auto-rewritten by `onebrain plugin update`. If the command fails or is unavailable, fall back to a structure-aware glob: if `[logs_folder]/checkpoint/` exists, glob `[logs_folder]/checkpoint/*-checkpoint-*.md` (post-v2.4.0 flat layout); else glob `[logs_folder]/**/*-checkpoint-*.md` (pre-v2.4.0 nested layout — multi-vault user on an unmigrated vault). Then discard files whose date has a non-auto-saved session log (look in `[logs_folder]/session/YYYY/MM/` for post-v2.4.0, or `[logs_folder]/YYYY/MM/` for pre-v2.4.0), and count distinct session tokens among remaining files.
+- Glob `[logs_folder]/scheduler/**/*.err.md` and keep files modified within the last 24 h → count as `sched_err_count`; note the most recent file's skill name as `sched_err_skill`. (Filesystem only — never probe the OS scheduler at startup; /doctor owns the deep check.)
 - Read `[logs_folder]/pause/_active.md` if present → parse single-line content as `active_pause_slug`. If absent, set `active_pause_slug = null`. Then if non-null: glob `[logs_folder]/pause/*-{active_pause_slug}-pause-*.md` and count them as `active_pause_count`; read the latest file's `date` frontmatter as `active_pause_last_date`.
 - **Legacy structure detection (post-v2.4.0):** Check whether `[logs_folder]/session/` exists (any of the new top-level subfolders works as a sentinel; `session/` is the most representative). If it does NOT exist AND `[logs_folder]/YYYY/` does exist (legacy structure pre-v2.4.0), set `vault_structure_legacy = true`. If both `session/` and a legacy `YYYY/` exist (partial migration), still treat `vault_structure_legacy = false` — `/update` will resume cleanup on next run. If neither exists (fresh vault), `vault_structure_legacy = false`.
 
 **Step 4 — Send startup status (after Step 3 completes):**
 
-If inbox_count = 0 and orphan_count = 0 and search_unembedded = 0 (a definite zero — **not** `null`) and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting. (When `search_unembedded` is `null` the search status line below is shown, so the status block is not silent.)
+If inbox_count = 0 and orphan_count = 0 and search_unembedded = 0 (a definite zero — **not** `null`) and sched_err_count = 0 and active_pause_slug is null and vault_structure_legacy = false and no tasks found: show nothing after the greeting. (When `search_unembedded` is `null` the search status line below is shown, so the status block is not silent.)
 
 Otherwise, append after the greeting:
 
@@ -271,6 +272,7 @@ Otherwise, append after the greeting:
 📋 [N] orphan session(s) — /wrapup?        ← omit if orphan_count = 0
 ⚠️ search: [N] doc(s) need embedding — onebrain search reindex   ← when search_unembedded = N > 0; omit entirely when = 0
 ⚠️ search: index status unknown (search unavailable) — onebrain search status   ← when search_unembedded is null (probe couldn't check)
+⚠️ scheduled run failed: {sched_err_skill} in the last 24h — /doctor for details   ← omit if sched_err_count = 0; [N] failures when sched_err_count > 1
 📂 active pause: {active_pause_slug} ({active_pause_count} snapshots, last {active_pause_last_date}) — /resume?   ← omit if active_pause_slug is null
 ⚠️ vault structure outdated — run /update to migrate   ← omit if vault_structure_legacy = false
 
