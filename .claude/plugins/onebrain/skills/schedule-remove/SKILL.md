@@ -45,7 +45,7 @@ Show via `AskUserQuestion`:
 - header: "Confirm Removal"
 - multiSelect: false
 - options:
-  - label: "Yes, remove it", description: "Delete the schedule entry and unregister the launchd plist"
+  - label: "Yes, remove it", description: "Delete the schedule entry and unregister it from the OS scheduler"
   - label: "Cancel", description: "Keep the schedule as-is"
 
 If Cancel, stop.
@@ -67,7 +67,7 @@ Run from the vault root:
 onebrain schedule register --refresh
 ```
 
-This re-reads onebrain.yml (now without the removed entry) and deletes the corresponding launchd plist.
+This re-reads onebrain.yml (now without the removed entry) and deactivates + deletes the corresponding OS scheduler artifact (launchd plist · Scheduled Task · systemd user units).
 
 If the command fails, report the error. onebrain.yml has already been updated — the user can retry `onebrain schedule register --refresh` manually.
 
@@ -75,7 +75,7 @@ If the command fails, report the error. onebrain.yml has already been updated �
 
 Say:
 ```
-✓ Removed {chosen_skill} from schedule. The launchd plist has been deleted.
+✓ Removed {chosen_skill} from schedule. Its OS scheduler artifact has been deleted.
 ```
 
 ---
@@ -85,4 +85,4 @@ Say:
 - **No entries** — handled in Step 1; early exit with helpful message.
 - **Single entry remaining** — removing it leaves an empty `schedule:` block in onebrain.yml; this is valid and the block is preserved (not deleted) so future `/schedule-add` runs can append to it.
 - **onebrain.yml write failure** — rollback in Step 4; no partial state left on disk.
-- **`schedule register --refresh` failure** — launchd plist may still exist; surface it and suggest manual retry.
+- **`schedule register --refresh` failure** — the scheduler artifact may still exist; surface it and suggest manual retry.

@@ -485,7 +485,7 @@ Users with a populated `schedule:` block never see the preset prompt — preset 
 
 Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily --harness {HARNESS} [--arg key=value ...]`. Claude/Gemini receive slash-style prompts; Codex receives `$onebrain:daily [args]` through `codex exec`. SessionStart, edit reindex, and Stop hooks run for the selected harness.
 
-The plist emitted by `onebrain schedule register` always points at the local `onebrain` binary. Harness binaries are resolved inside that process; override with `CLAUDE_BIN`, `GEMINI_BIN`, or `CODEX_BIN` when needed.
+The scheduler artifacts emitted by `onebrain schedule register` always point at the local `onebrain` binary. Harness binaries are resolved inside that process; override with `CLAUDE_BIN`, `GEMINI_BIN`, or `CODEX_BIN` when needed.
 
 Headless sessions have no prior conversation history — each invocation is fresh. Memory access is via filesystem only.
 
