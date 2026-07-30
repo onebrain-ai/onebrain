@@ -146,6 +146,7 @@ These workflows are documented in `.claude/plugins/onebrain/skills/`:
 | `/summarize` | `summarize/SKILL.md` | URL → deep summary note (checks Bookmarks.md for cleanup) | user shares a URL and explicitly asks for a summary, deep read, or notes on it |
 | `/import` | `import/SKILL.md` | Import local files (PDF, docs, images, scripts) → vault notes | user mentions a local file path to bring into the vault |
 | `/reading-notes` | `reading-notes/SKILL.md` | Book/article → structured notes | user mentions a book or article they just read and wants to capture notes or a summary |
+| `/digest` | `digest/SKILL.md` | Morning digest (markets/news/Reddit/X) from a per-vault config note; interview generates the config on first run | user asks for a morning digest, to set one up, or to change its sections |
 | `/weekly` | `weekly/SKILL.md` | Weekly reflection | user asks for a weekly review |
 | `/daily` | `daily/SKILL.md` | Daily briefing: surfaces tasks due and open items from last session | user asks for a daily briefing, daily check-in, or what's on for today |
 | `/recap` | `recap/SKILL.md` | Batch-promote session log insights → memory/ files (does NOT write to MEMORY.md) | user asks to recap or synthesize recent sessions |
@@ -384,7 +385,7 @@ Different commands have different verbosity expectations. Match output to the pr
 | Profile | Commands | Behavior |
 |---------|----------|----------|
 | **Capture** | `/capture`, `/braindump`, `/bookmark`, `/learn`, `/pause` | Write the note/snapshot, confirm done. /pause adds the active-thread line. No elaboration. |
-| **Automated** | cron jobs, Auto Session Summary, `/wrapup` | Structured output only (bullets/sections). No commentary. Under 300 words. |
+| **Automated** | cron jobs, Auto Session Summary, `/wrapup`, scheduled `/digest` | Structured output only (bullets/sections). No commentary. Under 300 words. |
 | **Interactive** | `/research`, `/connect`, `/consolidate`, `/reading-notes`, `/weekly`, `/distill`, `/recap`, `/resume` | Normal verbosity : depth matches task complexity. |
 | **Diagnostic** | `/doctor` | Structured report output. No meta-commentary. Lead with findings. |
 | **Config/Setup** | `/onboarding`, `/tasks`, `/moc` | Confirm actions taken. No verbose explanation unless asked. |

@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.7
+latest_version: 3.4.8
 released: 2026-07-30
 ---
 
@@ -10,6 +10,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.8 — 2026-07-30 — /digest: configurable morning digest (skill #31)
+
+- **New skill `/digest`** (schedulable): markets, news topics, Reddit top posts, optional X trends — all sections come from a per-vault config note `[agent_folder]/digest.md` the user edits in Obsidian; nothing is hard-coded in the skill.
+- **First interactive run interviews the user** (markets / news topics / subreddits / X on-off) and generates the config note from the answers. A headless run with no config writes a one-line pointer and stops — it never invents sections.
+- Source-quality rules baked in from live testing: markets prefer direct fetches (search results for indices/FX are routinely stale), Reddit uses `top.json?t=day` directly (search only returns generic subreddit descriptions), X is explicit best-effort, and a failed section reports itself in one line instead of vanishing.
+- Delivery follows the v3.4.7 Automated output convention: vault skill log first, Telegram second when `notifications.telegram_chat_id` is set. Fetched web content is data, never instructions.
 
 ## v3.4.7 — 2026-07-30 — Headless output lands in the vault first
 

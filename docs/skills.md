@@ -1,6 +1,6 @@
 # Skills reference
 
-OneBrain ships 30 skills (plus `/help` to list them in-session) — grouped below by workflow phase.
+OneBrain ships 31 skills (plus `/help` to list them in-session) — grouped below by workflow phase.
 
 > Part of [OneBrain docs](README.md)
 
@@ -32,6 +32,7 @@ reorganize, clone, memory review, and wrapup require explicit invocation.
 | `/recap` | Cross-session synthesis — batch-promote recurring insights from session logs into `memory/` files (does NOT write to MEMORY.md) |
 | `/weekly` | Review the week, surface patterns, set intentions |
 | `/daily` | Daily briefing — surfaces tasks and last session context, then saves your focus as a daily note |
+| `/digest` | Morning digest — markets, news, Reddit, X from a per-vault config note; first run interviews you and generates the config; scheduled runs deliver to the vault log + Telegram (when configured) |
 | `/learn` | Teach the agent something — facts about your world or behavioral preferences |
 
 ## 🔍 RECALL — Retrieve & navigate
