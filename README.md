@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <strong>OneBrain</strong> is a free, open-source AI OS layer: persistent memory, 31 skills, and a portable vault that works with any AI harness — entirely on your machine.
+  <strong>OneBrain</strong> is a free, open-source AI OS layer: persistent memory, 31 skills, scheduled skills that report to your vault and Telegram, and a portable vault that works with any AI harness — entirely on your machine.
 </p>
 
 <p align="center">
@@ -218,9 +218,11 @@ One driver profile, every garage. OneBrain Sync will keep your vault, memory, an
 
 ## Scheduling
 
-Run OneBrain skills automatically — daily briefings, weekly reviews, recurring maintenance — via your OS scheduler (macOS launchd; Linux + Windows coming soon), configured in `onebrain.yml`.
+Run OneBrain skills automatically — a morning digest (`/digest`: markets, news, Reddit — you pick the sections in a one-time interview), daily briefings, weekly reviews, recurring maintenance — via your OS scheduler on **macOS (launchd), Windows (Task Scheduler), and Linux (systemd user timers)**, configured in `onebrain.yml`.
 
-Full config format, preset bundles, and CLI flags → [docs/scheduling.md](docs/scheduling.md)
+Every scheduled run writes its output to your vault's skill log, and — if you set `notifications.telegram_chat_id` — also sends it to your Telegram, so the morning digest and daily briefing land on your phone before you open a laptop.
+
+Full config format, delivery layers, preset bundles, and CLI flags → [docs/scheduling.md](docs/scheduling.md)
 
 ## Customization
 
