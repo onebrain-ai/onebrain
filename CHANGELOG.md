@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.10
+latest_version: 3.4.11
 released: 2026-07-30
 ---
 
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.11 — 2026-07-30 — /digest first run is a complete setup chain
+
+- The interview now closes with the Telegram Notification Offer (shared with `/schedule-add`) when the telegram tools are present and no `notifications.telegram_chat_id` is set — sections → schedule → delivery channel in one conversation, no second command. Vaults without the telegram channel hear nothing about it.
 
 ## v3.4.10 — 2026-07-30 — /digest interview ends with a schedule offer
 
