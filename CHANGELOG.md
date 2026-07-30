@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.8
+latest_version: 3.4.9
 released: 2026-07-30
 ---
 
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.9 — 2026-07-30 — /digest headless send is unconditional
+
+- The first live headless test skipped the Telegram send by inferring "the user invoked this manually, so they're at a keyboard" — the exact discretion a delivery convention cannot allow. The send step now states that `headless: true` IS the decision: no intent inference, and a manual `onebrain skill run` is a delivery test that must exercise the send.
 
 ## v3.4.8 — 2026-07-30 — /digest: configurable morning digest (skill #31)
 
