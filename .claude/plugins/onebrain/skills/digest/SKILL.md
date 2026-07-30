@@ -70,6 +70,13 @@ Ask with `AskUserQuestion` (multiSelect where sensible), one question per group:
 Write `[agent_folder]/digest.md` from the answers using the format above, show the
 user the note path, and remind them it is theirs to edit.
 
+5. **Schedule offer (last interview question):** "ให้รันอัตโนมัติทุกเช้ามั้ย? กี่โมง?"
+   (default 08:30). On yes: append the entry to `onebrain.yml`'s `schedule:` block —
+   match the file's existing list style exactly — and run `onebrain schedule register`;
+   confirm with the ✓/✗ state from `onebrain schedule list`. On skip: mention
+   `/schedule-add` works any time later. Never re-offer when a `/digest` entry
+   already exists in the schedule block.
+
 ## Step 1: Gather (per section present in config)
 
 Source quality rules learned from live testing — follow them, do not regress to
