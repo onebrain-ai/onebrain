@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <strong>OneBrain</strong> is a free, open-source AI OS layer: persistent memory, 30 skills, and a portable vault that works with any AI harness — entirely on your machine.
+  <strong>OneBrain</strong> is a free, open-source AI OS layer: persistent memory, 31 skills, and a portable vault that works with any AI harness — entirely on your machine.
 </p>
 
 <p align="center">
@@ -96,7 +96,7 @@ OneBrain doesn't compete with Claude Code, Gemini CLI, or any other AI harness �
 
 | # | Layer | Role | What lives here |
 |---|---|---|---|
-| 01 | **OneBrain** | OS layer (plugin + CLI) | 30 skills · lifecycle hooks · local vault sync · indexing · checkpoints · harness routing |
+| 01 | **OneBrain** | OS layer (plugin + CLI) | 31 skills · lifecycle hooks · local vault sync · indexing · checkpoints · harness routing |
 | 02 | **Harness** | Agentic runtime | Bring your own — Claude Code · Gemini CLI · Codex · Qwen · ... |
 | 03 | **LLM** | Intelligence source | Local (mlx, ollama) · cloud (claude, gemini, gpt) · raw API |
 | 04 | **Markdown Vault** | Source of truth | Plain Markdown — notes, memory, decisions, knowledge graph |
@@ -191,7 +191,7 @@ Code keeps the short `/braindump` form. See [docs/skills.md](docs/skills.md).
 <summary><strong>Full command reference</strong></summary>
 <br>
 
-All 30 skills, grouped by workflow phase (INPUT, PROCESS, RECALL, MAINTAIN), with the Gemini namespacing note and per-command descriptions → [docs/skills.md](docs/skills.md)
+All 31 skills, grouped by workflow phase (INPUT, PROCESS, RECALL, MAINTAIN), with the Gemini namespacing note and per-command descriptions → [docs/skills.md](docs/skills.md)
 
 </details>
 
@@ -202,7 +202,7 @@ All 30 skills, grouped by workflow phase (INPUT, PROCESS, RECALL, MAINTAIN), wit
 | | Feature |
 |---|---|
 | 🧠 | **Persistent Memory** — remembers your name, goals, preferences, and decisions across every session → [docs/memory.md](docs/memory.md) |
-| ⚡ | **30 Skills** — one number, every workflow phase covered → [docs/skills.md](docs/skills.md) |
+| ⚡ | **31 Skills** — one number, every workflow phase covered → [docs/skills.md](docs/skills.md) |
 | 🔀 | **Multi-Harness** — Claude Code, Gemini CLI, Codex, Qwen, or BYO LLM — same vault, same memory → [docs/install.md](docs/install.md) |
 | 🖥️ | **Web UI built in** — `onebrain serve` opens a file explorer, reader, search, and agent chat in your browser → [docs/webui.md](docs/webui.md) |
 | 🔍 | **Native search + MCP** — hybrid lex+vector search over your vault, servable over MCP (stdio) → [docs/search.md](docs/search.md) · [docs/mcp.md](docs/mcp.md) |
@@ -234,7 +234,7 @@ The full set of AI instructions that govern your agent's behavior lives in [`.cl
 |------|---------------|
 | [Install](docs/install.md) | Pick a harness, install the CLI, set up optional extras |
 | [Memory](docs/memory.md) | Four-tier memory system, promotion rules, automatic session saving |
-| [Skills reference](docs/skills.md) | All 30 skills grouped by workflow phase |
+| [Skills reference](docs/skills.md) | All 31 skills grouped by workflow phase |
 | [Web UI](docs/webui.md) | `onebrain serve` — embedded browser UI and JSON API |
 | [Search](docs/search.md) | Native hybrid (lex + vector) search over your vault |
 | [MCP Server](docs/mcp.md) | Serve OneBrain over the Model Context Protocol |

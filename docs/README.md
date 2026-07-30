@@ -16,7 +16,7 @@ Deep-dive documentation for OneBrain — the README covers the why and the quick
 | [Search](search.md) | `onebrain search` is OneBrain's native hybrid search over your vault's `*.md` notes — lexical (BM25) and semantic (vector) search, RRF-fused, no external service required. |
 | [MCP Server](mcp.md) | `onebrain mcp` serves OneBrain over the Model Context Protocol (stdio) — search tools today, more vault tool groups to come *(planned)*. |
 | [Memory](memory.md) | How OneBrain's four-tier memory system works, how knowledge gets promoted between tiers, and what saves automatically. |
-| [Skills reference](skills.md) | OneBrain ships 30 skills (plus `/help` to list them in-session) — grouped below by workflow phase. |
+| [Skills reference](skills.md) | OneBrain ships 31 skills (plus `/help` to list them in-session) — grouped below by workflow phase. |
 | [Scheduling](scheduling.md) | Run OneBrain skills automatically on a recurring or one-shot schedule via your OS scheduler. |
 
 ## Reference
