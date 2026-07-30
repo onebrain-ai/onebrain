@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.9
+latest_version: 3.4.10
 released: 2026-07-30
 ---
 
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.10 — 2026-07-30 — /digest interview ends with a schedule offer
+
+- The first-run interview now closes by offering to schedule the digest ("ทุกเช้า กี่โมง?", default 08:30) — writes the `onebrain.yml` entry and runs `onebrain schedule register` in the same flow, confirming with the truthful ✓/✗ state. Skipping points at `/schedule-add`; the offer never repeats once a `/digest` entry exists. Closes the gap where a user who just chose their sections had to know a second command to get the daily run.
 
 ## v3.4.9 — 2026-07-30 — /digest headless send is unconditional
 
