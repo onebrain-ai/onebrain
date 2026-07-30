@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.6
+latest_version: 3.4.7
 released: 2026-07-30
 ---
 
@@ -10,6 +10,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.7 — 2026-07-30 — Headless output lands in the vault first
+
+- The v3.4.6 notification convention is now an **output convention**: a headless run's primary output is appended to the vault skill log (`[logs_folder]/log/YYYY/MM/YYYY-MM-DD-{skill}.md`) BEFORE any Telegram send — the vault file is the deliverable (searchable, sync-readable, survives channel outages); raw process stdout/stderr stays outside the vault per #315. `/daily` gains the explicit write step.
 
 ## v3.4.6 — 2026-07-30 — Scheduled runs can notify via Telegram (opt-in, generic)
 

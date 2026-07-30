@@ -79,11 +79,12 @@ If both task sources are empty:
 ✅ Nothing on your plate today — clear!
 ```
 
-## Scheduled-Run Notification (headless only)
+## Scheduled-Run Output (headless only)
 
-After the briefing is produced, apply the **Automated-profile notification convention** (see INSTRUCTIONS.md):
+After the briefing is produced, apply the **Automated-profile output convention** (see INSTRUCTIONS.md):
 
 1. Runs only when this is a scheduled/headless run (`headless: true` from `onebrain session init`). Interactive sessions skip this step — the user is already reading the output.
+1b. **Write the briefing into the vault first**: append it to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-daily.md` under a `## Run HH:MM /daily` heading (audit-log format, `tags: [audit-log, daily]`). This file is the deliverable — it must be written even if every later step fails.
 2. Read `notifications.telegram_chat_id` from `onebrain.yml`. Absent or empty → skip silently (file/log output is the deliverable, as before).
 3. If set AND the telegram channel tools are available (`reply` in the tool list): send the full briefing text to that chat id as a NEW message (not an edit — completion pings need a push notification). Plain text, no markdown tables.
 4. **Best-effort, never fatal**: any failure here (tools missing, send error) must not fail the run — the briefing already exists in the session output/logs. Do not retry more than once.
