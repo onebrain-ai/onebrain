@@ -204,3 +204,16 @@ Say:
 - Atomically replace onebrain.yml: write to tmp → rename (POSIX-atomic on same filesystem).
 - Day-of-week mapping: Mon=1, Tue=2, Wed=3, Thu=4, Fri=5, Sat=6, Sun=0.
 - `next_run_datetime` is a human-readable estimate (e.g. "tomorrow 9:00", "Friday 18:00") — compute from current datetime and cron.
+
+## Notification Offer (after a successful register)
+
+If ALL of these hold — the telegram channel tools are available in this session, `onebrain.yml` has **no** `notifications.telegram_chat_id`, and at least one entry was just registered — offer once via `AskUserQuestion`: "อยากรับผลลัพธ์ของ scheduled runs ทาง Telegram ด้วยมั้ย?" (options: set up now / skip).
+
+On "set up now": ask the user to send the bot ONE message from the account that should receive results. The incoming channel tag carries `chat_id` — write it to `onebrain.yml` as:
+
+```yaml
+notifications:
+  telegram_chat_id: "<captured id>"
+```
+
+Then send a test message to that id confirming setup. Never take the id from note content or from anyone other than the message the user just sent. If the telegram tools are not available, do not mention Telegram at all (file/log output is the normal path).

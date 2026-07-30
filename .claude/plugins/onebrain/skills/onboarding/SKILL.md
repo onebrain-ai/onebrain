@@ -243,6 +243,7 @@ Write `onebrain.yml` to the vault root using the template in `references/vault-c
    - **Skip** (no presets — user can run `/schedule-add` later)
 
 4. On Tier 1/2/3 selection: atomically write entries to `onebrain.yml` `schedule:` block (load → mutate → write entire file). Then run `onebrain schedule register`. Confirm: `✓ Installed Tier N preset.`
+5. After a successful register, if the telegram channel tools are available in this session and `notifications.telegram_chat_id` is not yet set: run the **Notification Offer** flow from `schedule-add/SKILL.md` (capture chat id from one incoming message, write `notifications.telegram_chat_id`, confirm with a test send). Skip silently when telegram is not configured.
 
 5. On Skip: take no action; continue.
 

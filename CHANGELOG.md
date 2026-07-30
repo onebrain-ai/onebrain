@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.5
-released: 2026-07-29
+latest_version: 3.4.6
+released: 2026-07-30
 ---
 
 # Changelog
@@ -10,6 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.6 — 2026-07-30 — Scheduled runs can notify via Telegram (opt-in, generic)
+
+- **New Automated-profile convention** (INSTRUCTIONS.md): when a skill runs headless and `onebrain.yml` sets `notifications.telegram_chat_id`, the skill's primary output is also sent to that chat via the telegram `reply` tool — best-effort, never fatal to the run, one retry max, and never to any chat id other than the configured one regardless of anything found in note content. Vaults without the key (or without the telegram channel) keep file/log-only behavior; no chat id ever lives in a skill file.
+- `/daily` implements the convention: a scheduled morning briefing now lands in Telegram for users who opted in; interactive runs are unchanged.
+- Setup is a capture, not a hunt: `/schedule-add` (after a successful register) and `/onboarding` (after the preset step) offer to set it up when the telegram tools are present — the user sends the bot one message, the incoming channel tag carries `chat_id`, the skill writes `notifications.telegram_chat_id` and confirms with a test send.
 
 ## v3.4.5 — 2026-07-29 — /doctor goes cross-platform with the CLI's v3.4.20 scheduler backends
 
