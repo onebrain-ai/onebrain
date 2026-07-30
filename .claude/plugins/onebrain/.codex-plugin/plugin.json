@@ -1,6 +1,6 @@
 {
   "name": "onebrain",
-  "version": "3.4.8",
+  "version": "3.4.9",
   "description": "OneBrain — Your AI Thinking Partner",
   "namespace": "onebrain",
   "skills": "./skills/",
