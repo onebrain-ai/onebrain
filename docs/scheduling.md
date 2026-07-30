@@ -4,10 +4,12 @@ Run OneBrain skills automatically on a recurring or one-shot schedule via your O
 
 > Part of [OneBrain docs](README.md)
 
-OneBrain skills can run automatically on a schedule via your OS scheduler (macOS launchd; Linux + Windows coming soon). Configure in `onebrain.yml`:
+OneBrain skills can run automatically on a schedule via your OS scheduler — **all three platforms since CLI v3.4.20**: macOS (launchd), Windows (Task Scheduler), Linux (systemd user timers). Every backend registers into your *user* session and is fire-verified on real machines; per-platform semantics (artifacts, missed-run behavior, output capture) are documented in the CLI's [platform-support](https://github.com/onebrain-ai/onebrain-cli/blob/main/docs/platform-support.md). Configure in `onebrain.yml`:
 
 ```yaml
 schedule:
+  - cron: "30 8 * * *"     # morning digest 8:30 (markets/news/Reddit — see /digest)
+    skill: /digest
   - cron: "0 9 * * *"      # daily 9am
     skill: /daily
     harness: codex
@@ -29,7 +31,7 @@ schedule:
     skill: /daily
 ```
 
-After firing, the launchd plist auto-uninstalls itself.
+After firing, the scheduler artifact deletes itself — on every platform (launchd self-removal · Task Scheduler `DeleteExpiredTaskAfter` · systemd `ExecStopPost`).
 
 Register schedules:
 
@@ -46,7 +48,19 @@ Or use the interactive wizards from inside your vault:
 /schedule-remove   # remove an entry
 ```
 
-Output goes to `[logs_folder]/scheduler/YYYY/MM/YYYY-MM-DD-{skill}.md` as readable markdown.
+## Where scheduled output goes
+
+Three layers (CLI v3.4.20 + plugin v3.4.7):
+
+1. **Vault skill log** — the run's primary output is appended to `[logs_folder]/log/YYYY/MM/YYYY-MM-DD-{skill}.md`: searchable, `/recap`-visible, readable anywhere your vault syncs. This is the deliverable.
+2. **Telegram (opt-in)** — set `notifications.telegram_chat_id` in `onebrain.yml` and every scheduled skill run also sends its output to that chat. Best-effort: a send failure never fails the run. Setup is a capture, not a hunt — `/digest` (first run), `/schedule-add`, and `/onboarding` all offer it when the Telegram channel is configured: you send the bot one message and OneBrain records the chat id for you.
+
+   ```yaml
+   notifications:
+     telegram_chat_id: "123456789"   # unset = vault log only
+   ```
+
+3. **Raw process logs** — stdout/stderr land in the OS state dir (`~/Library/Logs/onebrain` on macOS · journald on Linux · Task Scheduler history on Windows), deliberately **outside** the vault: a cloud-synced vault once made launchd fail every run silently (onebrain-cli #315). Failures also write `[logs_folder]/scheduler/**/*.err.md`, which `/doctor` and session startup surface.
 
 ## Command mode (CLI binaries, hook-style)
 
@@ -78,9 +92,9 @@ CLI flags:
 
 | Flag | Purpose |
 |---|---|
-| `--dry-run` | Print plist without writing |
+| `--dry-run` | Print the scheduler artifact(s) without writing |
 | `--remove` | Remove all OneBrain schedules |
-| `--refresh` | Re-emit plists after vault move |
+| `--refresh` | Re-emit scheduler artifacts after a vault move |
 | `--resume <skill>` | Resume an auto-paused skill |
 | `--status` | Show registered schedules + run history |
 | `--test <skill>` | Manually invoke a scheduled skill once |
