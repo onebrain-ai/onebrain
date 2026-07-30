@@ -76,6 +76,14 @@ user the note path, and remind them it is theirs to edit.
    confirm with the ✓/✗ state from `onebrain schedule list`. On skip: mention
    `/schedule-add` works any time later. Never re-offer when a `/digest` entry
    already exists in the schedule block.
+6. **Telegram offer (only when it can work):** if the telegram channel tools are
+   available in this session AND `notifications.telegram_chat_id` is not set, run
+   the **Notification Offer** flow from `schedule-add/SKILL.md` — user sends the
+   bot one message, the incoming channel tag carries `chat_id`, write it to
+   `onebrain.yml` and confirm with a test send. If the telegram tools are absent,
+   say nothing about Telegram (vault-log delivery is the normal path). This makes
+   the first `/digest` conversation a complete setup: sections → schedule →
+   delivery channel, no second command required.
 
 ## Step 1: Gather (per section present in config)
 
