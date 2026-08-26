@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" session-start",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" session-start",
+            "command": "onebrain codex-hook session-start",
+            "commandWindows": "onebrain codex-hook session-start",
             "timeout": 10
           }
         ]
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" lex",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" lex",
+            "command": "onebrain codex-hook lex",
+            "commandWindows": "onebrain codex-hook lex",
             "timeout": 10
           }
         ]
@@ -31,14 +31,14 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" checkpoint",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" checkpoint",
+            "command": "onebrain codex-hook checkpoint",
+            "commandWindows": "onebrain codex-hook checkpoint",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" pending",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" pending",
+            "command": "onebrain codex-hook pending",
+            "commandWindows": "onebrain codex-hook pending",
             "timeout": 10
           }
         ]

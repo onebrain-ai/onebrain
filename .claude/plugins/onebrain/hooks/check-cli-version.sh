@@ -2,15 +2,15 @@
 # OneBrain plugin v3 — SessionStart enforcement hook.
 #
 # Refuses to load the session when the `onebrain` CLI is absent or older
-# than v3.1.0. Pairs with `requires.cli` in plugin.json — that field is
-# metadata for tooling; this hook is the runtime enforcement. The floor is
-# v3.1.0 because this plugin emits v3.1 nested commands (`session init`,
-# `search reindex`, …) + the `--json` hook contract that v3.0.x can't parse.
+# than v3.4.25. Pairs with `requires.cli` in plugin.json — that field is
+# metadata for tooling; this hook is the runtime enforcement. The floor
+# includes the cache-independent Codex hook runner and bounded startup task
+# listing introduced in CLI v3.4.25.
 #
 # Comparison strategy: extract the bare MAJOR.MINOR.PATCH from
 # `onebrain --version` (drops any prerelease suffix like -alpha.9) and
-# sort against 3.1.0 with `sort -V`. v2.x Bun users and v3.0.x users are
-# blocked with a clear update path.
+# compare component-wise against 3.4.25. Older CLI users are blocked with a
+# clear update path.
 #
 # Output contract: emit a JSON SessionStart payload with `decision: block`
 # and a `reason` that lists the install / update paths for each platform.
@@ -18,7 +18,7 @@
 
 set -u
 
-MIN_VERSION="3.1.0"
+MIN_VERSION="3.4.25"
 
 block_message() {
   # Single-string JSON message; embedded newlines stay as literal "\n" in

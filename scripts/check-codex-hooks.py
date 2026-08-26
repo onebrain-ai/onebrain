@@ -1,107 +1,114 @@
 #!/usr/bin/env python3
-"""Exercise Codex hook session binding with two independent chat IDs."""
+"""Validate Codex hook manifests and their cache-independent lifecycle."""
+
+from __future__ import annotations
 
 import json
 import os
-import pathlib
-import stat
+from pathlib import Path
+import shutil
 import subprocess
-import sys
 import tempfile
 
 
-root = pathlib.Path(__file__).resolve().parents[1]
-hook = root / ".claude/plugins/onebrain/hooks/codex-hook.py"
-hooks_config = root / ".claude/plugins/onebrain/hooks/codex-hooks.json"
+ROOT = Path(__file__).resolve().parents[1]
+HOOKS_PATH = ROOT / ".claude/plugins/onebrain/hooks/codex-hooks.json"
+EXPECTED_MODES = {
+    "SessionStart": ["session-start"],
+    "PostToolUse": ["lex"],
+    "Stop": ["checkpoint", "pending"],
+}
 
-hooks_text = hooks_config.read_text(encoding="utf-8")
-if "CODEX_PLUGIN_ROOT" in hooks_text or "CLAUDE_PLUGIN_ROOT" not in hooks_text:
-    raise SystemExit(
-        "Codex hooks must use CLAUDE_PLUGIN_ROOT, the plugin-root variable "
-        "provided by the Codex plugin runtime"
-    )
-hooks_json = json.loads(hooks_text)
-for event, groups in hooks_json["hooks"].items():
-    for group in groups:
-        for command in group["hooks"]:
-            if "commandWindows" not in command:
-                raise SystemExit(f"{event} hook is missing commandWindows")
-            if "${CLAUDE_PLUGIN_ROOT}" not in command["command"]:
-                raise SystemExit(f"{event} POSIX hook has no portable plugin root")
-            if "%CLAUDE_PLUGIN_ROOT%\\" not in command["commandWindows"]:
-                raise SystemExit(f"{event} Windows hook has no portable plugin root")
 
-with tempfile.TemporaryDirectory() as tmp:
-    tmp = pathlib.Path(tmp)
-    fake = tmp / "onebrain"
-    fake.write_text(
-        "#!/bin/sh\n"
-        "if [ \"$1\" = \"--version\" ]; then\n"
-        "  printf 'onebrain 3.4.18\\n'\n"
-        "else\n"
-        "  printf '{\"session_token\":\"%s\"}' \"$CODEX_SESSION_ID\"\n"
-        "fi\n",
-        encoding="utf-8",
+def commands_for(manifest: dict, event: str) -> list[dict]:
+    return [
+        hook
+        for matcher in manifest["hooks"][event]
+        for hook in matcher["hooks"]
+    ]
+
+
+manifest = json.loads(HOOKS_PATH.read_text())
+for event, modes in EXPECTED_MODES.items():
+    commands = commands_for(manifest, event)
+    assert len(commands) == len(modes), f"unexpected {event} hook count"
+    for command, mode in zip(commands, modes):
+        expected = f"onebrain codex-hook {mode}"
+        assert command["command"] == expected, (
+            f"{event} must call the installed CLI, not a versioned plugin-cache file"
+        )
+        assert command["commandWindows"] == expected, (
+            f"{event} Windows hook must call the installed CLI"
+        )
+
+
+with tempfile.TemporaryDirectory() as temp_dir:
+    temp = Path(temp_dir)
+    fake_bin = temp / "bin"
+    fake_bin.mkdir()
+    calls_path = temp / "calls.jsonl"
+    fake_onebrain = fake_bin / "onebrain"
+    fake_onebrain.write_text(
+        """#!/usr/bin/env python3
+import json
+import os
+import sys
+
+payload = json.load(sys.stdin)
+mode = sys.argv[2]
+with open(os.environ["FAKE_ONEBRAIN_CALLS"], "a", encoding="utf-8") as handle:
+    handle.write(json.dumps({"args": sys.argv[1:], "session_id": payload.get("session_id")}) + "\\n")
+if mode == "session-start":
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "SessionStart",
+        "additionalContext": f"session={payload.get('session_id')}",
+    }}))
+elif mode == "checkpoint":
+    print(json.dumps({"continue": True}))
+"""
     )
-    fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+    fake_onebrain.chmod(0o755)
+
+    # Reproduce the real failure mode: Codex keeps the command after the plugin
+    # manager deletes the versioned cache directory it originally came from.
+    deleted_plugin_root = temp / "plugin-cache" / "onebrain" / "3.4.4"
+    shutil.copytree(ROOT / ".claude/plugins/onebrain", deleted_plugin_root)
+    shutil.rmtree(deleted_plugin_root)
+
     env = os.environ.copy()
-    env["PATH"] = f"{tmp}{os.pathsep}{env.get('PATH', '')}"
-    env["ONEBRAIN_BIN"] = str(fake)
+    env["PATH"] = f"{fake_bin}{os.pathsep}{env.get('PATH', '')}"
+    env["CLAUDE_PLUGIN_ROOT"] = str(deleted_plugin_root)
+    env["FAKE_ONEBRAIN_CALLS"] = str(calls_path)
 
-    outputs = []
-    for session_id in ("same-prefix-chat-a", "same-prefix-chat-b"):
-        proc = subprocess.run(
-            [sys.executable, str(hook), "session-start"],
+    def run(event: str, index: int, session_id: str) -> subprocess.CompletedProcess[str]:
+        command = commands_for(manifest, event)[index]["command"]
+        result = subprocess.run(
+            command,
+            shell=True,
+            check=False,
             input=json.dumps({"session_id": session_id}),
             text=True,
             capture_output=True,
             env=env,
-            check=True,
         )
-        output = json.loads(proc.stdout)
-        outputs.append(output["hookSpecificOutput"]["additionalContext"])
+        assert result.returncode == 0, result.stderr
+        return result
 
-    if not (
-        "same-prefix-chat-a" in outputs[0]
-        and "same-prefix-chat-b" in outputs[1]
-        and f'`{fake} session init --json --session-token same-prefix-chat-a`'
-        in outputs[0]
-        and f'& \'{fake}\' session init --json --session-token same-prefix-chat-b`'
-        in outputs[1]
-        and outputs[0] != outputs[1]
-    ):
-        raise SystemExit(f"Codex session binding failed: {outputs!r}")
+    first = run("SessionStart", 0, "codex-a")
+    second = run("SessionStart", 0, "codex-b")
+    assert json.loads(first.stdout)["hookSpecificOutput"]["additionalContext"] == "session=codex-a"
+    assert json.loads(second.stdout)["hookSpecificOutput"]["additionalContext"] == "session=codex-b"
+    assert run("PostToolUse", 0, "codex-a").stdout == ""
+    run("Stop", 0, "codex-a")
+    assert run("Stop", 1, "codex-a").stdout == ""
 
-    proc = subprocess.run(
-        [sys.executable, str(hook), "pending"],
-        input=json.dumps({"session_id": "quiet-background-hook"}),
-        text=True,
-        capture_output=True,
-        env=env,
-        check=True,
-    )
-    if proc.stdout:
-        raise SystemExit(f"Codex background hook leaked non-protocol output: {proc.stdout!r}")
+    calls = [json.loads(line) for line in calls_path.read_text().splitlines()]
+    assert [call["args"] for call in calls] == [
+        ["codex-hook", "session-start"],
+        ["codex-hook", "session-start"],
+        ["codex-hook", "lex"],
+        ["codex-hook", "checkpoint"],
+        ["codex-hook", "pending"],
+    ]
 
-    fake.write_text(
-        "#!/bin/sh\n"
-        "if [ \"$1\" = \"--version\" ]; then\n"
-        "  printf 'onebrain 3.4.17\\n'\n"
-        "else\n"
-        "  exit 99\n"
-        "fi\n",
-        encoding="utf-8",
-    )
-    proc = subprocess.run(
-        [sys.executable, str(hook), "session-start"],
-        input=json.dumps({"session_id": "old-cli-chat"}),
-        text=True,
-        capture_output=True,
-        env=env,
-        check=True,
-    )
-    warning = json.loads(proc.stdout)["hookSpecificOutput"]["additionalContext"]
-    if "require CLI >= 3.4.18" not in warning:
-        raise SystemExit(f"Codex CLI version gate failed: {warning!r}")
-
-print("Codex hooks OK — distinct chat session_id values remain isolated.")
+print("codex hooks ok")
