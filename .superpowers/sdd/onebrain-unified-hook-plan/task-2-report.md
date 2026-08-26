@@ -61,3 +61,25 @@ The repository's default macOS `python3` is Python 3.9, so `check-config.py` cor
 
 - Runtime behavior depends on the companion CLI's hidden `onebrain hook` command from Task 1 and its `hook_event_name` stdin contract; the plugin declares the existing CLI floor `>=3.4.25`.
 - The default local Python 3.9 environment cannot perform TOML validation; CI's Python 3.11+ environment is the supported validation environment.
+
+## Fix Round 1
+
+Review finding: the repository tree documentation described `.gemini/settings.json` as containing only `AfterAgent` and `AfterTool`, omitting `SessionStart`.
+
+Implementation: updated the `CONTRIBUTING.md` project-tree annotation to list `SessionStart`, `AfterAgent`, and `AfterTool`. No runtime files changed.
+
+Covering checks:
+
+```text
+$ python3.11 scripts/check-links.py
+Links OK — all relative Markdown links resolve.
+
+$ git diff --check
+
+$ python3.11 scripts/check-config.py
+Config OK — all tracked JSON/TOML parse; manifest keys present.
+```
+
+All three commands exited `0`.
+
+Self-review: confirmed the diff contains only the one documentation line and this report section; lifecycle manifests and the CLI repository remain untouched. The corrected tree annotation now names all three Gemini lifecycle registrations.

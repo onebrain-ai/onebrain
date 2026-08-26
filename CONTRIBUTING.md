@@ -41,7 +41,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
     └── task-extractor.md                Extract action items from braindumps (used by /braindump)
 
 .gemini/                                 Gemini CLI project config (read by Gemini CLI)
-├── settings.json                        Declarative hooks (AfterAgent, AfterTool) + model.disableLoopDetection
+├── settings.json                        Declarative hooks (SessionStart, AfterAgent, AfterTool) + model.disableLoopDetection
 └── commands/
     └── onebrain/                        Slash commands namespaced as /onebrain:<skill>
         └── *.toml                       One TOML per user-facing skill (29 commands; description + prompt)
