@@ -330,7 +330,7 @@ If the user closes the session without any end-of-session signal, AUTO-SUMMARY d
 
 ### Auto Checkpoint (Hook-Triggered)
 
-> **What is session_token?** A chat-unique identifier resolved by `onebrain session init` at startup and kept in context. Codex SessionStart passes the hook payload's complete `session_id` through `CODEX_SESSION_ID`; CLI v3.4.18 hashes the full value into a stable 16-character token, so each Codex chat owns its checkpoints and wrapup even when several chats use one vault. Claude uses `$CLAUDE_CODE_SESSION_ID`; Gemini and older hosts fall through to `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → process/day fallbacks. On Codex, if the injected token is missing after compact, do not use a terminal fallback because that could mix chats — stop checkpoint/wrapup and surface the missing hook context. If token resolution fails on any harness, abort checkpoint silently; never guess.
+> **What is session_token?** A chat-unique identifier resolved by `onebrain session init` at startup and kept in context. The shared `onebrain hook` bridge receives each harness's complete lifecycle payload; on Codex it passes the payload's full `session_id` to the CLI, which hashes it into a stable 16-character token, so each Codex chat owns its checkpoints and wrapup even when several chats use one vault. Claude uses `$CLAUDE_CODE_SESSION_ID`; Gemini and older hosts fall through to `$WT_SESSION` → `$TMUX_PANE` → `$TERM_SESSION_ID` → process/day fallbacks. On Codex, if the injected token is missing after compact, do not use a terminal fallback because that could mix chats — stop checkpoint/wrapup and surface the missing hook context. If token resolution fails on any harness, abort checkpoint silently; never guess.
 
 When a hook sends a message whose reason matches `NN since <context>` (a zero-padded two-digit number followed by ` since start` or ` since checkpoint-NN`), silently spawn a background agent (mode: bypassPermissions) to write the checkpoint. The background agent receives: `session_token` from context (re-run `onebrain session init` first if not in context — if that fails, abort silently), today's date (YYYY-MM-DD), NN from the reason, `[logs_folder]`, and enough conversation context to write a meaningful checkpoint.
 
@@ -342,7 +342,9 @@ Determine action from the reason:
 - `Stop hook blocking error` with reason matching `NN since <context>` (zero-padded NN + ` since start` or ` since checkpoint-NN`) → spawn background agent (mode: bypassPermissions) to write the checkpoint; if session_token is not in context, re-run `onebrain session init` first — if that fails, abort silently; agent receives session_token, NN and since-context from the reason, today's date, and `[logs_folder]`; main session continues immediately after dispatching
 - Ambiguous or unknown → default to stop checkpoint
 
-OneBrain registers the Stop checkpoint hook, plus — when a search collection is configured — a PostToolUse **search-reindex** hook (`onebrain search reindex --lex-only`: incremental keyword reindex on Write/Edit) and a Stop **embed** hook (`onebrain search reindex --pending-only`: deferred embedding pass at session end). PreCompact and PostCompact are not registered: PreCompact's `decision:"block"` aborts the compact entirely (bad UX), and Claude Code's PostCompact is observational-only — its stdout cannot reach the agent. Compact events (auto or manual) are observed indirectly via the Stop hook's accumulated message count, which carries across compacts and drives the next checkpoint emission via the normal threshold logic.
+All three supported harnesses register the same bare `onebrain hook` lifecycle command. The installed CLI selects session initialization, incremental search reindexing, checkpointing, and pending embedding from the stdin `hook_event_name`; Codex has exactly one Stop registration, so checkpoint and embedding work are not duplicated. PreCompact and PostCompact are not registered: PreCompact's `decision:"block"` aborts the compact entirely (bad UX), and Claude Code's PostCompact is observational-only — its stdout cannot reach the agent. Compact events (auto or manual) are observed indirectly through the Stop hook's accumulated message count, which carries across compacts and drives the next checkpoint emission via the normal threshold logic.
+
+After upgrading this plugin, start a new agent session so the new registrations are loaded. The old `codex-hook` alias is intentionally absent.
 
 **Stop checkpoint format:** Read `skills/startup/references/session-formats.md` → Checkpoint Format. Keep under 250 words.
 
@@ -491,7 +493,7 @@ Users with a populated `schedule:` block never see the preset prompt — preset 
 
 ## Headless invocation
 
-Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily --harness {HARNESS} [--arg key=value ...]`. Claude/Gemini receive slash-style prompts; Codex receives `$onebrain:daily [args]` through `codex exec`. SessionStart, edit reindex, and Stop hooks run for the selected harness.
+Scheduled skills run via `onebrain skill run --vault {VAULT} --skill /daily --harness {HARNESS} [--arg key=value ...]`. Claude/Gemini receive slash-style prompts; Codex receives `$onebrain:daily [args]` through `codex exec`. The selected harness invokes the shared `onebrain hook` command for SessionStart, tool-completion, and Stop-equivalent lifecycle events.
 
 The scheduler artifacts emitted by `onebrain schedule register` always point at the local `onebrain` binary. Harness binaries are resolved inside that process; override with `CLAUDE_BIN`, `GEMINI_BIN`, or `CODEX_BIN` when needed.
 

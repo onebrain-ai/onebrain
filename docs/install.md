@@ -23,6 +23,11 @@ Each harness reads OneBrain's instruction file automatically. Install it, run it
 > installation, run `onebrain plugin uninstall --harness codex`; user Codex
 > settings remain intact.
 
+All three harnesses use the shared `onebrain hook` lifecycle command, which
+selects behavior from the event payload. After upgrading the plugin, start a
+new agent session so the registrations are loaded; the old `codex-hook` alias
+is intentionally absent.
+
 ### 1. Install the OneBrain CLI
 
 Pick the install path that fits your environment — all three converge on the same v3.x Rust binary.

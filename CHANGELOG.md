@@ -15,6 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Codex hook manifests call the cache-independent runner in OneBrain CLI v3.4.25+, so an active task no longer retains a dead path when the plugin cache refreshes.
 - Codex reuses SessionStart metadata, loads project memory only on topic matches, and bounds startup tasks to five while retaining the full count.
+- Codex, Claude, and Gemini lifecycle registrations now converge on one bare `onebrain hook` command; it selects the action from the stdin `hook_event_name`, and Codex keeps a single Stop entry so checkpoint work is not duplicated. Start a new agent session after upgrading because the old `codex-hook` alias is intentionally absent.
 
 ## v3.4.11 — 2026-07-30 — /digest first run is a complete setup chain
 

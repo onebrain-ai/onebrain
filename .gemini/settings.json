@@ -3,13 +3,24 @@
     "disableLoopDetection": true
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "onebrain hook"
+          }
+        ]
+      }
+    ],
     "AfterAgent": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain checkpoint stop --json > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain hook"
           }
         ]
       }
@@ -20,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain search reindex --json > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain hook"
           }
         ]
       }

@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain codex-hook session-start",
-            "commandWindows": "onebrain codex-hook session-start",
+            "command": "onebrain hook",
+            "commandWindows": "onebrain hook",
             "timeout": 10
           }
         ]
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain codex-hook lex",
-            "commandWindows": "onebrain codex-hook lex",
+            "command": "onebrain hook",
+            "commandWindows": "onebrain hook",
             "timeout": 10
           }
         ]
@@ -31,14 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain codex-hook checkpoint",
-            "commandWindows": "onebrain codex-hook checkpoint",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "onebrain codex-hook pending",
-            "commandWindows": "onebrain codex-hook pending",
+            "command": "onebrain hook",
+            "commandWindows": "onebrain hook",
             "timeout": 10
           }
         ]
