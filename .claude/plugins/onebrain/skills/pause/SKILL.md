@@ -64,7 +64,7 @@ Review the current conversation since the last pause file of `active_slug` (or s
 1. Today's date as `YYYY-MM-DD`.
 2. Ensure directory exists: `mkdir -p [logs_folder]/pause/`
 3. Get `session_token` from agent context.
-   - **Claude:** if missing, recover it the same way INSTRUCTIONS.md Step 1's fallback does — run `ONEBRAIN_HOOK_SESSION_ID="$CLAUDE_CODE_SESSION_ID" {resolved executable} session init --json`. `ONEBRAIN_HOOK_SESSION_ID` is the resolver's top-priority layer and applies the same sha256[..16] derivation the Stop hook applies to `CLAUDE_CODE_SESSION_ID`, so the recovered value provably equals the token the Stop hook incremented.
+   - **Claude:** if missing, recover it with the resolve-only verb — run `ONEBRAIN_HOOK_SESSION_ID="$CLAUDE_CODE_SESSION_ID" "{resolved executable}" session token --json` and read `session_token` from its JSON. Use `session token`, not `session init`, here: this is mid-session recovery, and `session init` deletes the Stop-hook cadence state file whenever it runs mid-session, while `session token` touches no state files. `ONEBRAIN_HOOK_SESSION_ID` is the resolver's top-priority layer and applies the same sha256[..16] derivation the Stop hook applies to `CLAUDE_CODE_SESSION_ID`, so the recovered value provably equals the token the Stop hook incremented.
    - **Codex and Gemini:** SessionStart injects the token; if missing, do **not** run `session init` to mint a replacement — a terminal- or process-derived token could merge another chat's snapshots.
 
    **If no token is available after applying the rule above:** abort the write. Do NOT proceed to Step 5. Output: `⚠️ Could not determine session token. Snapshot not saved — try again or run /doctor.`

@@ -95,7 +95,7 @@ Always: update `updated:` frontmatter to today.
 
 Runs every /update — idempotent. Ensures every lifecycle event uses one shared runner.
 
-- Run `onebrain plugin update` — registers exactly one bare `onebrain hook` runner for each supported lifecycle event. The CLI selects startup metadata, incremental reindexing, checkpointing, and pending embedding from `hook_event_name`; do not register separate direct checkpoint, reindex, or embed commands, and never use a `codex-hook` alias. It removes stale OneBrain entries from unsupported events (PreCompact, PostCompact, UserPromptSubmit, etc.) while preserving user-added non-OneBrain hooks under the same events.
+- Run `onebrain plugin update` — registers exactly one `onebrain hook` runner for each supported lifecycle event (the CLI writes Claude's `PostToolUse`/`Stop` entries in exec form; plugin manifests carry the `|| echo` wrapper for Codex, Gemini, and Claude's `SessionStart`). The CLI selects startup metadata, incremental reindexing, checkpointing, and pending embedding from `hook_event_name`; do not register separate direct checkpoint, reindex, or embed commands, and never use a `codex-hook` alias. It removes stale OneBrain entries from unsupported events (PreCompact, PostCompact, UserPromptSubmit, etc.) while preserving user-added non-OneBrain hooks under the same events.
 - Check output: "all hooks already registered" → ✅ done; "added X" → ✅ registered
 - **Restart caveat:** active agent sessions retain the hook registrations they started with. Start a new session after updating before relying on the new lifecycle configuration.
 

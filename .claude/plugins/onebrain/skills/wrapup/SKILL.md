@@ -60,9 +60,9 @@ After Step 0b, continue to Step 1.
 ## Step 1: Gather Checkpoint Context
 
 1. Get today's date as `YYYY-MM-DD`. Extract `YYYY` and `MM`.
-2. Use `session_token` from context if already loaded (set by `{resolved executable} session init` at startup).
+2. Use `session_token` from context if already loaded (set by `"{resolved executable}" session init` at startup).
    - **Codex and Gemini:** SessionStart injects a token derived from the complete hook `session_id`. It is the chat identity for both Stop checkpoints and this wrapup. If that injected token is absent, stop and report that hook context is missing; do **not** fall back to a terminal- or process-derived token because that could merge another chat's checkpoints.
-   - **Claude:** if absent, recover it the same way INSTRUCTIONS.md Step 1's fallback does — run `ONEBRAIN_HOOK_SESSION_ID="$CLAUDE_CODE_SESSION_ID" {resolved executable} session init --json` and use the `session_token` value. `ONEBRAIN_HOOK_SESSION_ID` is the resolver's top-priority layer and applies the same sha256[..16] derivation the Stop hook applies to `CLAUDE_CODE_SESSION_ID`, so the recovered value provably equals the token the Stop hook incremented.
+   - **Claude:** if absent, recover it with the resolve-only verb — run `ONEBRAIN_HOOK_SESSION_ID="$CLAUDE_CODE_SESSION_ID" "{resolved executable}" session token --json` and use the `session_token` value. Use `session token`, not `session init`, for this mid-session recovery: `session init` deletes the Stop-hook cadence state file whenever it runs mid-session, while `session token` is resolve-only and touches no state files. `ONEBRAIN_HOOK_SESSION_ID` is the resolver's top-priority layer and applies the same sha256[..16] derivation the Stop hook applies to `CLAUDE_CODE_SESSION_ID`, so the recovered value provably equals the token the Stop hook incremented.
 3. Glob checkpoint files (post-v2.4.0: checkpoints live in flat `[logs_folder]/checkpoint/` regardless of date):
    - **Match on the token, with NO date filter:** `[logs_folder]/checkpoint/*-{session_token}-checkpoint-*.md`
 
@@ -485,7 +485,7 @@ Reflect on the conversation that just occurred. Identify:
    ---
    ```
 5. Body: merged content from step 2, using the Shared Body Sections.
-6. After successful write, run `{resolved executable} checkpoint reset --session-token {session_token}`.
+6. After successful write, run `"{resolved executable}" checkpoint reset --session-token {session_token}`.
 7. Proceed to Step 4b (action item routing) and onward as normal.
 
 After Thread Wrapup writes the session log, the existing Step 5 (Checkpoint Cleanup) still runs — checkpoints from Step 1 are deleted. **Plus, in the new Step 5b (below), pause files and `_active.md` are deleted.**
@@ -509,7 +509,7 @@ Create `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the Sessio
 After writing the session log, reset the checkpoint hook counter to prevent spurious post-wrapup checkpoints, passing the resolved `session_token` from Step 1 (never a re-minted one):
 
 ```bash
-{resolved executable} checkpoint reset --session-token {session_token}
+"{resolved executable}" checkpoint reset --session-token {session_token}
 ```
 
 This writes `0:<epoch>:00` into the session state file (3 fields: count, last_ts, last_stop_nn) — triggering a 60-second skip window and resetting the message counter so the next Stop hook starts fresh.
