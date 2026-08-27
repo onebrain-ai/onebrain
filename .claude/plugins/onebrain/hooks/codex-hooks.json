@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook",
-            "commandWindows": "onebrain hook",
+            "command": "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}'",
+            "commandWindows": "onebrain hook || echo {\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}",
             "timeout": 10
           }
         ]
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook",
-            "commandWindows": "onebrain hook",
+            "command": "onebrain hook || echo '{}'",
+            "commandWindows": "onebrain hook || echo {}",
             "timeout": 10
           }
         ]
@@ -31,8 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook",
-            "commandWindows": "onebrain hook",
+            "command": "onebrain hook || echo '{}'",
+            "commandWindows": "onebrain hook || echo {}",
             "timeout": 10
           }
         ]

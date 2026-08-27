@@ -16,6 +16,31 @@ CODEX_HOOKS_PATH = ROOT / ".claude/plugins/onebrain/hooks/codex-hooks.json"
 CLAUDE_HOOKS_PATH = ROOT / ".claude/plugins/onebrain/hooks/hooks.json"
 GEMINI_SETTINGS_PATH = ROOT / ".gemini/settings.json"
 
+# Shell-level fail-open fallback: when `onebrain` is missing or older than 3.4.25
+# (no `hook` subcommand, clap exits 2 — the blocking exit code), `||` catches it
+# and echoes a harmless stand-in payload instead of letting the harness see a
+# nonzero exit. Codex and Gemini have no version-gate hook (unlike Claude's
+# check-cli-version.sh SessionStart hook), so they need this at the shell level.
+FAIL_OPEN_SESSION_START_COMMAND = (
+    "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\","
+    "\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI "
+    "is missing or older than 3.4.25. Run onebrain update, then start a new session."
+    "\"}}'"
+)
+FAIL_OPEN_SESSION_START_COMMAND_WINDOWS = (
+    "onebrain hook || echo {\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\","
+    "\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI "
+    "is missing or older than 3.4.25. Run onebrain update, then start a new session."
+    "\"}}"
+)
+FAIL_OPEN_EMPTY_COMMAND = "onebrain hook || echo '{}'"
+FAIL_OPEN_EMPTY_COMMAND_WINDOWS = "onebrain hook || echo {}"
+
+# Gemini has no commandWindows field at all (single `command` per event); its
+# fallback strings are the same POSIX strings as Codex's.
+GEMINI_SESSION_START_COMMAND = FAIL_OPEN_SESSION_START_COMMAND
+GEMINI_EMPTY_COMMAND = FAIL_OPEN_EMPTY_COMMAND
+
 
 def commands_for(manifest: dict, event: str) -> list[dict]:
     return [
@@ -25,19 +50,27 @@ def commands_for(manifest: dict, event: str) -> list[dict]:
     ]
 
 
-def assert_unified_command(command: dict, event: str) -> None:
-    assert command["command"] == "onebrain hook", f"{event} must call onebrain hook"
-    if "commandWindows" in command:
-        assert command["commandWindows"] == "onebrain hook", (
-            f"{event} Windows hook must call onebrain hook"
+def assert_fail_open_command(
+    command: dict, event: str, expected: str, expected_windows: str | None = None
+) -> None:
+    assert command["command"] == expected, f"{event} must call {expected!r}"
+    if expected_windows is not None:
+        assert "commandWindows" in command, f"{event} must define commandWindows"
+        assert command["commandWindows"] == expected_windows, (
+            f"{event} Windows hook must call {expected_windows!r}"
         )
 
 
 codex_manifest = json.loads(CODEX_HOOKS_PATH.read_text(encoding="utf-8"))
-for event in ("SessionStart", "PostToolUse", "Stop"):
+CODEX_EXPECTED = {
+    "SessionStart": (FAIL_OPEN_SESSION_START_COMMAND, FAIL_OPEN_SESSION_START_COMMAND_WINDOWS),
+    "PostToolUse": (FAIL_OPEN_EMPTY_COMMAND, FAIL_OPEN_EMPTY_COMMAND_WINDOWS),
+    "Stop": (FAIL_OPEN_EMPTY_COMMAND, FAIL_OPEN_EMPTY_COMMAND_WINDOWS),
+}
+for event, (expected, expected_windows) in CODEX_EXPECTED.items():
     commands = commands_for(codex_manifest, event)
     assert len(commands) == 1, f"Codex must have one {event} command"
-    assert_unified_command(commands[0], f"Codex {event}")
+    assert_fail_open_command(commands[0], f"Codex {event}", expected, expected_windows)
 
 assert codex_manifest["hooks"]["PostToolUse"][0]["matcher"] == "Edit|Write|apply_patch"
 
@@ -61,13 +94,18 @@ assert [
     "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/grep-gate.sh\"",
 ], "Claude independent PreToolUse hooks changed unexpectedly"
 
+GEMINI_EXPECTED = {
+    "SessionStart": GEMINI_SESSION_START_COMMAND,
+    "AfterTool": GEMINI_EMPTY_COMMAND,
+    "AfterAgent": GEMINI_EMPTY_COMMAND,
+}
 gemini_settings = json.loads(GEMINI_SETTINGS_PATH.read_text(encoding="utf-8"))
 for event in ("SessionStart", "AfterTool", "AfterAgent"):
     groups = gemini_settings["hooks"].get(event, [])
     assert len(groups) == 1, f"Gemini must have one {event} group"
     commands = commands_for(gemini_settings, event)
     assert len(commands) == 1, f"Gemini must have one {event} command"
-    assert_unified_command(commands[0], f"Gemini {event}")
+    assert_fail_open_command(commands[0], f"Gemini {event}", GEMINI_EXPECTED[event])
 assert "matcher" not in gemini_settings["hooks"]["SessionStart"][0], (
     "Gemini SessionStart must be unfiltered so startup, resume, and clear all run "
     "the shared lifecycle hook"
@@ -124,7 +162,9 @@ else:
         "permission_mode": "default",
     }
 
-    def run(command: str, payload: dict) -> subprocess.CompletedProcess[str]:
+    def run(
+        command: str, payload: dict, run_env: dict | None = None
+    ) -> subprocess.CompletedProcess[str]:
         result = subprocess.run(
             command,
             shell=True,
@@ -132,7 +172,7 @@ else:
             input=json.dumps(payload),
             text=True,
             capture_output=True,
-            env=env,
+            env=run_env if run_env is not None else env,
         )
         assert result.returncode == 0, result.stderr
         return result
@@ -158,8 +198,14 @@ else:
     stop = run(codex_manifest["hooks"]["Stop"][0]["hooks"][0]["command"], stop_payload)
     assert json.loads(stop.stdout) == {"decision": "block", "reason": "checkpoint due"}
 
-    for manifest, events in (
-        (claude_manifest, (("SessionStart", None),)),
+    def expected_claude_command(event: str) -> str:
+        return "onebrain hook"
+
+    def expected_gemini_command(event: str) -> str:
+        return GEMINI_SESSION_START_COMMAND if event == "SessionStart" else GEMINI_EMPTY_COMMAND
+
+    for manifest, events, expected_command_for in (
+        (claude_manifest, (("SessionStart", None),), expected_claude_command),
         (
             gemini_settings,
             (
@@ -169,13 +215,15 @@ else:
                 ("AfterTool", None),
                 ("AfterAgent", None),
             ),
+            expected_gemini_command,
         ),
     ):
         for event, source in events:
+            expected_command = expected_command_for(event)
             command = next(
                 command
                 for command in commands_for(manifest, event)
-                if command["command"] == "onebrain hook"
+                if command["command"] == expected_command
             )
             payload = {**full_payload, "hook_event_name": event}
             if source is not None:
@@ -187,6 +235,43 @@ else:
                 assert json.loads(output.stdout)["decision"] == "block"
             else:
                 assert json.loads(output.stdout) == {}
+
+    # --- Fallback smoke cases: rollback behavior below the CLI floor (POSIX only) ---
+    # These pin the shell-level `||` fallback that keeps Codex/Gemini fail-open even
+    # when `onebrain` is missing entirely, or present but too old to have `hook`
+    # (clap exits 2 on an unrecognized subcommand — the blocking exit code).
+    missing_cli_dir = temp / "missing-cli-path"
+    missing_cli_dir.mkdir()
+    missing_cli_env = os.environ.copy()
+    missing_cli_env["PATH"] = str(missing_cli_dir)
+
+    old_cli_bin = temp / "old-cli-bin"
+    old_cli_bin.mkdir()
+    old_onebrain = old_cli_bin / "onebrain"
+    old_onebrain.write_text(
+        "#!/bin/sh\n"
+        "echo \"error: unrecognized subcommand 'hook'\" >&2\n"
+        "exit 2\n"
+    )
+    old_onebrain.chmod(0o755)
+    old_cli_env = os.environ.copy()
+    old_cli_env["PATH"] = str(old_cli_bin)
+
+    for rollback_env in (missing_cli_env, old_cli_env):
+        rollback_session = run(
+            codex_manifest["hooks"]["SessionStart"][0]["hooks"][0]["command"],
+            {**full_payload, "hook_event_name": "SessionStart"},
+            run_env=rollback_env,
+        )
+        rollback_session_json = json.loads(rollback_session.stdout)
+        assert "older than 3.4.25" in rollback_session_json["hookSpecificOutput"]["additionalContext"]
+
+        rollback_stop = run(
+            codex_manifest["hooks"]["Stop"][0]["hooks"][0]["command"],
+            {**full_payload, "hook_event_name": "Stop"},
+            run_env=rollback_env,
+        )
+        assert json.loads(rollback_stop.stdout) == {}
 
     calls = [json.loads(line) for line in calls_path.read_text(encoding="utf-8").splitlines()]
     assert all(call["args"] == ["hook"] for call in calls)

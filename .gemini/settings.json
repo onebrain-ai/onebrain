@@ -8,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook"
+            "command": "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}'"
           }
         ]
       }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook"
+            "command": "onebrain hook || echo '{}'"
           }
         ]
       }
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook"
+            "command": "onebrain hook || echo '{}'"
           }
         ]
       }
