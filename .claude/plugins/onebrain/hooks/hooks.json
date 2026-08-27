@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain hook",
+            "command": "onebrain hook || echo '{}'",
             "timeout": 10
           }
         ]

@@ -20,13 +20,23 @@ GEMINI_SETTINGS_PATH = ROOT / ".gemini/settings.json"
 # (no `hook` subcommand, clap exits 2 — the blocking exit code), `||` catches it
 # and echoes a harmless stand-in payload instead of letting the harness see a
 # nonzero exit. Codex and Gemini have no version-gate hook (unlike Claude's
-# check-cli-version.sh SessionStart hook), so they need this at the shell level.
+# check-cli-version.sh SessionStart hook), so they need the message-carrying
+# variant at the shell level for SessionStart. Claude's SessionStart already
+# runs check-cli-version.sh as its own hook entry to carry that message, so
+# Claude's generic `onebrain hook` entry only needs the plain empty-object
+# fallback (below) — wrapped for the same rollback safety, but silent because
+# the gate script is the user-facing messaging layer.
 FAIL_OPEN_SESSION_START_COMMAND = (
     "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\","
     "\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI "
     "is missing or older than 3.4.25. Run onebrain update, then start a new session."
     "\"}}'"
 )
+# commandWindows constants below are asserted byte-exactly (see
+# assert_fail_open_command) but never executed on this runner — the rollback
+# smokes below only shell out to the POSIX `command` string. There is no
+# Windows CI runner for this script, so the cmd.exe-shaped fallback strings
+# are pinned by string comparison only, not by an actual cmd.exe execution.
 FAIL_OPEN_SESSION_START_COMMAND_WINDOWS = (
     "onebrain hook || echo {\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\","
     "\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI "
@@ -59,6 +69,10 @@ def assert_fail_open_command(
         assert command["commandWindows"] == expected_windows, (
             f"{event} Windows hook must call {expected_windows!r}"
         )
+    else:
+        assert "commandWindows" not in command, (
+            f"{event} must not define commandWindows"
+        )
 
 
 codex_manifest = json.loads(CODEX_HOOKS_PATH.read_text(encoding="utf-8"))
@@ -83,8 +97,10 @@ assert any(
 ), (
     "Claude SessionStart must retain the CLI version check"
 )
-assert sum(command["command"] == "onebrain hook" for command in claude_session_commands) == 1, (
-    "Claude SessionStart must add exactly one generic lifecycle hook"
+assert sum(
+    command["command"] == FAIL_OPEN_EMPTY_COMMAND for command in claude_session_commands
+) == 1, (
+    "Claude SessionStart must add exactly one wrapped generic lifecycle hook"
 )
 assert [
     command["command"]
@@ -199,7 +215,7 @@ else:
     assert json.loads(stop.stdout) == {"decision": "block", "reason": "checkpoint due"}
 
     def expected_claude_command(event: str) -> str:
-        return "onebrain hook"
+        return FAIL_OPEN_EMPTY_COMMAND
 
     def expected_gemini_command(event: str) -> str:
         return GEMINI_SESSION_START_COMMAND if event == "SessionStart" else GEMINI_EMPTY_COMMAND
@@ -237,8 +253,8 @@ else:
                 assert json.loads(output.stdout) == {}
 
     # --- Fallback smoke cases: rollback behavior below the CLI floor (POSIX only) ---
-    # These pin the shell-level `||` fallback that keeps Codex/Gemini fail-open even
-    # when `onebrain` is missing entirely, or present but too old to have `hook`
+    # These pin the shell-level `||` fallback that keeps Codex/Gemini/Claude fail-open
+    # even when `onebrain` is missing entirely, or present but too old to have `hook`
     # (clap exits 2 on an unrecognized subcommand — the blocking exit code).
     missing_cli_dir = temp / "missing-cli-path"
     missing_cli_dir.mkdir()
@@ -272,6 +288,17 @@ else:
             run_env=rollback_env,
         )
         assert json.loads(rollback_stop.stdout) == {}
+
+        # Claude's generic SessionStart hook is wrapped the same way — its own
+        # check-cli-version.sh gate (run separately, not exercised here) carries
+        # the user-facing message, so this entry only needs to prove it stays
+        # exit-0 with an empty object instead of surfacing the CLI's exit 2.
+        rollback_claude = run(
+            FAIL_OPEN_EMPTY_COMMAND,
+            {**full_payload, "hook_event_name": "SessionStart"},
+            run_env=rollback_env,
+        )
+        assert json.loads(rollback_claude.stdout) == {}
 
     calls = [json.loads(line) for line in calls_path.read_text(encoding="utf-8").splitlines()]
     assert all(call["args"] == ["hook"] for call in calls)
