@@ -7,10 +7,11 @@
 # includes the cache-independent Codex hook runner and bounded startup task
 # listing introduced in CLI v3.4.25.
 #
-# Comparison strategy: extract the bare MAJOR.MINOR.PATCH from
-# `onebrain --version` (drops any prerelease suffix like -alpha.9) and
-# compare component-wise against 3.4.25. Older CLI users are blocked with a
-# clear update path.
+# Comparison strategy: parse a SemVer MAJOR.MINOR.PATCH with an optional
+# prerelease suffix. Compare the numeric core component-wise; a prerelease
+# at the exact floor (for example 3.4.25-alpha.1) is below the required
+# 3.4.25 release and is blocked. Older CLI users are blocked with a clear
+# update path.
 #
 # Output contract: emit a JSON SessionStart payload with `decision: block`
 # and a `reason` that lists the install / update paths for each platform.
@@ -37,11 +38,12 @@ if ! command -v onebrain >/dev/null 2>&1; then
   exit 0
 fi
 
-# Extract the bare semver triple from `onebrain --version` output
-# (handles `onebrain 3.0.0`, `onebrain 3.0.0-alpha.9`, or any leading text).
-CURRENT_VERSION=$(onebrain --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+# Extract SemVer from `onebrain --version` output (handles `onebrain 3.0.0`,
+# `onebrain 3.0.0-alpha.9`, build metadata, or leading text).
+CURRENT_VERSION_RAW=$(onebrain --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?(\+[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*)?' | head -1)
+CURRENT_VERSION=${CURRENT_VERSION_RAW%%[-+]*}
 
-if [ -z "${CURRENT_VERSION}" ]; then
+if [ -z "${CURRENT_VERSION_RAW}" ]; then
   block_message "OneBrain plugin v3.x could not parse the \`onebrain --version\` output. Verify the CLI is on PATH and at least v${MIN_VERSION} — run \`onebrain --version\` manually to debug."
   exit 0
 fi
@@ -63,8 +65,8 @@ version_gte() {
   return 0
 }
 
-if ! version_gte "${CURRENT_VERSION}" "${MIN_VERSION}"; then
-  block_message "OneBrain plugin v3.x requires CLI >= ${MIN_VERSION}, but found v${CURRENT_VERSION}.\n\nUpdate in place:\n  onebrain update\n\nOr reinstall:\n  • macOS:   brew tap onebrain-ai/onebrain && brew upgrade onebrain (or brew install onebrain-ai/onebrain/onebrain)\n  • Linux/Windows: download from https://github.com/onebrain-ai/onebrain-cli/releases/latest\n\nThen restart this session."
+if ! version_gte "${CURRENT_VERSION}" "${MIN_VERSION}" || { [ "${CURRENT_VERSION}" = "${MIN_VERSION}" ] && [[ "${CURRENT_VERSION_RAW}" == "${MIN_VERSION}-"* ]]; }; then
+  block_message "OneBrain plugin v3.x requires CLI >= ${MIN_VERSION}, but found v${CURRENT_VERSION_RAW}.\n\nUpdate in place:\n  onebrain update\n\nOr reinstall:\n  • macOS:   brew tap onebrain-ai/onebrain && brew upgrade onebrain (or brew install onebrain-ai/onebrain/onebrain)\n  • Linux/Windows: download from https://github.com/onebrain-ai/onebrain-cli/releases/latest\n\nThen restart this session."
   exit 0
 fi
 

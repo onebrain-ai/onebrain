@@ -68,7 +68,10 @@ for event in ("SessionStart", "AfterTool", "AfterAgent"):
     commands = commands_for(gemini_settings, event)
     assert len(commands) == 1, f"Gemini must have one {event} command"
     assert_unified_command(commands[0], f"Gemini {event}")
-assert gemini_settings["hooks"]["SessionStart"][0]["matcher"] == "startup"
+assert "matcher" not in gemini_settings["hooks"]["SessionStart"][0], (
+    "Gemini SessionStart must be unfiltered so startup, resume, and clear all run "
+    "the shared lifecycle hook"
+)
 assert gemini_settings["hooks"]["AfterTool"][0]["matcher"] == "write_file|replace"
 assert gemini_settings["hooks"]["AfterAgent"][0]["matcher"] == "*"
 
@@ -156,16 +159,27 @@ else:
     assert json.loads(stop.stdout) == {"decision": "block", "reason": "checkpoint due"}
 
     for manifest, events in (
-        (claude_manifest, ("SessionStart",)),
-        (gemini_settings, ("SessionStart", "AfterTool", "AfterAgent")),
+        (claude_manifest, (("SessionStart", None),)),
+        (
+            gemini_settings,
+            (
+                ("SessionStart", "startup"),
+                ("SessionStart", "resume"),
+                ("SessionStart", "clear"),
+                ("AfterTool", None),
+                ("AfterAgent", None),
+            ),
+        ),
     ):
-        for event in events:
+        for event, source in events:
             command = next(
                 command
                 for command in commands_for(manifest, event)
                 if command["command"] == "onebrain hook"
             )
             payload = {**full_payload, "hook_event_name": event}
+            if source is not None:
+                payload["source"] = source
             output = run(command["command"], payload)
             if event == "SessionStart":
                 assert "hookSpecificOutput" in json.loads(output.stdout)
@@ -185,6 +199,8 @@ else:
         "PostToolUse",
         "BeforeTool",
         "Stop",
+        "SessionStart",
+        "SessionStart",
         "SessionStart",
         "SessionStart",
         "AfterTool",
