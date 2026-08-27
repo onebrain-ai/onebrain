@@ -485,7 +485,7 @@ Reflect on the conversation that just occurred. Identify:
    ---
    ```
 5. Body: merged content from step 2, using the Shared Body Sections.
-6. After successful write, run `onebrain checkpoint reset`.
+6. After successful write, run `onebrain checkpoint reset --session-token {session_token}`.
 7. Proceed to Step 4b (action item routing) and onward as normal.
 
 After Thread Wrapup writes the session log, the existing Step 5 (Checkpoint Cleanup) still runs — checkpoints from Step 1 are deleted. **Plus, in the new Step 5b (below), pause files and `_active.md` are deleted.**
@@ -506,10 +506,10 @@ Create `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the Sessio
 - If checkpoints were incorporated in Step 1 → use **Standard /wrapup — checkpoints incorporated**
 - Otherwise → use **Standard /wrapup — no checkpoints incorporated**
 
-After writing the session log, reset the checkpoint hook counter to prevent spurious post-wrapup checkpoints:
+After writing the session log, reset the checkpoint hook counter to prevent spurious post-wrapup checkpoints, passing the resolved `session_token` from Step 1 (never a re-minted one):
 
 ```bash
-onebrain checkpoint reset
+onebrain checkpoint reset --session-token {session_token}
 ```
 
 This writes `0:<epoch>:00` into the session state file (3 fields: count, last_ts, last_stop_nn) — triggering a 60-second skip window and resetting the message counter so the next Stop hook starts fresh.

@@ -63,7 +63,11 @@ Review the current conversation since the last pause file of `active_slug` (or s
 
 1. Today's date as `YYYY-MM-DD`.
 2. Ensure directory exists: `mkdir -p [logs_folder]/pause/`
-3. Get `session_token` from agent context (run `onebrain session init` to recover if missing). **If `session init` fails or returns no token:** abort the write. Do NOT proceed to Step 5. Output: `⚠️ Could not determine session token. Snapshot not saved — try again or run /doctor.`
+3. Get `session_token` from agent context.
+   - **Claude/Gemini:** if missing, run `onebrain session init --json` to recover it.
+   - **Codex:** SessionStart injects the token; if missing, do **not** run `session init` to mint a replacement — a terminal- or process-derived token could merge another chat's snapshots.
+
+   **If no token is available after applying the rule above:** abort the write. Do NOT proceed to Step 5. Output: `⚠️ Could not determine session token. Snapshot not saved — try again or run /doctor.`
 4. Write to `[logs_folder]/pause/YYYY-MM-DD-{active_slug}-pause-{next_nn}.md`:
 
 ```yaml
