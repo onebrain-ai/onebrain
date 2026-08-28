@@ -111,11 +111,12 @@ Where `N` = `next_nn` from Step 2 (the total snapshot count for this thread incl
 
 ## Auto-Finalize (Called by AUTO-SUMMARY and /wrapup "n" branch)
 
-When AUTO-SUMMARY or `/wrapup` "n" branch needs to finalize an active thread before writing a daily session log, it calls into this skill's auto-finalize path. Three skip conditions — if ANY is true, skip:
+When AUTO-SUMMARY or `/wrapup` "n" branch needs to finalize an active thread before writing a daily session log, it calls into this skill's auto-finalize path. "Latest pause file" throughout this section means the file with the highest `NN` for the slug, tiebreak date prefix descending (same rule as `/resume` Step 2) — never file mtime, which sync tools rewrite. Four skip conditions — if ANY is true, skip:
 
 1. **No-activity:** Glob `[logs_folder]/checkpoint/*-{current_session_token}-checkpoint-*.md` — if empty, the session produced no work; skip.
 2. **Already-captured-this-session:** Find the latest pause file of `active_slug`. If its frontmatter `session_token` equals current session token AND no checkpoint file mtime > pause file mtime, the current session's work is already captured by an earlier `/pause`; skip.
 3. **No-pause-files-and-untouched:** If no pause file exists yet for `active_slug` AND the newest checkpoint mtime is older than `_active.md` mtime, the slug was set but no thread activity occurred; skip.
+4. **Thread-untouched:** Skip if this session did no work on the thread after the thread's latest pause file was written (if the slug has no pause files: at any point this session). "No work on the thread" requires ALL of the following after that point: the session did not `/resume` this slug, AND none of the session's checkpoint or conversation content relates to the thread's topic. Judge from the session's checkpoint files (`[logs_folder]/checkpoint/*-{current_session_token}-checkpoint-*.md`) — they survive context compaction; never judge from the visible conversation tail alone. Typical trigger: the thread's latest snapshot carries another session's `session_token` and this session worked only on unrelated topics — auto-finalizing would append that unrelated work into the thread's snapshot series and corrupt `/resume`. A session that resumed or continued the thread and ended without an explicit `/pause` does NOT match this condition — capturing that continuation is exactly what auto-finalize exists for.
 
 If not skipped: run Steps 2–5 above, but in Step 4 frontmatter use `trigger: auto-finalize` instead of `manual`, and in Step 3's `## Where I Stopped` prepend "Auto-finalized at session end. " to the human-readable text.
 
