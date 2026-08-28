@@ -1,6 +1,6 @@
 ---
 latest_version: 3.4.12
-released: 2026-08-27
+released: 2026-08-28
 ---
 
 # Changelog
@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
 
-## v3.4.12 — 2026-08-27 — Codex hooks survive cache refreshes
+## v3.4.12 — 2026-08-28 — Codex hooks survive cache refreshes
 
 - Codex hook manifests call the cache-independent runner in OneBrain CLI v3.4.25+, so an active task no longer retains a dead path when the plugin cache refreshes.
 - Codex reuses SessionStart metadata, loads project memory only on topic matches, and bounds startup tasks to five while retaining the full count.
