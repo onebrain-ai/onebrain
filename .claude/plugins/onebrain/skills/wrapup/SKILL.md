@@ -50,7 +50,7 @@ Apply the four skip conditions from `skills/pause/SKILL.md` → Auto-Finalize se
 1. **No-activity:** if no checkpoint file exists for current `session_token`, skip Auto-Finalize.
 2. **Already-captured-this-session:** if latest pause file's frontmatter `session_token` matches current AND no checkpoint mtime > pause file mtime, skip.
 3. **No-pause-files-and-untouched:** if no pause file exists for slug AND newest checkpoint mtime < `_active.md` mtime, skip.
-4. **Thread-untouched-by-this-session:** if latest pause file's `session_token` differs from current AND this session performed no activity on the thread (no `/resume` of this slug, no pause file written, conversation/checkpoints unrelated to its topic), skip — auto-finalizing would append unrelated work into the thread. A session that resumed or continued the thread does NOT match.
+4. **Thread-untouched:** if this session did no work on the thread after the thread's latest pause file was written (ALL of: no `/resume` of this slug after that point AND no thread-related checkpoint/conversation content after it — judge from checkpoint files, which survive compaction), skip — auto-finalizing would append unrelated work into the thread. A session that resumed or continued the thread does NOT match.
 
 If not skipped: invoke `/pause` auto-finalize path (Steps 2–5 of `/pause`, with `trigger: auto-finalize` in frontmatter and "Auto-finalized at session end. " prefix in `## Where I Stopped`).
 

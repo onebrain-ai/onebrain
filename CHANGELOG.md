@@ -13,8 +13,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## v3.4.13 — 2026-08-29 — Auto-finalize skips threads the session never touched
 
-- `/pause` Auto-Finalize gains a fourth skip condition: when the active thread's latest snapshot belongs to another session token and the ending session performed no activity on the thread, auto-finalize skips instead of appending the session's unrelated work into the thread's snapshot series (which would corrupt `/resume`). A session that resumed or continued the thread and ended without an explicit `/pause` still auto-finalizes as before.
-- The mirrored skip-condition lists in `/wrapup` Step 0b and AUTO-SUMMARY carry the same fourth condition, and `/wrapup`'s skipped-notice wording now covers it.
+- `/pause` Auto-Finalize gains a fourth skip condition (Thread-untouched): when the ending session did no work on the active thread since the thread's latest snapshot — e.g. the snapshots belong to another session's token and this session worked only on unrelated topics — auto-finalize skips instead of appending that unrelated work into the thread's snapshot series (which would corrupt `/resume`). The judgment is anchored in checkpoint files so it survives context compaction, and a session that resumed or continued the thread and ended without an explicit `/pause` still auto-finalizes as before.
+- The Auto-Finalize section now pins "latest pause file" to the highest-NN sort `/resume` uses (never mtime); the mirrored skip-condition lists in `/wrapup` Step 0b and AUTO-SUMMARY carry the same fourth condition, and `/wrapup`'s skipped-notice wording now covers it.
 
 ## v3.4.12 — 2026-08-28 — Codex hooks survive cache refreshes
 

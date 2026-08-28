@@ -19,7 +19,7 @@ If conditions are met:
   - No-activity: no checkpoint file exists for current session_token → skip
   - Already-captured-this-session: latest pause file's session_token == current AND no checkpoint mtime > pause file mtime → skip
   - No-pause-files-and-untouched: no pause file for slug AND newest checkpoint mtime < `_active.md` mtime → skip
-  - Thread-untouched-by-this-session: latest pause file's session_token ≠ current AND this session performed no activity on the thread (no /resume of this slug, no pause file written, conversation/checkpoints unrelated to its topic) → skip; a session that resumed or continued the thread does NOT match
+  - Thread-untouched: this session did no work on the thread after its latest pause file was written (ALL of: no /resume of this slug after that point AND no thread-related checkpoint/conversation content after it — judge from checkpoint files, which survive compaction) → skip; a session that resumed or continued the thread does NOT match
 
   If not skipped: invoke `/pause` auto-finalize path (Steps 2–5 of `/pause`, with `trigger: auto-finalize` in frontmatter and "Auto-finalized at session end. " prefix in `## Where I Stopped`). This preserves the active pause thread's continuity when a session ends without an explicit `/pause`. Silent — no user-visible output.
 - Write to `[logs_folder]/session/YYYY/MM/YYYY-MM-DD-session-NN.md` using the Session Log Format from `references/session-formats.md`:
