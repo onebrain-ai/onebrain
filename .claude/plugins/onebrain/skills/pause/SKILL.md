@@ -28,6 +28,7 @@ Writes a per-thread snapshot of the current work to `[logs_folder]/pause/` so th
    - Use `AskUserQuestion` to confirm. Question: "Active thread name? Suggested: `<proposed-slug>`" with options: (a) accept suggestion, (b) type a different slug
    - On confirmation, set `active_slug = <chosen>` and continue
 4. If `/pause --task=<slug>` was invoked with an explicit slug:
+   - If `<slug>` is not plain kebab-case (lowercase letters, digits, hyphens only — reject anything with glob or path characters like `*`, `?`, `[`, `/`) → abort with message "⚠️ Invalid thread name `<slug>`. Active thread unchanged." Slugs become filenames and glob patterns; never accept an unvalidated one.
    - If `_active.md` is empty or contains the same slug → set `active_slug = <slug>`, skip warning
    - If `_active.md` contains a different slug → use `AskUserQuestion`: "⚠️ Active thread: `<existing>` (N unmerged snapshots). Switch to `<new>`? (y/N)". On `y` → set `active_slug = <new>`. On `n` → abort silently with message "Pause aborted — active thread unchanged."
 

@@ -1,5 +1,5 @@
 ---
-latest_version: 3.4.13
+latest_version: 3.4.14
 released: 2026-08-29
 ---
 
@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.14 — 2026-08-29 — /resume --task validates before switching threads
+
+- `/resume --task=<slug>` now validates the slug BEFORE overwriting the `_active.md` pointer: the name must be plain kebab-case (no glob/path characters) and at least one pause file must exist for it — otherwise it reports that the active thread is unchanged and stops. Previously a mistyped slug rewrote the pointer first, orphaning it and silently deactivating the current thread (found during review of the v3.4.13 change). A pointer write failure now also stops instead of announcing a thread the pointer does not record.
+- `/pause --task=<slug>` gets the same kebab-case shape check before its thread-switch flow.
 
 ## v3.4.13 — 2026-08-29 — Auto-finalize skips threads the session never touched
 
