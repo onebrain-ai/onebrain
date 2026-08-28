@@ -88,6 +88,9 @@ Checkpoints are concurrent-session safe: each session writes under its own isola
 
 **The practical result:** Just say "bye" and OneBrain remembers what's promoted. If the session ends unexpectedly, you lose at most 15 messages — the last checkpoint recovers the rest.
 
-> Auto Checkpoint runs on Claude Code (`Stop`), Gemini CLI (`AfterAgent`), and
-> Codex (`Stop`) using the `onebrain` CLI binary. Codex thread identity keeps
-> concurrent checkpoint streams isolated. See [Install](install.md).
+> Auto Checkpoint runs through the shared `onebrain hook` command on Claude Code
+> (`Stop`), Gemini CLI (`AfterAgent`), and Codex (`Stop`). The CLI selects the
+> lifecycle action from each hook's stdin payload, and Codex thread identity
+> keeps concurrent checkpoint streams isolated. After upgrading the plugin,
+> start a new agent session; the old `codex-hook` alias is intentionally absent.
+> See [Install](install.md).

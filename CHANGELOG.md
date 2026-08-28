@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.11
-released: 2026-07-30
+latest_version: 3.4.12
+released: 2026-08-28
 ---
 
 # Changelog
@@ -10,6 +10,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.12 — 2026-08-28 — Codex hooks survive cache refreshes
+
+- Codex hook manifests call the cache-independent runner in OneBrain CLI v3.4.25+, so an active task no longer retains a dead path when the plugin cache refreshes.
+- Codex reuses SessionStart metadata, loads project memory only on topic matches, and bounds startup tasks to five while retaining the full count.
+- Codex, Claude, and Gemini lifecycle registrations now converge on one `onebrain hook` command; it selects the action from the stdin `hook_event_name`, and Codex keeps a single Stop entry so checkpoint work is not duplicated. Start a new agent session after upgrading because the old `codex-hook` alias is intentionally absent.
+- The chat identity contract is harness-split: Claude recovers a missing token via the `ONEBRAIN_HOOK_SESSION_ID`-derivation layer (provably the same sha256[..16] token the Stop hook increments), Gemini and Codex never mint one, and `checkpoint reset` now passes `--session-token {session_token}` so wrapup resets the same cadence counter the Stop hook incremented (needs CLI 3.4.25).
+- Every plugin-shipped lifecycle registration (all of Codex's and Gemini's hook commands, plus Claude's `SessionStart`) now wraps `onebrain hook` in a shell-level `|| echo` fail-open fallback, so rolling the CLI back below 3.4.25 degrades to an inert warning (or empty object) instead of a blocking exit code; Claude's CLI-registered `PostToolUse`/`Stop` entries use exec form and can't carry a shell `||`, so they stay covered by the `check-cli-version.sh` SessionStart gate, which remains the user-facing messaging layer.
 
 ## v3.4.11 — 2026-07-30 — /digest first run is a complete setup chain
 

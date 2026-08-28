@@ -93,10 +93,11 @@ Always: update `updated:` frontmatter to today.
 
 **Step 6: Register OneBrain hooks in `[vault]/.claude/settings.json`**
 
-Runs every /update — idempotent. Ensures all hooks point to the correct script.
+Runs every /update — idempotent. Ensures every lifecycle event uses one shared runner.
 
-- Run `onebrain plugin update` — registers the Stop checkpoint hook; auto-registers the PostToolUse search-reindex hook (`search reindex --lex-only`) and the Stop embed hook (`search reindex --pending-only`) when a search collection is configured; removes stale onebrain entries from any other hook event (PreCompact, PostCompact, UserPromptSubmit, etc.); preserves user-added non-onebrain hooks under the same events
+- Run `onebrain plugin update` — registers exactly one `onebrain hook` runner for each supported lifecycle event (the CLI writes Claude's `PostToolUse`/`Stop` entries in exec form; plugin manifests carry the `|| echo` wrapper for Codex, Gemini, and Claude's `SessionStart`). The CLI selects startup metadata, incremental reindexing, checkpointing, and pending embedding from `hook_event_name`; do not register separate direct checkpoint, reindex, or embed commands, and never use a `codex-hook` alias. It removes stale OneBrain entries from unsupported events (PreCompact, PostCompact, UserPromptSubmit, etc.) while preserving user-added non-OneBrain hooks under the same events.
 - Check output: "all hooks already registered" → ✅ done; "added X" → ✅ registered
+- **Restart caveat:** active agent sessions retain the hook registrations they started with. Start a new session after updating before relying on the new lifecycle configuration.
 
 **Bash permission for onebrain CLI:**
 - Read `[vault]/.claude/settings.json` fresh (after `onebrain plugin update` has written to it); check `permissions.allow` contains `"Bash(onebrain *)"` — if missing, add it using an inline Python snippet or targeted JSON edit. Never rewrite the entire file. Example:

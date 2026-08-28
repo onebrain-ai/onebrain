@@ -3,13 +3,23 @@
     "disableLoopDetection": true
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}'"
+          }
+        ]
+      }
+    ],
     "AfterAgent": [
       {
         "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain checkpoint stop --json > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain hook || echo '{}'"
           }
         ]
       }
@@ -20,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "onebrain search reindex --json > /dev/null 2>&1; echo '{}'"
+            "command": "onebrain hook || echo '{}'"
           }
         ]
       }

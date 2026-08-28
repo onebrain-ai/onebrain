@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" session-start",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" session-start",
+            "command": "onebrain hook || echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}'",
+            "commandWindows": "onebrain hook || echo {\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"OneBrain lifecycle hooks are inactive: the onebrain CLI is missing or older than 3.4.25. Run onebrain update, then start a new session.\"}}",
             "timeout": 10
           }
         ]
@@ -19,8 +19,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" lex",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" lex",
+            "command": "onebrain hook || echo '{}'",
+            "commandWindows": "onebrain hook || echo {}",
             "timeout": 10
           }
         ]
@@ -31,14 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" checkpoint",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" checkpoint",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/codex-hook.py\" pending",
-            "commandWindows": "py \"%CLAUDE_PLUGIN_ROOT%\\hooks\\codex-hook.py\" pending",
+            "command": "onebrain hook || echo '{}'",
+            "commandWindows": "onebrain hook || echo {}",
             "timeout": 10
           }
         ]

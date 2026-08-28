@@ -41,7 +41,7 @@ The plugin track ships TWO sibling trees — one per harness — both versioned 
     └── task-extractor.md                Extract action items from braindumps (used by /braindump)
 
 .gemini/                                 Gemini CLI project config (read by Gemini CLI)
-├── settings.json                        Declarative hooks (AfterAgent, AfterTool) + model.disableLoopDetection
+├── settings.json                        Declarative hooks (SessionStart, AfterAgent, AfterTool) + model.disableLoopDetection
 └── commands/
     └── onebrain/                        Slash commands namespaced as /onebrain:<skill>
         └── *.toml                       One TOML per user-facing skill (29 commands; description + prompt)
@@ -241,7 +241,7 @@ Agents are stateless — they receive all context in the prompt payload and do n
 
 Hooks run shell commands automatically when the harness performs certain actions. For Claude Code, hook configuration lives in the vault's `.claude/settings.json`; shell scripts (for PostToolUse hooks) go in `.claude/plugins/onebrain/hooks/`. For Gemini CLI, hooks live declaratively in `.gemini/settings.json` (under the `hooks` key).
 
-OneBrain currently registers `Stop` (checkpoint) + optional `PostToolUse` (search-reindex) + optional `Stop` (embed) on the Claude side, and the parallel `AfterAgent` + optional `AfterTool` (search-reindex) on the Gemini side. Reference tables below list every event each harness supports — useful when adding new hooks or porting between harnesses.
+OneBrain registers the same `onebrain hook` lifecycle command across every harness: Codex (`SessionStart`, `PostToolUse`, `Stop`), Claude (`SessionStart` alongside the version check, plus its independent PreToolUse hooks), and Gemini (`SessionStart`, `AfterTool`, `AfterAgent`). Every plugin-shipped registration — all of Codex's and Gemini's entries, plus Claude's `SessionStart` — wraps the command in a shell-level `|| echo` fail-open fallback. Claude's own `PostToolUse` and `Stop` entries are CLI-registered directly into the vault's `.claude/settings.json` in exec form (`command:"onebrain", args:["hook"]`) and can't carry a shell `||`, so they're covered instead by the `check-cli-version.sh` SessionStart gate, which remains the user-facing messaging layer — Claude's wrapped `SessionStart` entry falls back to a bare `{}` rather than repeating the version-check message. The installed CLI selects session init, search reindex, checkpoint, or pending embedding from stdin `hook_event_name`; keep one Stop/AfterAgent entry so checkpoint work is not duplicated. Reference tables below list every event each harness supports — useful when adding new hooks or porting between harnesses.
 
 **Claude Code hook events:**
 
@@ -288,9 +288,11 @@ Most Claude hooks support a `matcher` field to filter by tool name or event subt
 | `PreCompress` | Before chat history compression | `PreCompact` |
 | `Notification` | On notification events | `Notification` |
 
-Tool-name matchers in Gemini accept regex (e.g. `write_file|replace`) — they match Gemini's actual tool names (`read_file`, `write_file`, `replace`, `run_shell_command`, ...), NOT Claude's names (`Read`, `Write`, `Edit`, `Bash`, ...). Hook commands must emit `{}` on stdout to satisfy Gemini's JSON protocol; OneBrain wraps them as `{cmd} > /dev/null 2>&1; echo '{}'`.
+Tool-name matchers in Gemini accept regex (e.g. `write_file|replace`) — they match Gemini's actual tool names (`read_file`, `write_file`, `replace`, `run_shell_command`, ...), NOT Claude's names (`Read`, `Write`, `Edit`, `Bash`, ...). The shared `onebrain hook` command emits `{}` on stdout for tool and unsupported events, satisfying Gemini's JSON protocol; each registration additionally wraps the command in a shell-level `|| echo '{}'` fail-open fallback so a missing or pre-3.4.25 CLI degrades to a harmless no-op instead of a blocking exit code.
 
-**Example — checkpoint system:** OneBrain's checkpoint system uses the `Stop` hook to auto-save session snapshots. The hook calls `onebrain checkpoint stop` (the CLI binary). The binary tracks message count + elapsed time against configurable thresholds and emits a `decision:block` JSON payload when a checkpoint is due. State is kept in `$TMPDIR/onebrain-{session_token}.state` (format: `count:last_ts:last_stop_nn`) so counts accumulate across responses, including across compact events.
+**Example — checkpoint system:** OneBrain's checkpoint system uses the shared `onebrain hook` command on each harness's Stop-equivalent event to auto-save session snapshots. The CLI bridge calls `onebrain checkpoint stop` internally, tracks message count + elapsed time against configurable thresholds, and emits a `decision:block` JSON payload when a checkpoint is due. State is kept in `$TMPDIR/onebrain-{session_token}.state` (format: `count:last_ts:last_stop_nn`) so counts accumulate across responses, including across compact events.
+
+After upgrading the plugin, start a new agent session so the lifecycle registrations are loaded. The old `codex-hook` alias is intentionally absent.
 
 **To add a hook:**
 
@@ -302,7 +304,7 @@ Tool-name matchers in Gemini accept regex (e.g. `write_file|replace`) — they m
 
 4. **Stop hooks must NOT use `"async": true`** — they inject prompts via `decision:block` written to stdout, which requires synchronous completion before Claude's next response. Async execution fires too late for prompt injection.
 
-5. Use `/update` (or `onebrain plugin update`) to register or repair the `Stop` checkpoint hook (and the optional `PostToolUse` search-reindex + `Stop` embed hooks when a search collection is configured in `onebrain.yml`) automatically.
+5. Use `/update` (or `onebrain plugin update`) to register or repair the shared `onebrain hook` lifecycle registrations automatically. The installed CLI selects checkpoint, search-reindex, or embedding behavior from each event payload.
 
 ## Memory System
 
@@ -359,7 +361,7 @@ MEMORY-INDEX.md must be kept in sync at all times. Every skill that creates, upd
 Vault setup is owned by the `onebrain` CLI binary (Rust — lives at [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli)), **not** by shell scripts in this repo. The user flow is:
 
 1. Install the CLI from any path — `brew install onebrain-ai/onebrain/onebrain` (macOS) or `npm install -g @onebrain-ai/cli` or direct download from [onebrain-ai/onebrain-cli/releases](https://github.com/onebrain-ai/onebrain-cli/releases/latest)
-2. `onebrain init` — in a new or existing folder, writes `onebrain.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, and registers the `Stop` checkpoint hook (plus the `PostToolUse` search-reindex + `Stop` embed hooks when a search collection is configured). Aborts safely if a `onebrain.yml` already exists
+2. `onebrain init` — in a new or existing folder, writes `onebrain.yml`, scaffolds the 8 standard folders, downloads the latest plugin bundle, and registers the shared `onebrain hook` lifecycle registrations. The installed CLI selects checkpoint, search-reindex, or embedding behavior from each event payload. Aborts safely if a `onebrain.yml` already exists
 3. `/onboarding` — inside the chosen harness, personalises identity + active projects
 
 There are no `install.sh` or `install.ps1` scripts to maintain — the equivalent logic lives in the CLI's `init` and `update` commands. Bug fixes for vault bootstrap belong in the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli) repo, not this one.

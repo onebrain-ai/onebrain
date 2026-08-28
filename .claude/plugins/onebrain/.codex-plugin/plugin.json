@@ -1,6 +1,6 @@
 {
   "name": "onebrain",
-  "version": "3.4.11",
+  "version": "3.4.12",
   "description": "OneBrain — Your AI Thinking Partner",
   "namespace": "onebrain",
   "skills": "./skills/",
@@ -11,6 +11,6 @@
     "tagline": "Your AI Thinking Partner"
   },
   "requires": {
-    "cli": ">=3.4.18"
+    "cli": ">=3.4.25"
   }
 }

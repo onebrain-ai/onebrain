@@ -35,8 +35,10 @@ jobs:
       - run: python3 scripts/check-skill-count.py
 
   codex-hooks:
-    name: codex hook session binding
+    name: unified lifecycle hook contract
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: python3 scripts/check-codex-hooks.py
+      - run: |
+          python3 scripts/check-lifecycle-hooks.py
+          python3 scripts/test-check-cli-version.py
