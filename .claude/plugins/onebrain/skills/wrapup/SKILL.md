@@ -45,11 +45,12 @@ Run this BEFORE Step 1.
 
 Runs only when `wrapup_mode = "session"` AND `_active.md` exists.
 
-Apply the three skip conditions from `skills/pause/SKILL.md` → Auto-Finalize section:
+Apply the four skip conditions from `skills/pause/SKILL.md` → Auto-Finalize section:
 
 1. **No-activity:** if no checkpoint file exists for current `session_token`, skip Auto-Finalize.
 2. **Already-captured-this-session:** if latest pause file's frontmatter `session_token` matches current AND no checkpoint mtime > pause file mtime, skip.
 3. **No-pause-files-and-untouched:** if no pause file exists for slug AND newest checkpoint mtime < `_active.md` mtime, skip.
+4. **Thread-untouched-by-this-session:** if latest pause file's `session_token` differs from current AND this session performed no activity on the thread (no `/resume` of this slug, no pause file written, conversation/checkpoints unrelated to its topic), skip — auto-finalizing would append unrelated work into the thread. A session that resumed or continued the thread does NOT match.
 
 If not skipped: invoke `/pause` auto-finalize path (Steps 2–5 of `/pause`, with `trigger: auto-finalize` in frontmatter and "Auto-finalized at session end. " prefix in `## Where I Stopped`).
 
@@ -657,7 +658,7 @@ Where `{P}` is `len(pause_files)`, `{C}` is the checkpoint count from Step 1. Th
 📂 Auto-finalized pause thread `{slug}` (snapshot {NN}). Thread still active — /resume to continue.
 ```
 
-**If `wrapup_mode = "session"` AND Step 0b Auto-Finalize was skipped due to skip-condition (1, 2, or 3):** add a line after `💾 Session Saved`:
+**If `wrapup_mode = "session"` AND Step 0b Auto-Finalize was skipped due to skip-condition (1, 2, 3, or 4):** add a line after `💾 Session Saved`:
 
 ```
 📂 Pause thread `{slug}` still active ({pause_count} snapshots) — /resume to continue.

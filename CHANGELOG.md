@@ -1,6 +1,6 @@
 ---
-latest_version: 3.4.12
-released: 2026-08-28
+latest_version: 3.4.13
+released: 2026-08-29
 ---
 
 # Changelog
@@ -10,6 +10,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 > **Versioning:** Plugin version is tracked in `plugin.json`. Bump when ANY harness config changes — skills, agents, hooks, INSTRUCTIONS, Gemini settings, slash commands, etc.
 > For CLI binary changes, see the [`onebrain-ai/onebrain-cli`](https://github.com/onebrain-ai/onebrain-cli/blob/main/CHANGELOG.md) repository.
+
+## v3.4.13 — 2026-08-29 — Auto-finalize skips threads the session never touched
+
+- `/pause` Auto-Finalize gains a fourth skip condition: when the active thread's latest snapshot belongs to another session token and the ending session performed no activity on the thread, auto-finalize skips instead of appending the session's unrelated work into the thread's snapshot series (which would corrupt `/resume`). A session that resumed or continued the thread and ended without an explicit `/pause` still auto-finalizes as before.
+- The mirrored skip-condition lists in `/wrapup` Step 0b and AUTO-SUMMARY carry the same fourth condition, and `/wrapup`'s skipped-notice wording now covers it.
 
 ## v3.4.12 — 2026-08-28 — Codex hooks survive cache refreshes
 
