@@ -12,11 +12,11 @@ Reads the latest snapshot of the active pause thread and announces its state in 
 
 ## Step 1: Resolve Active Thread
 
-1. If `/resume --task=<slug>` was invoked with an explicit slug, validate BEFORE touching the pointer: glob `[logs_folder]/pause/*-{slug}-pause-*.md`.
-   - ≥1 match → set `active_slug = <slug>`, overwrite `_active.md` to match (this enables switching from one paused thread to another), and continue to Step 2.
+1. If `/resume --task=<slug>` was invoked with an explicit slug, validate BEFORE touching the pointer:
+   - If `<slug>` is not plain kebab-case (lowercase letters, digits, hyphens only — reject anything with glob or path characters like `*`, `?`, `[`, `/`) → output "⚠️ Invalid thread name `<slug>`. Active thread unchanged." and stop. Never interpolate an unvalidated slug into the glob below.
+   - Glob `[logs_folder]/pause/*-{slug}-pause-*.md`. ≥1 match → set `active_slug = <slug>` and overwrite `_active.md` to match (this enables switching from one paused thread to another), then continue to Step 2. If the pointer write fails, output "⚠️ Could not update active pointer. Active thread unchanged." and stop — do not announce a thread the pointer does not record.
    - 0 matches → output "⚠️ No pause file found for `<slug>`. Active thread unchanged." and stop. Do NOT overwrite `_active.md` — a mistyped slug must not orphan the pointer or silently deactivate the current thread.
-2. Otherwise read `[logs_folder]/pause/_active.md`. If absent or empty → output "No active pause. คุยใหม่ได้เลย" and stop.
-3. Parse the single-line content as `active_slug`.
+2. Otherwise read `[logs_folder]/pause/_active.md`. If absent or empty → output "No active pause. คุยใหม่ได้เลย" and stop. If present, parse the single-line content as `active_slug`.
 
 ---
 
